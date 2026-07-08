@@ -75,6 +75,39 @@ curl -X POST http://localhost:5001/api/v1/measurements \
 python -m pytest tests/ -v
 ```
 
-## Task management
+# Task Management
 
-See `tasks/index.md`. Move done tasks to `tasks/done/`.
+`tasks/index.md` is the single source of truth for all tasks. Do not read files in `tasks/done/`.
+
+When creating a new task plan (when user says "plan only" or asks to save a plan):
+
+1. **Ensure directory exists** — Create `tasks/` if it doesn't exist:
+   ```bash
+   mkdir -p tasks
+   ```
+2. **Determine next task ID** — Read `tasks/index.md` to find the highest existing task number. The next task ID is that number + 1.
+3. **APPEND to `tasks/index.md`** — **DO NOT overwrite**. Only append a new line:
+   ```
+   - [ ] {id}. {title} (see [task-{id}.md](task-{id}.md))
+   ```
+4. **Create detail file** `tasks/task-{id}.md` with this format:
+   ```
+   # Task {id}: {title}
+
+   ## Files
+   - `path/to/file.php` (lines X-Y)
+   - ...
+
+   ## Description
+   ...
+
+   ## Steps
+   1. ...
+   2. ...
+
+   ## Expected Outcome
+   ...
+   ```
+5. When task is executed and done:
+   - Move `tasks/task-{id}.md` → `tasks/done/task-{id}.md`
+   - Update `tasks/index.md`: change `[ ]` to `[x]` and update link to `done/task-{id}.md`
