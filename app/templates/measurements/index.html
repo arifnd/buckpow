@@ -5,13 +5,43 @@
 
 <div class="card border-0 bg-dark mt-3">
   <div class="card-body">
+    <form class="row g-2 mb-3 align-items-end" id="filter-form">
+      <div class="col-auto">
+        <label class="text-muted small d-block">Device</label>
+        <select class="form-select form-select-sm bg-dark text-light border-secondary" id="filter-device">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="text-muted small d-block">Session</label>
+        <select class="form-select form-select-sm bg-dark text-light border-secondary" id="filter-session">
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="text-muted small d-block">From</label>
+        <input type="datetime-local" class="form-control form-control-sm bg-dark text-light border-secondary" id="filter-from">
+      </div>
+      <div class="col-auto">
+        <label class="text-muted small d-block">To</label>
+        <input type="datetime-local" class="form-control form-control-sm bg-dark text-light border-secondary" id="filter-to">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-outline-info">Filter</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="reset-filters">Reset</button>
+      </div>
+      <div class="col-auto ms-auto">
+        <button type="button" class="btn btn-sm btn-outline-success" id="download-csv">Download CSV</button>
+      </div>
+    </form>
+
     <div class="table-responsive">
       <table class="table table-dark table-sm mb-0" id="measurements-table">
         <thead>
           <tr>
             <th>ID</th>
             <th>Device ID</th>
-            <th>Session ID</th>
+            <th>Session</th>
             <th>Bus Voltage</th>
             <th>Shunt Voltage</th>
             <th>Load Voltage</th>
@@ -35,15 +65,31 @@
 <script>
 let currentPage = 1;
 
+function getFilterParams() {
+  const p = new URLSearchParams();
+  const d = document.getElementById('filter-device').value;
+  const s = document.getElementById('filter-session').value;
+  const f = document.getElementById('filter-from').value;
+  const t = document.getElementById('filter-to').value;
+  if (d) p.set('device_id', d);
+  if (s) p.set('session_id', s);
+  if (f) p.set('start_date', new Date(f).toISOString());
+  if (t) p.set('end_date', new Date(t).toISOString());
+  return p;
+}
+
 async function loadMeasurements(page = 1) {
-  const res = await fetch(`/api/v1/measurements?page=${page}&per_page=50`);
+  const params = getFilterParams();
+  params.set('page', page);
+  params.set('per_page', 50);
+  const res = await fetch(`/api/v1/measurements?${params}`);
   const data = await res.json();
 
   const tbody = document.getElementById('measurements-body');
   tbody.innerHTML = data.measurements.map(m => `<tr>
     <td>${m.id}</td>
-    <td>${m.device_id}</td>
-    <td>${m.session_id || '—'}</td>
+    <td>${m.device_name || m.device_id}</td>
+    <td>${m.session_name || '—'}</td>
     <td>${m.bus_voltage.toFixed(3)}</td>
     <td>${m.shunt_voltage.toFixed(3)}</td>
     <td>${m.load_voltage.toFixed(3)}</td>
@@ -54,16 +100,64 @@ async function loadMeasurements(page = 1) {
   </tr>`).join('');
 
   const pagination = document.getElementById('pagination');
-  let html = '';
-  for (let p = 1; p <= data.pages; p++) {
-    html += `<li class="page-item ${p === data.page ? 'active' : ''}">
-      <a class="page-link" href="#" onclick="loadMeasurements(${p}); return false;">${p}</a>
-    </li>`;
-  }
+  const p = data.page, total = data.pages;
+  let html = `<li class="page-item ${p <= 1 ? 'disabled' : ''}">
+    <a class="page-link" href="#" onclick="loadMeasurements(${p - 1}); return false;">&laquo;</a></li>`;
+  let pages = new Set([1, total]);
+  for (let i = Math.max(2, p - 2); i <= Math.min(total - 1, p + 2); i++) pages.add(i);
+  [...pages].sort((a, b) => a - b).forEach((n, i, arr) => {
+    if (i > 0 && n - arr[i - 1] > 1) html += '<li class="page-item disabled"><span class="page-link">&hellip;</span></li>';
+    html += `<li class="page-item ${n === p ? 'active' : ''}">
+      <a class="page-link" href="#" onclick="loadMeasurements(${n}); return false;">${n}</a></li>`;
+  });
+  html += `<li class="page-item ${p >= total ? 'disabled' : ''}">
+    <a class="page-link" href="#" onclick="loadMeasurements(${p + 1}); return false;">&raquo;</a></li>`;
   pagination.innerHTML = html;
-  currentPage = data.page;
+  currentPage = p;
 }
 
-document.addEventListener('DOMContentLoaded', () => loadMeasurements());
+async function loadFilterOptions() {
+  const [devices, sessions] = await Promise.all([
+    fetch('/api/v1/devices').then(r => r.json()),
+    fetch('/api/v1/sessions').then(r => r.json()),
+  ]);
+  const deviceSel = document.getElementById('filter-device');
+  devices.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.alias || d.device_id;
+    deviceSel.appendChild(opt);
+  });
+  const sessionSel = document.getElementById('filter-session');
+  sessions.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    sessionSel.appendChild(opt);
+  });
+}
+
+document.getElementById('filter-form').addEventListener('submit', e => {
+  e.preventDefault();
+  loadMeasurements(1);
+});
+
+document.getElementById('reset-filters').addEventListener('click', () => {
+  document.getElementById('filter-device').value = '';
+  document.getElementById('filter-session').value = '';
+  document.getElementById('filter-from').value = '';
+  document.getElementById('filter-to').value = '';
+  loadMeasurements(1);
+});
+
+document.getElementById('download-csv').addEventListener('click', () => {
+  const params = getFilterParams();
+  window.location.href = `/api/v1/measurements/export/csv?${params}`;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadFilterOptions();
+  loadMeasurements();
+});
 </script>
 {% endblock %}

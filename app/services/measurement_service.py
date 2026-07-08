@@ -114,13 +114,28 @@ class MeasurementService:
         }
 
     @staticmethod
-    def get_paginated(page=1, per_page=50, device_id=None, start_date=None, end_date=None):
+    def get_paginated(page=1, per_page=50, device_id=None, session_id=None, start_date=None, end_date=None):
         q = Measurement.query
         if device_id:
             q = q.filter_by(device_id=device_id)
+        if session_id:
+            q = q.filter_by(session_id=session_id)
         if start_date:
             q = q.filter(Measurement.created_at >= start_date)
         if end_date:
             q = q.filter(Measurement.created_at <= end_date)
         q = q.order_by(Measurement.created_at.desc())
         return q.paginate(page=page, per_page=per_page, error_out=False)
+
+    @staticmethod
+    def get_all_filtered(device_id=None, session_id=None, start_date=None, end_date=None):
+        q = Measurement.query
+        if device_id:
+            q = q.filter_by(device_id=device_id)
+        if session_id:
+            q = q.filter_by(session_id=session_id)
+        if start_date:
+            q = q.filter(Measurement.created_at >= start_date)
+        if end_date:
+            q = q.filter(Measurement.created_at <= end_date)
+        return q.order_by(Measurement.created_at.asc()).all()

@@ -85,6 +85,7 @@ function updateTable(measurements) {
   const tbody = document.getElementById('readings-body');
   tbody.innerHTML = measurements.slice(0, 50).map(r => `<tr>
     <td>${r.created_at ? new Date(r.created_at).toLocaleString() : ''}</td>
+    <td>${r.session_name || '—'}</td>
     <td>${toFixedSafe(r.bus_voltage, 3)}</td>
     <td>${toFixedSafe(r.shunt_voltage, 3)}</td>
     <td>${toFixedSafe(r.load_voltage, 3)}</td>
