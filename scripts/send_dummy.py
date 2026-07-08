@@ -31,7 +31,7 @@ def send_reading(url, device_id, energy):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Send dummy power readings to PowerDash v0.1 API")
+    parser = argparse.ArgumentParser(description="Send dummy power readings to BakPow v0.1 API")
     parser.add_argument("--interval", type=float, default=1.0, help="Seconds between readings (default: 1.0)")
     parser.add_argument("--url", default="http://localhost:5001/api/v1/measurements", help="API endpoint URL")
     parser.add_argument("--device", default="esp32-dummy", help="Device ID (default: esp32-dummy)")

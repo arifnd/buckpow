@@ -1,62 +1,149 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2>Sessions</h2>
-  <a href="/sessions/new" class="btn btn-primary btn-sm">Create Session</a>
+<div class="flex justify-between items-center mb-4">
+  <h2 class="text-xl font-semibold">Sessions</h2>
+  <button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors" id="create-session-btn">Create Session</button>
 </div>
 
-<div class="card border-0 bg-dark">
-  <div class="card-body">
-    <div class="table-responsive">
-      <table class="table table-dark table-sm mb-0" id="sessions-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Device ID</th>
-            <th>Target Device</th>
-            <th>Status</th>
-            <th>Started</th>
-            <th>Ended</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="sessions-body"></tbody>
-      </table>
-    </div>
+<div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-[var(--border)] text-[var(--muted)]">
+          <th class="text-left py-2 px-3 font-medium">ID</th>
+          <th class="text-left py-2 px-3 font-medium">Name</th>
+          <th class="text-left py-2 px-3 font-medium">Device ID</th>
+          <th class="text-left py-2 px-3 font-medium">Target Device</th>
+          <th class="text-center py-2 px-3 font-medium">Status</th>
+          <th class="text-left py-2 px-3 font-medium">Started</th>
+          <th class="text-left py-2 px-3 font-medium">Ended</th>
+          <th class="text-right py-2 px-3 font-medium">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="sessions-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="session-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+    <h3 class="text-base font-semibold mb-4" id="session-modal-title">Create Session</h3>
+    <form id="session-form">
+      <input type="hidden" name="id" id="session-id">
+      <div class="mb-4">
+        <label class="block text-sm text-[var(--muted)] mb-1">Session Name</label>
+        <input type="text" name="name" id="field-session-name" required
+               class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm text-[var(--muted)] mb-1">Device</label>
+        <select name="device_id" id="field-session-device"
+                class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+          <option value="">Select device</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm text-[var(--muted)] mb-1">Target Device</label>
+        <input type="text" name="target_device" id="field-target-device"
+               class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+        <p class="text-xs text-[var(--muted)] mt-1">Optional: the device being benchmarked.</p>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm text-[var(--muted)] mb-1">Description</label>
+        <textarea name="description" id="field-session-desc" rows="2"
+                  class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"></textarea>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" class="px-4 py-1.5 rounded text-sm font-medium border border-[var(--border)] text-[var(--muted)] hover:bg-[var(--hover)] transition-colors" id="session-modal-cancel">Cancel</button>
+        <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors">Save</button>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-let sessions = [];
+let editingSessionId = null;
+let deviceOpts = [];
 
 function statusBadge(status) {
-  const map = {draft: 'bg-secondary', running: 'bg-success', finished: 'bg-primary'};
-  return `<span class="badge ${map[status] || 'bg-secondary'}">${status}</span>`;
+  const map = {draft: 'bg-[#8b949e]', running: 'bg-[#3fb950]', finished: 'bg-[#1f6feb]'};
+  return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium text-white ${map[status] || 'bg-[#8b949e]'}">${status}</span>`;
 }
 
 async function loadSessions() {
-  const res = await fetch('/api/v1/sessions');
-  sessions = await res.json();
+  const [res, activeRes] = await Promise.all([
+    fetch('/api/v1/sessions'),
+    fetch('/api/v1/dashboard').then(r => r.json()),
+  ]);
+  const sessions = await res.json();
+  var activeId = activeRes.active_session ? activeRes.active_session.id : null;
   const tbody = document.getElementById('sessions-body');
-  tbody.innerHTML = sessions.map(s => `<tr>
-    <td>${s.id}</td>
-    <td>${s.name}</td>
-    <td>${s.device_id}</td>
-    <td>${s.target_device || '—'}</td>
-    <td>${statusBadge(s.status)}</td>
-    <td>${s.started_at ? new Date(s.started_at).toLocaleString() : '—'}</td>
-    <td>${s.ended_at ? new Date(s.ended_at).toLocaleString() : '—'}</td>
-    <td>
-      <a href="/sessions/${s.id}/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
-      ${s.status === 'draft' ? `<button class="btn btn-sm btn-outline-success" onclick="startSession(${s.id})">Start</button>` : ''}
-      ${s.status === 'running' ? `<button class="btn btn-sm btn-outline-warning" onclick="stopSession(${s.id})">Stop</button>` : ''}
-      <button class="btn btn-sm btn-outline-danger" onclick="deleteSession(${s.id})">Delete</button>
-    </td>
-  </tr>`).join('');
+  tbody.innerHTML = sessions.map(s => {
+    var startDisabled = s.status === 'draft' && activeId && activeId !== s.id;
+    return `<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">
+      <td class="py-2 px-3">${s.id}</td>
+      <td class="py-2 px-3 font-medium">${s.name}</td>
+      <td class="py-2 px-3">${s.device_id}</td>
+      <td class="py-2 px-3">${s.target_device || '—'}</td>
+      <td class="py-2 px-3 text-center">${statusBadge(s.status)}</td>
+      <td class="py-2 px-3">${s.started_at ? new Date(s.started_at).toLocaleString() : '—'}</td>
+      <td class="py-2 px-3">${s.ended_at ? new Date(s.ended_at).toLocaleString() : '—'}</td>
+      <td class="py-2 px-3 text-right">
+        <button class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border border-[#30363d] text-[#c9d1d9] hover:bg-[#30363d] transition-colors" onclick="openSessionModal(${s.id})">Edit</button>
+        ${s.status === 'draft' ? `<button class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border border-[#30363d] text-[#3fb950] hover:bg-[#30363d] transition-colors ml-1${startDisabled ? ' opacity-50 cursor-not-allowed' : ''}" onclick="${startDisabled ? '' : 'startSession(' + s.id + ')'}"${startDisabled ? ' title="Another session is already running"' : ''}>Start</button>` : ''}
+        ${s.status === 'running' ? `<button class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border border-[#30363d] text-[#d29922] hover:bg-[#30363d] transition-colors ml-1" onclick="stopSession(${s.id})">Stop</button>` : ''}
+        <button class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border border-[#30363d] text-[#f85149] hover:bg-[#30363d] transition-colors ml-1" onclick="deleteSession(${s.id})">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function showSessionModal() {
+  const modal = document.getElementById('session-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function hideSessionModal() {
+  const modal = document.getElementById('session-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+async function populateDeviceSelect(selectedId) {
+  const sel = document.getElementById('field-session-device');
+  sel.innerHTML = '<option value="">Select device</option>';
+  if (deviceOpts.length === 0) {
+    const res = await fetch('/api/v1/devices');
+    deviceOpts = await res.json();
+  }
+  deviceOpts.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.alias || d.device_id;
+    if (selectedId && d.id === selectedId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+async function openSessionModal(id) {
+  editingSessionId = id;
+  document.getElementById('session-modal-title').textContent = 'Edit Session';
+  const [s, _] = await Promise.all([
+    fetch('/api/v1/sessions/' + id).then(r => r.json()),
+    populateDeviceSelect(),
+  ]);
+  document.getElementById('session-id').value = s.id;
+  document.getElementById('field-session-name').value = s.name;
+  document.getElementById('field-target-device').value = s.target_device || '';
+  document.getElementById('field-session-desc').value = s.description || '';
+  const sel = document.getElementById('field-session-device');
+  sel.value = s.device_id;
+  sel.setAttribute('disabled', true);
+  showSessionModal();
 }
 
 async function startSession(id) {
@@ -70,11 +157,57 @@ async function stopSession(id) {
 }
 
 async function deleteSession(id) {
-  if (!confirm('Delete this session?')) return;
+  if (!await confirmDialog('Delete this session?')) return;
   await fetch('/api/v1/sessions/' + id, {method: 'DELETE'});
   loadSessions();
 }
 
-document.addEventListener('DOMContentLoaded', loadSessions);
+document.addEventListener('DOMContentLoaded', () => {
+  loadSessions();
+
+  document.getElementById('create-session-btn').addEventListener('click', async () => {
+    editingSessionId = null;
+    document.getElementById('session-modal-title').textContent = 'Create Session';
+    document.getElementById('session-form').reset();
+    document.getElementById('session-id').value = '';
+    document.getElementById('field-session-device').removeAttribute('disabled');
+    await populateDeviceSelect();
+    showSessionModal();
+  });
+
+  document.getElementById('session-modal-cancel').addEventListener('click', hideSessionModal);
+
+  document.getElementById('session-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+      name: document.getElementById('field-session-name').value,
+      device_id: parseInt(document.getElementById('field-session-device').value),
+      target_device: document.getElementById('field-target-device').value,
+      description: document.getElementById('field-session-desc').value,
+    };
+    let res;
+    if (editingSessionId) {
+      delete data.device_id;
+      res = await fetch('/api/v1/sessions/' + editingSessionId, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data),
+      });
+    } else {
+      res = await fetch('/api/v1/sessions', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data),
+      });
+    }
+    if (res.ok) {
+      hideSessionModal();
+      loadSessions();
+    } else {
+      const err = await res.json();
+      alert('Error: ' + (err.error || 'Unknown error'));
+    }
+  });
+});
 </script>
 {% endblock %}

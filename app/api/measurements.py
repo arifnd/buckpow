@@ -90,8 +90,13 @@ def chart_data():
     device_id = request.args.get('device_id', type=int)
     session_id = request.args.get('session_id', type=int)
     limit = request.args.get('limit', 100, type=int)
+    granularity = request.args.get('granularity')
+
+    if granularity not in (None, 's', 'm', 'h'):
+        granularity = None
 
     data = MeasurementService.get_chart_data(
-        limit=limit, device_id=device_id, session_id=session_id
+        limit=limit, device_id=device_id, session_id=session_id,
+        granularity=granularity,
     )
     return jsonify(data)

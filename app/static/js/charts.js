@@ -13,11 +13,11 @@ const CHART_OPTS = {
   },
   scales: {
     x: {
-      ticks: { color: '#8b949e', maxTicksLimit: 8 },
+      ticks: { color: '#8b949e', maxTicksLimit: 8, font: { size: 13 } },
       grid: { color: '#21262d' },
     },
     y: {
-      ticks: { color: '#8b949e' },
+      ticks: { color: '#8b949e', font: { size: 13 } },
       grid: { color: '#21262d' },
       beginAtZero: true,
     },

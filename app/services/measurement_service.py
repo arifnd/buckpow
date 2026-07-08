@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from sqlalchemy import func
+
 from app import db
 from app.models import Measurement
 from app.utils.calculations import calc_load_voltage, calc_energy_increment
@@ -25,12 +27,14 @@ class MeasurementService:
             Measurement.created_at.desc()
         ).first()
 
-        if last:
-            energy = last.energy + calc_energy_increment(
-                power_w, device.sampling_interval
-            )
+        inc = calc_energy_increment(power_w, device.sampling_interval)
+
+        if last and session_id and last.session_id == session_id:
+            energy = last.energy + inc
+        elif last and not session_id:
+            energy = last.energy + inc
         else:
-            energy = 0.0
+            energy = inc if session_id else 0.0
 
         measurement = Measurement(
             session_id=session_id,
@@ -54,12 +58,34 @@ class MeasurementService:
         return q.order_by(Measurement.created_at.desc()).limit(limit).all()
 
     @staticmethod
-    def get_chart_data(limit=100, device_id=None, session_id=None):
+    def get_chart_data(limit=100, device_id=None, session_id=None, granularity=None):
         q = Measurement.query
         if device_id:
             q = q.filter_by(device_id=device_id)
         if session_id:
             q = q.filter_by(session_id=session_id)
+
+        if granularity and granularity in ('s', 'm', 'h'):
+            fmt_map = {'s': '%Y-%m-%dT%H:%M:%S', 'm': '%Y-%m-%dT%H:%M:00', 'h': '%Y-%m-%dT%H:00:00'}
+            bucket = func.strftime(fmt_map[granularity], Measurement.created_at)
+            rows = q.with_entities(
+                bucket.label('tb'),
+                func.avg(Measurement.bus_voltage).label('avg_voltage'),
+                func.avg(Measurement.load_voltage).label('avg_load_voltage'),
+                func.avg(Measurement.current).label('avg_current'),
+                func.avg(Measurement.power).label('avg_power'),
+                func.avg(Measurement.energy).label('avg_energy'),
+            ).group_by('tb').order_by(func.max(Measurement.created_at).desc()).limit(limit).all()
+            rows.reverse()
+            return {
+                'labels': [r.tb + 'Z' for r in rows],
+                'voltage': [round(r.avg_voltage, 3) for r in rows],
+                'load_voltage': [round(r.avg_load_voltage, 3) for r in rows],
+                'current': [round(r.avg_current, 3) for r in rows],
+                'power': [round(r.avg_power, 3) for r in rows],
+                'energy': [round(r.avg_energy, 3) for r in rows],
+            }
+
         rows = q.order_by(Measurement.created_at.desc()).limit(limit).all()
         rows.reverse()
         return {

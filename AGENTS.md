@@ -1,4 +1,4 @@
-# PowerDash — v0.1
+# BakPow — v0.1
 
 Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives power readings from ESP32+INA219 via HTTP POST. Serves a Bootstrap 5 dashboard with Chart.js real-time charts.
 

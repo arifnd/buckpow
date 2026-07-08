@@ -1,38 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>{% if session %}Edit Session{% else %}Create Session{% endif %}</h2>
+<h2 class="text-xl font-semibold mb-4">{% if session %}Edit Session{% else %}Create Session{% endif %}</h2>
 
-<div class="card border-0 bg-dark mt-3">
-  <div class="card-body">
-    <form id="session-form">
-      <div class="mb-3">
-        <label class="form-label">Session Name</label>
-        <input type="text" class="form-control" name="name" value="{{ session.name if session else '' }}" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Device</label>
-        <select class="form-select" name="device_id" {% if session %}disabled{% endif %}>
-          {% for d in devices %}
-          <option value="{{ d.id }}" {% if session and session.device_id == d.id %}selected{% endif %}>
-            {{ d.alias or d.device_id }}
-          </option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Target Device</label>
-        <input type="text" class="form-control" name="target_device" value="{{ session.target_device if session else '' }}">
-        <div class="form-text">Optional: the device being benchmarked.</div>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Description</label>
-        <textarea class="form-control" name="description" rows="2">{{ session.description if session else '' }}</textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">Save</button>
-      <a href="/sessions" class="btn btn-outline-secondary">Cancel</a>
-    </form>
-  </div>
+<div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+  <form id="session-form" class="max-w-lg">
+    <div class="mb-4">
+      <label class="block text-sm text-[var(--muted)] mb-1">Session Name</label>
+      <input type="text" name="name" value="{{ session.name if session else '' }}" required
+             class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm text-[var(--muted)] mb-1">Device</label>
+      <select name="device_id" {% if session %}disabled{% endif %}
+              class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+        {% for d in devices %}
+        <option value="{{ d.id }}" {% if session and session.device_id == d.id %}selected{% endif %}>
+          {{ d.alias or d.device_id }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm text-[var(--muted)] mb-1">Target Device</label>
+      <input type="text" name="target_device" value="{{ session.target_device if session else '' }}"
+             class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+      <p class="text-xs text-[var(--muted)] mt-1">Optional: the device being benchmarked.</p>
+    </div>
+    <div class="mb-4">
+      <label class="block text-sm text-[var(--muted)] mb-1">Description</label>
+      <textarea name="description" rows="2"
+                class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">{{ session.description if session else '' }}</textarea>
+    </div>
+    <div class="flex gap-2">
+      <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors">Save</button>
+      <a href="/sessions" class="px-4 py-1.5 rounded text-sm font-medium border border-[#30363d] text-[#c9d1d9] hover:bg-[#30363d] transition-colors">Cancel</a>
+    </div>
+  </form>
 </div>
 {% endblock %}
 

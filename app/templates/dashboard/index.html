@@ -1,146 +1,149 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row mb-3">
-  <div class="col">
-    <h2>Dashboard</h2>
-  </div>
-  <div class="col text-end">
-    <small class="text-muted" id="last-updated">—</small>
-  </div>
-</div>
-
-<div class="row g-3 mb-4" id="summary-cards">
-  <div class="col-md-2 col-6">
-    <div class="card border-0 bg-dark h-100">
-      <div class="card-body">
-        <small class="text-muted text-uppercase">Device</small>
-        <h5 class="card-title" id="val-device">—</h5>
-        <span class="badge" id="val-status">—</span>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-2 col-6">
-    <div class="card border-0 bg-dark h-100">
-      <div class="card-body">
-        <small class="text-muted text-uppercase">Bus Voltage</small>
-        <h4 class="card-title text-info" id="val-voltage">—</h4>
-        <small class="text-secondary">V</small>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-2 col-6">
-    <div class="card border-0 bg-dark h-100">
-      <div class="card-body">
-        <small class="text-muted text-uppercase">Load Voltage</small>
-        <h4 class="card-title text-info" id="val-load-voltage">—</h4>
-        <small class="text-secondary">V</small>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-2 col-6">
-    <div class="card border-0 bg-dark h-100">
-      <div class="card-body">
-        <small class="text-muted text-uppercase">Current</small>
-        <h4 class="card-title text-success" id="val-current">—</h4>
-        <small class="text-secondary">A</small>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-2 col-6">
-    <div class="card border-0 bg-dark h-100">
-      <div class="card-body">
-        <small class="text-muted text-uppercase">Power</small>
-        <h4 class="card-title text-warning" id="val-power">—</h4>
-        <small class="text-secondary">W</small>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-2 col-6">
-    <div class="card border-0 bg-dark h-100">
-      <div class="card-body">
-        <small class="text-muted text-uppercase">Energy</small>
-        <h4 class="card-title text-purple" id="val-energy">—</h4>
-        <small class="text-secondary">Wh</small>
-      </div>
-    </div>
+<div class="flex justify-between items-center mb-4">
+  <h2 class="text-xl font-semibold">Dashboard</h2>
+  <div class="flex items-center gap-2">
+    <small class="text-[var(--muted)]" id="last-updated">—</small>
+    <span id="session-indicator"></span>
   </div>
 </div>
 
-<div class="row g-3 mb-4">
-  <div class="col-md-6">
-    <div class="card border-0 bg-dark">
-      <div class="card-body">
-        <h6 class="card-subtitle mb-2 text-muted">Voltage vs Time</h6>
-        <div class="chart-container">
-          <canvas id="voltageChart"></canvas>
-        </div>
+<div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6" id="summary-cards">
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-4 h-4 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Device</small>
       </div>
+      <h5 class="text-base font-semibold mb-0" id="val-device">—</h5>
+      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium mt-1" id="val-status">—</span>
     </div>
   </div>
-  <div class="col-md-6">
-    <div class="card border-0 bg-dark">
-      <div class="card-body">
-        <h6 class="card-subtitle mb-2 text-muted">Current vs Time</h6>
-        <div class="chart-container">
-          <canvas id="currentChart"></canvas>
-        </div>
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-4 h-4 text-[#58a6ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Bus Voltage</small>
       </div>
+      <h4 class="text-lg font-semibold text-[#58a6ff] mb-0" id="val-voltage">—</h4>
+      <small class="text-[var(--muted)]">V</small>
     </div>
   </div>
-  <div class="col-md-6">
-    <div class="card border-0 bg-dark">
-      <div class="card-body">
-        <h6 class="card-subtitle mb-2 text-muted">Power vs Time</h6>
-        <div class="chart-container">
-          <canvas id="powerChart"></canvas>
-        </div>
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-4 h-4 text-[#58a6ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Load Voltage</small>
       </div>
+      <h4 class="text-lg font-semibold text-[#58a6ff] mb-0" id="val-load-voltage">—</h4>
+      <small class="text-[var(--muted)]">V</small>
     </div>
   </div>
-  <div class="col-md-6">
-    <div class="card border-0 bg-dark">
-      <div class="card-body">
-        <h6 class="card-subtitle mb-2 text-muted">Energy vs Time</h6>
-        <div class="chart-container">
-          <canvas id="energyChart"></canvas>
-        </div>
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-4 h-4 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Current</small>
       </div>
+      <h4 class="text-lg font-semibold text-[#3fb950] mb-0" id="val-current">—</h4>
+      <small class="text-[var(--muted)]">A</small>
+    </div>
+  </div>
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-4 h-4 text-[#d29922]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Power</small>
+      </div>
+      <h4 class="text-lg font-semibold text-[#d29922] mb-0" id="val-power">—</h4>
+      <small class="text-[var(--muted)]">W</small>
+    </div>
+  </div>
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-4 h-4 text-[#d2a8ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Energy</small>
+      </div>
+      <h4 class="text-lg font-semibold text-[#d2a8ff] mb-0" id="val-energy">—</h4>
+      <small class="text-[var(--muted)]">Wh</small>
     </div>
   </div>
 </div>
 
-<div class="row g-3 mb-4" id="stats-section">
-  <div class="col-12">
-    <div class="card border-0 bg-dark">
-      <div class="card-body">
-        <h6 class="card-subtitle mb-3 text-muted">Statistics</h6>
-        <div class="row text-center" id="stats-cards"></div>
-      </div>
-    </div>
+<div class="flex items-center gap-2 mb-4">
+  <span class="text-sm text-[var(--muted)]">Chart granularity:</span>
+  <div class="flex rounded overflow-hidden border border-[var(--border)]" id="granularity-group">
+    <button class="px-3 py-1 text-sm font-medium text-[var(--body-text)] bg-[var(--surface)] hover:bg-[var(--hover)] transition-colors active" data-granularity="">Raw</button>
+    <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-granularity="s">s</button>
+    <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-granularity="m">m</button>
+    <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-granularity="h">h</button>
   </div>
 </div>
 
-<div class="card border-0 bg-dark mb-4">
-  <div class="card-body">
-    <h6 class="card-subtitle mb-2 text-muted">Recent Measurements</h6>
-    <div class="table-responsive">
-      <table class="table table-dark table-sm table-striped mb-0">
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Session</th>
-            <th>Bus Voltage</th>
-            <th>Shunt Voltage</th>
-            <th>Load Voltage</th>
-            <th>Current</th>
-            <th>Power</th>
-            <th>Energy</th>
-          </tr>
-        </thead>
-        <tbody id="readings-body"></tbody>
-      </table>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <svg class="w-4 h-4 text-[#58a6ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+      <h6 class="text-base text-[var(--muted)] font-medium">Voltage vs Time</h6>
     </div>
+    <div class="chart-container"><canvas id="voltageChart"></canvas></div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <svg class="w-4 h-4 text-[#3fb950]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      <h6 class="text-base text-[var(--muted)] font-medium">Current vs Time</h6>
+    </div>
+    <div class="chart-container"><canvas id="currentChart"></canvas></div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <svg class="w-4 h-4 text-[#d29922]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      <h6 class="text-base text-[var(--muted)] font-medium">Power vs Time</h6>
+    </div>
+    <div class="chart-container"><canvas id="powerChart"></canvas></div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <svg class="w-4 h-4 text-[#d2a8ff]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg>
+      <h6 class="text-base text-[var(--muted)] font-medium">Energy vs Time</h6>
+    </div>
+    <div class="chart-container"><canvas id="energyChart"></canvas></div>
+  </div>
+</div>
+
+<div class="mb-6" id="stats-section">
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <svg class="w-4 h-4 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      <h6 class="text-base text-[var(--muted)] font-medium">Statistics</h6>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center" id="stats-cards"></div>
+  </div>
+</div>
+
+<div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4 mb-4">
+  <div class="flex items-center gap-2 mb-3">
+    <svg class="w-4 h-4 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+    <h6 class="text-base text-[var(--muted)] font-medium">Recent Measurements</h6>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-[var(--border)] text-[var(--muted)]">
+          <th class="text-left py-2 px-2 font-medium">Timestamp</th>
+          <th class="text-left py-2 px-2 font-medium">Session</th>
+          <th class="text-right py-2 px-2 font-medium">Bus V</th>
+          <th class="text-right py-2 px-2 font-medium">Shunt V</th>
+          <th class="text-right py-2 px-2 font-medium">Load V</th>
+          <th class="text-right py-2 px-2 font-medium">Current</th>
+          <th class="text-right py-2 px-2 font-medium">Power</th>
+          <th class="text-right py-2 px-2 font-medium">Energy</th>
+        </tr>
+      </thead>
+      <tbody id="readings-body"></tbody>
+    </table>
   </div>
 </div>
 {% endblock %}

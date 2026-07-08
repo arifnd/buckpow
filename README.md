@@ -1,4 +1,4 @@
-# PowerDash
+# BakPow
 
 ESP32 power meter dashboard. Flask + SQLAlchemy + SQLite backend, Bootstrap 5 dashboard with Chart.js real-time charts.
 

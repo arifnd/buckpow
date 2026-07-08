@@ -6,7 +6,7 @@ class TestFrontend:
 
     def test_dashboard_has_title(self, client):
         resp = client.get('/')
-        assert b'PowerDash' in resp.data
+        assert b'BakPow' in resp.data
 
     def test_dashboard_has_cards(self, client):
         resp = client.get('/')
@@ -27,7 +27,7 @@ class TestFrontend:
         resp = client.get('/')
         html = resp.data.decode()
         assert 'id="readings-body"' in html
-        for header in ['Timestamp', 'Bus Voltage', 'Shunt Voltage', 'Load Voltage', 'Current', 'Power', 'Energy']:
+        for header in ['Timestamp', 'Bus V', 'Shunt V', 'Load V', 'Current', 'Power', 'Energy']:
             assert header in html
 
     def test_dashboard_has_static_links(self, client):
@@ -37,13 +37,13 @@ class TestFrontend:
         assert '/static/js/charts.js' in html
         assert '/static/js/dashboard.js' in html
 
+    def test_dashboard_has_tailwind_cdn(self, client):
+        resp = client.get('/')
+        assert 'cdn.tailwindcss.com' in resp.data.decode()
+
     def test_dashboard_has_chartjs_cdn(self, client):
         resp = client.get('/')
         assert 'cdn.jsdelivr.net/npm/chart.js' in resp.data.decode()
-
-    def test_dashboard_has_bootstrap_cdn(self, client):
-        resp = client.get('/')
-        assert 'cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' in resp.data.decode()
 
     def test_static_css_served(self, client):
         resp = client.get('/static/css/style.css')

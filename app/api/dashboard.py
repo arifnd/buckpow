@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from app.services.measurement_service import MeasurementService
 from app.services.device_service import DeviceService
+from app.services.session_service import SessionService
 from app.models import Device
 
 dashboard_bp = Blueprint('api_dashboard', __name__)
@@ -20,9 +21,11 @@ def dashboard_data():
         devices_data.append(d_dict)
 
     latest = measurements[0].to_dict() if measurements else None
+    active_session = SessionService.get_any_active_session()
 
     return jsonify({
         'latest': latest,
         'stats': stats,
         'devices': devices_data,
+        'active_session': active_session.to_dict() if active_session else None,
     })

@@ -21,6 +21,10 @@ class SessionService:
         ).first()
 
     @staticmethod
+    def get_any_active_session():
+        return Session.query.filter_by(status='running').first()
+
+    @staticmethod
     def create(device_id, name, target_device='', description=''):
         session = Session(
             device_id=device_id,
@@ -61,10 +65,10 @@ class SessionService:
         if session.status == 'running':
             return None, 'Session is already running'
 
-        existing = SessionService.get_active_session(session.device_id)
-        if existing and existing.id != session.id:
-            existing.status = 'finished'
-            existing.ended_at = datetime.now(timezone.utc)
+        running = SessionService.get_any_active_session()
+        if running and running.id != session.id:
+            running.status = 'finished'
+            running.ended_at = datetime.now(timezone.utc)
 
         session.status = 'running'
         session.started_at = datetime.now(timezone.utc)
