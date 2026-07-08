@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 <nav class="navbar navbar-expand-lg navbar-dark border-bottom border-secondary mb-4">
   <div class="container-fluid">
     <a class="navbar-brand fw-bold" href="/">PowerDash</a>
@@ -44,6 +44,13 @@
 <main class="container-fluid px-4">
 {% block content %}{% endblock %}
 </main>
+
+<footer class="footer mt-auto py-3 border-top border-secondary">
+  <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+    <small class="text-muted">PowerDash v0.1</small>
+    <small class="text-muted">powered by Flask + Chart.js</small>
+  </div>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

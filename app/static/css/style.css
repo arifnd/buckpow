@@ -126,3 +126,11 @@ body {
   position: relative;
   height: 200px;
 }
+
+.footer {
+  background: #161b22;
+}
+
+[data-bs-theme="light"] .footer {
+  background: #f6f8fa;
+}
