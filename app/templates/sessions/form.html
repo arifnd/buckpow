@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{% if session %}Edit Session{% else %}Create Session{% endif %}</h2>
+
+<div class="card border-0 bg-dark mt-3">
+  <div class="card-body">
+    <form id="session-form">
+      <div class="mb-3">
+        <label class="form-label">Session Name</label>
+        <input type="text" class="form-control" name="name" value="{{ session.name if session else '' }}" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Device</label>
+        <select class="form-select" name="device_id" {% if session %}disabled{% endif %}>
+          {% for d in devices %}
+          <option value="{{ d.id }}" {% if session and session.device_id == d.id %}selected{% endif %}>
+            {{ d.alias or d.device_id }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Target Device</label>
+        <input type="text" class="form-control" name="target_device" value="{{ session.target_device if session else '' }}">
+        <div class="form-text">Optional: the device being benchmarked.</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" name="description" rows="2">{{ session.description if session else '' }}</textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Save</button>
+      <a href="/sessions" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('session-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.device_id = parseInt(data.device_id);
+
+  {% if session %}
+  const res = await fetch('/api/v1/sessions/{{ session.id }}', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+  });
+  {% else %}
+  const res = await fetch('/api/v1/sessions', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+  });
+  {% endif %}
+
+  if (res.ok) {
+    window.location.href = '/sessions';
+  } else {
+    const err = await res.json();
+    alert('Error: ' + (err.error || 'Unknown error'));
+  }
+});
+</script>
+{% endblock %}

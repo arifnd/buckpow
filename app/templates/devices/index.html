@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Devices</h2>
+  <a href="/devices/new" class="btn btn-primary btn-sm">Add Device</a>
+</div>
+
+<div class="card border-0 bg-dark">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-dark table-sm mb-0" id="devices-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Device ID</th>
+            <th>Alias</th>
+            <th>Description</th>
+            <th>Interval</th>
+            <th>Status</th>
+            <th>Last Seen</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="devices-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+async function loadDevices() {
+  const res = await fetch('/api/v1/devices');
+  const devices = await res.json();
+  const tbody = document.getElementById('devices-body');
+  tbody.innerHTML = devices.map(d => {
+    const status = d.status || 'offline';
+    const badge = status === 'online' ? 'bg-success' : 'bg-secondary';
+    return `<tr>
+      <td>${d.id}</td>
+      <td><code>${d.device_id}</code></td>
+      <td>${d.alias || '—'}</td>
+      <td>${d.description || '—'}</td>
+      <td>${d.sampling_interval}s</td>
+      <td><span class="badge ${badge}">${status}</span></td>
+      <td>${d.last_seen ? new Date(d.last_seen).toLocaleString() : '—'}</td>
+      <td>
+        <a href="/devices/${d.id}/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteDevice(${d.id})">Delete</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function deleteDevice(id) {
+  if (!confirm('Delete this device?')) return;
+  await fetch('/api/v1/devices/' + id, { method: 'DELETE' });
+  loadDevices();
+}
+
+document.addEventListener('DOMContentLoaded', loadDevices);
+</script>
+{% endblock %}

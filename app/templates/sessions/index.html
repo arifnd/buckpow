@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Sessions</h2>
+  <a href="/sessions/new" class="btn btn-primary btn-sm">Create Session</a>
+</div>
+
+<div class="card border-0 bg-dark">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-dark table-sm mb-0" id="sessions-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Device ID</th>
+            <th>Target Device</th>
+            <th>Status</th>
+            <th>Started</th>
+            <th>Ended</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="sessions-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let sessions = [];
+
+function statusBadge(status) {
+  const map = {draft: 'bg-secondary', running: 'bg-success', finished: 'bg-primary'};
+  return `<span class="badge ${map[status] || 'bg-secondary'}">${status}</span>`;
+}
+
+async function loadSessions() {
+  const res = await fetch('/api/v1/sessions');
+  sessions = await res.json();
+  const tbody = document.getElementById('sessions-body');
+  tbody.innerHTML = sessions.map(s => `<tr>
+    <td>${s.id}</td>
+    <td>${s.name}</td>
+    <td>${s.device_id}</td>
+    <td>${s.target_device || '—'}</td>
+    <td>${statusBadge(s.status)}</td>
+    <td>${s.started_at ? new Date(s.started_at).toLocaleString() : '—'}</td>
+    <td>${s.ended_at ? new Date(s.ended_at).toLocaleString() : '—'}</td>
+    <td>
+      <a href="/sessions/${s.id}/edit" class="btn btn-sm btn-outline-secondary">Edit</a>
+      ${s.status === 'draft' ? `<button class="btn btn-sm btn-outline-success" onclick="startSession(${s.id})">Start</button>` : ''}
+      ${s.status === 'running' ? `<button class="btn btn-sm btn-outline-warning" onclick="stopSession(${s.id})">Stop</button>` : ''}
+      <button class="btn btn-sm btn-outline-danger" onclick="deleteSession(${s.id})">Delete</button>
+    </td>
+  </tr>`).join('');
+}
+
+async function startSession(id) {
+  await fetch('/api/v1/sessions/' + id + '/start', {method: 'POST'});
+  loadSessions();
+}
+
+async function stopSession(id) {
+  await fetch('/api/v1/sessions/' + id + '/stop', {method: 'POST'});
+  loadSessions();
+}
+
+async function deleteSession(id) {
+  if (!confirm('Delete this session?')) return;
+  await fetch('/api/v1/sessions/' + id, {method: 'DELETE'});
+  loadSessions();
+}
+
+document.addEventListener('DOMContentLoaded', loadSessions);
+</script>
+{% endblock %}

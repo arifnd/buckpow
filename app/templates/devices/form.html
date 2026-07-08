@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{% if device %}Edit Device{% else %}Add Device{% endif %}</h2>
+
+<div class="card border-0 bg-dark mt-3">
+  <div class="card-body">
+    <form id="device-form">
+      <div class="mb-3">
+        <label class="form-label">Device ID</label>
+        <input type="text" class="form-control" name="device_id" value="{{ device.device_id if device else '' }}"
+               {% if device %}readonly{% endif %} required>
+        <div class="form-text">Permanent identifier matches the ESP32 firmware.</div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Alias</label>
+        <input type="text" class="form-control" name="alias" value="{{ device.alias if device else '' }}">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" name="description" rows="2">{{ device.description if device else '' }}</textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Sampling Interval (seconds)</label>
+        <input type="number" class="form-control" name="sampling_interval"
+               value="{{ device.sampling_interval if device else 1 }}" min="1">
+      </div>
+      <button type="submit" class="btn btn-primary">Save</button>
+      <a href="/devices" class="btn btn-outline-secondary">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.getElementById('device-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.sampling_interval = parseInt(data.sampling_interval);
+
+  {% if device %}
+  const res = await fetch('/api/v1/devices/{{ device.id }}', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+  });
+  {% else %}
+  const res = await fetch('/api/v1/devices', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+  });
+  {% endif %}
+
+  if (res.ok) {
+    window.location.href = '/devices';
+  } else {
+    const err = await res.json();
+    alert('Error: ' + (err.error || 'Unknown error'));
+  }
+});
+</script>
+{% endblock %}

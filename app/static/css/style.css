@@ -1,0 +1,69 @@
+body {
+  background: #0d1117;
+  color: #c9d1d9;
+}
+
+.navbar {
+  background: #161b22 !important;
+}
+
+.card {
+  background: #161b22 !important;
+}
+
+.table-dark {
+  --bs-table-bg: #161b22;
+  --bs-table-striped-bg: #1c2333;
+  --bs-table-hover-bg: #212a3e;
+}
+
+.text-purple {
+  color: #d2a8ff !important;
+}
+
+.form-control, .form-select {
+  background-color: #0d1117;
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: #0d1117;
+  border-color: #58a6ff;
+  color: #c9d1d9;
+}
+
+.form-text {
+  color: #8b949e;
+}
+
+.btn-outline-secondary {
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+
+.btn-outline-secondary:hover {
+  background: #30363d;
+  color: #fff;
+}
+
+.page-link {
+  background: #161b22;
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+
+.page-link:hover {
+  background: #30363d;
+  color: #fff;
+}
+
+.page-item.active .page-link {
+  background: #1f6feb;
+  border-color: #1f6feb;
+}
+
+.chart-container {
+  position: relative;
+  height: 200px;
+}

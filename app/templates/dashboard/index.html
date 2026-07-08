@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-3">
+  <div class="col">
+    <h2>Dashboard</h2>
+  </div>
+  <div class="col text-end">
+    <small class="text-muted" id="last-updated">—</small>
+  </div>
+</div>
+
+<div class="row g-3 mb-4" id="summary-cards">
+  <div class="col-md-2 col-6">
+    <div class="card border-0 bg-dark h-100">
+      <div class="card-body">
+        <small class="text-muted text-uppercase">Device</small>
+        <h5 class="card-title" id="val-device">—</h5>
+        <span class="badge" id="val-status">—</span>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 col-6">
+    <div class="card border-0 bg-dark h-100">
+      <div class="card-body">
+        <small class="text-muted text-uppercase">Bus Voltage</small>
+        <h4 class="card-title text-info" id="val-voltage">—</h4>
+        <small class="text-secondary">V</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 col-6">
+    <div class="card border-0 bg-dark h-100">
+      <div class="card-body">
+        <small class="text-muted text-uppercase">Load Voltage</small>
+        <h4 class="card-title text-info" id="val-load-voltage">—</h4>
+        <small class="text-secondary">V</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 col-6">
+    <div class="card border-0 bg-dark h-100">
+      <div class="card-body">
+        <small class="text-muted text-uppercase">Current</small>
+        <h4 class="card-title text-success" id="val-current">—</h4>
+        <small class="text-secondary">A</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 col-6">
+    <div class="card border-0 bg-dark h-100">
+      <div class="card-body">
+        <small class="text-muted text-uppercase">Power</small>
+        <h4 class="card-title text-warning" id="val-power">—</h4>
+        <small class="text-secondary">W</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-2 col-6">
+    <div class="card border-0 bg-dark h-100">
+      <div class="card-body">
+        <small class="text-muted text-uppercase">Energy</small>
+        <h4 class="card-title text-purple" id="val-energy">—</h4>
+        <small class="text-secondary">Wh</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card border-0 bg-dark">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted">Voltage vs Time</h6>
+        <div class="chart-container">
+          <canvas id="voltageChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-0 bg-dark">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted">Current vs Time</h6>
+        <div class="chart-container">
+          <canvas id="currentChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-0 bg-dark">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted">Power vs Time</h6>
+        <div class="chart-container">
+          <canvas id="powerChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card border-0 bg-dark">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-2 text-muted">Energy vs Time</h6>
+        <div class="chart-container">
+          <canvas id="energyChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4" id="stats-section">
+  <div class="col-12">
+    <div class="card border-0 bg-dark">
+      <div class="card-body">
+        <h6 class="card-subtitle mb-3 text-muted">Statistics</h6>
+        <div class="row text-center" id="stats-cards"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 bg-dark mb-4">
+  <div class="card-body">
+    <h6 class="card-subtitle mb-2 text-muted">Recent Measurements</h6>
+    <div class="table-responsive">
+      <table class="table table-dark table-sm table-striped mb-0">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Bus Voltage</th>
+            <th>Shunt Voltage</th>
+            <th>Load Voltage</th>
+            <th>Current</th>
+            <th>Power</th>
+            <th>Energy</th>
+          </tr>
+        </thead>
+        <tbody id="readings-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
