@@ -77,18 +77,6 @@ def create_app(config_class=DevConfig):
         from app.models import User
         return db.session.get(User, int(user_id))
 
-    with flask_app.app_context():
-        if 'sqlite' in flask_app.config['SQLALCHEMY_DATABASE_URI']:
-            db.create_all()
-            from app.models import User
-            if not User.query.first():
-                from app.services.user_service import UserService
-                UserService.create(
-                    name='Admin',
-                    email='admin@example.com',
-                    password='password',
-                )
-
     @flask_app.cli.command("init-db")
     def init_db_command():
         db.create_all()
