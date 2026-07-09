@@ -1,3 +1,4 @@
+import secrets
 from datetime import datetime, timezone, timedelta
 
 from app import db
@@ -25,6 +26,23 @@ class DeviceService:
         return Device.query.filter_by(device_id=device_id_str).first()
 
     @staticmethod
+    def get_by_api_key(api_key):
+        return Device.query.filter_by(api_key=api_key).first()
+
+    @staticmethod
+    def regenerate_api_key(device_id):
+        device = db.session.get(Device, device_id)
+        if not device:
+            return None
+        device.api_key = DeviceService.generate_api_key()
+        db.session.commit()
+        return device
+
+    @staticmethod
+    def generate_api_key():
+        return secrets.token_hex(32)
+
+    @staticmethod
     def create(device_id, alias='', description='', sampling_interval=None, project_id=None):
         device = Device(
             device_id=device_id,
@@ -33,6 +51,7 @@ class DeviceService:
             sampling_interval=sampling_interval or Config.DEFAULT_SAMPLING_INTERVAL,
             status='offline',
             project_id=project_id,
+            api_key=DeviceService.generate_api_key(),
         )
         db.session.add(device)
         db.session.commit()

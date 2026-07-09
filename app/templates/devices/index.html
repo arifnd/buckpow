@@ -63,6 +63,14 @@
           <option value="">No project</option>
         </select>
       </div>
+      <div class="mb-4" id="api-key-section" style="display:none">
+        <label class="block text-sm text-[var(--muted)] mb-1">API Key</label>
+        <div class="flex gap-2 items-center">
+          <code id="field-api-key" class="flex-1 px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] font-mono"></code>
+          <button type="button" id="copy-key-btn" class="px-2 py-1.5 rounded text-xs font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors whitespace-nowrap">Copy</button>
+          <button type="button" id="regenerate-key-btn" class="px-2 py-1.5 rounded text-xs font-medium bg-yellow-500 text-white hover:bg-yellow-400 transition-colors whitespace-nowrap">Regenerate</button>
+        </div>
+      </div>
       <div class="flex justify-end gap-2">
         <button type="button" class="px-4 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="device-modal-cancel">Cancel</button>
         <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors">Save</button>
@@ -159,6 +167,9 @@ async function openDeviceModal(id) {
   var projSel = document.getElementById('field-project');
   if (projSel.options.length <= 1) await populateProjectSelect();
   projSel.value = d.project_id || '';
+  var apiKeySection = document.getElementById('api-key-section');
+  apiKeySection.style.display = '';
+  document.getElementById('field-api-key').textContent = d.api_key || '—';
   showDeviceModal();
 }
 
@@ -180,10 +191,41 @@ function initDevices() {
     document.getElementById('field-device-id').removeAttribute('readonly');
     document.getElementById('field-device-id').value = '';
     document.getElementById('field-interval').value = 1;
+    document.getElementById('api-key-section').style.display = 'none';
     populateProjectSelect();
     showDeviceModal();
   });
   document.getElementById('device-modal-cancel').addEventListener('click', hideDeviceModal);
+  document.getElementById('copy-key-btn').addEventListener('click', async () => {
+    if (!editingDeviceId) return;
+    var r = await fetch('/api/v1/devices/' + editingDeviceId + '/key');
+    if (!r.ok) return;
+    var data = await r.json();
+    var key = data.api_key;
+    if (!key) return;
+    try {
+      await navigator.clipboard.writeText(key);
+    } catch (_) {
+      var ta = document.createElement('textarea');
+      ta.value = key;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    var btn = document.getElementById('copy-key-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(function() { btn.textContent = 'Copy'; }, 2000);
+  });
+  document.getElementById('regenerate-key-btn').addEventListener('click', async () => {
+    if (!editingDeviceId) return;
+    if (!await confirmDialog('Regenerate API key? The old key will stop working immediately.')) return;
+    const r = await fetch('/api/v1/devices/' + editingDeviceId + '/regenerate-key', {method: 'POST'});
+    const data = await r.json();
+    document.getElementById('field-api-key').textContent = data.api_key;
+    document.getElementById('field-api-key').style.color = 'var(--accent)';
+    setTimeout(() => { document.getElementById('field-api-key').style.color = ''; }, 3000);
+  });
   document.getElementById('device-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = {

@@ -16,6 +16,7 @@ class Device(db.Model):
     sampling_interval = db.Column(db.Integer, default=1)
     last_seen = db.Column(db.DateTime, nullable=True)
     status = db.Column(db.String(16), default='offline')
+    api_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
@@ -33,6 +34,13 @@ class Device(db.Model):
             return 'online'
         return 'offline'
 
+    def _masked_api_key(self):
+        if not self.api_key:
+            return None
+        if len(self.api_key) <= 8:
+            return self.api_key[:4] + '****'
+        return self.api_key[:6] + '****' + self.api_key[-4:]
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -42,6 +50,7 @@ class Device(db.Model):
             'sampling_interval': self.sampling_interval,
             'last_seen': self.last_seen.isoformat() + 'Z' if self.last_seen else None,
             'status': self._compute_status(),
+            'api_key': self._masked_api_key(),
             'project_id': self.project_id,
             'project_name': self.project.name if self.project else None,
             'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,

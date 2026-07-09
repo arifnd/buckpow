@@ -23,6 +23,7 @@ class TestConfig(Config):
 
 from app.models import Device, Measurement, Session, User
 from app.services.user_service import UserService
+from app.services.device_service import DeviceService
 
 
 @pytest.fixture(autouse=True)
@@ -56,10 +57,22 @@ def client(app):
 @pytest.fixture
 def sample_device(app):
     with app.app_context():
-        d = Device(device_id='esp32-test', alias='Test Device', sampling_interval=1)
+        d = Device(device_id='esp32-test', alias='Test Device', sampling_interval=1,
+                   api_key=DeviceService.generate_api_key())
         db.session.add(d)
         db.session.commit()
         return d
+
+
+@pytest.fixture
+def device_auth_header(app):
+    with app.app_context():
+        d = Device(device_id='esp32-auth', alias='Auth Device', sampling_interval=1,
+                   api_key=DeviceService.generate_api_key())
+        db.session.add(d)
+        db.session.commit()
+        key = d.api_key
+    return {'Authorization': f'Bearer {key}'}
 
 
 def pytest_unconfigure():

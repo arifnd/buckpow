@@ -1,11 +1,29 @@
 import csv, io
+from functools import wraps
 from flask import Blueprint, request, jsonify, Response
 from app.services.measurement_service import MeasurementService
+from app.services.device_service import DeviceService
 
 measurements_bp = Blueprint('api_measurements', __name__)
 
 
+def require_device_api_key(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.headers.get('Authorization', '')
+        if not auth.startswith('Bearer '):
+            return jsonify({'error': 'Missing or invalid Authorization header'}), 401
+        api_key = auth[7:]
+        device = DeviceService.get_by_api_key(api_key)
+        if not device:
+            return jsonify({'error': 'Invalid API key'}), 401
+        request.device = device
+        return f(*args, **kwargs)
+    return decorated
+
+
 @measurements_bp.route('/measurements', methods=['POST'])
+@require_device_api_key
 def receive_measurement():
     body = request.get_json()
     if not body:

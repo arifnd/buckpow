@@ -1,5 +1,8 @@
 from flask import Blueprint, request, jsonify
+from app import db
+from app.models import Device
 from app.services.device_service import DeviceService
+
 
 devices_bp = Blueprint('api_devices', __name__)
 
@@ -61,6 +64,22 @@ def update_device(device_id):
     if not device:
         return jsonify({'error': 'Device not found'}), 404
     return jsonify(device.to_dict())
+
+
+@devices_bp.route('/devices/<int:device_id>/key', methods=['GET'])
+def get_device_key(device_id):
+    device = db.session.get(Device, device_id)
+    if not device or not device.api_key:
+        return jsonify({'error': 'Device not found or no API key'}), 404
+    return jsonify({'api_key': device.api_key, 'id': device.id}), 200
+
+
+@devices_bp.route('/devices/<int:device_id>/regenerate-key', methods=['POST'])
+def regenerate_key(device_id):
+    device = DeviceService.regenerate_api_key(device_id)
+    if not device:
+        return jsonify({'error': 'Device not found'}), 404
+    return jsonify({'api_key': device.api_key, 'id': device.id}), 200
 
 
 @devices_bp.route('/devices/<int:device_id>', methods=['DELETE'])
