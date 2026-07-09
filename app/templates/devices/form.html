@@ -40,6 +40,26 @@
         <span class="text-sm text-[var(--muted)]">Enabled</span>
       </label>
     </div>
+    <div class="mb-4 p-3 rounded border border-[#30363d]">
+      <p class="text-xs font-medium text-[var(--muted)] mb-2">Alert Thresholds (leave empty for global defaults)</p>
+      <div class="grid grid-cols-3 gap-2">
+        <div>
+          <label class="block text-xs text-[var(--muted)] mb-0.5">High Current (A)</label>
+          <input type="number" name="high_current_threshold" value="{{ device.high_current_threshold if device and device.high_current_threshold is not none else '' }}" step="0.01" min="0"
+                 class="w-full px-2 py-1 rounded text-xs bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+        </div>
+        <div>
+          <label class="block text-xs text-[var(--muted)] mb-0.5">High Power (W)</label>
+          <input type="number" name="high_power_threshold" value="{{ device.high_power_threshold if device and device.high_power_threshold is not none else '' }}" step="0.01" min="0"
+                 class="w-full px-2 py-1 rounded text-xs bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+        </div>
+        <div>
+          <label class="block text-xs text-[var(--muted)] mb-0.5">Low Voltage (V)</label>
+          <input type="number" name="low_voltage_threshold" value="{{ device.low_voltage_threshold if device and device.low_voltage_threshold is not none else '' }}" step="0.01" min="0"
+                 class="w-full px-2 py-1 rounded text-xs bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+        </div>
+      </div>
+    </div>
     <div class="mb-4">
       <label class="block text-sm text-[var(--muted)] mb-1">Project</label>
       <select name="project_id"
@@ -65,6 +85,9 @@ document.getElementById('device-form').addEventListener('submit', async (e) => {
   const form = e.target;
   const data = Object.fromEntries(new FormData(form).entries());
   data.sampling_interval = parseInt(data.sampling_interval);
+  data.high_current_threshold = data.high_current_threshold ? parseFloat(data.high_current_threshold) : null;
+  data.high_power_threshold = data.high_power_threshold ? parseFloat(data.high_power_threshold) : null;
+  data.low_voltage_threshold = data.low_voltage_threshold ? parseFloat(data.low_voltage_threshold) : null;
 
   {% if device %}
   const res = await fetch('/api/v1/devices/{{ device.id }}', {

@@ -37,6 +37,9 @@ def create_device():
         sampling_interval=body.get('sampling_interval'),
         project_id=body.get('project_id'),
         firmware_version=body.get('firmware_version', ''),
+        high_current_threshold=body.get('high_current_threshold'),
+        high_power_threshold=body.get('high_power_threshold'),
+        low_voltage_threshold=body.get('low_voltage_threshold'),
     )
     return jsonify(device.to_dict()), 201
 
@@ -56,7 +59,8 @@ def update_device(device_id):
         return jsonify({'error': 'No JSON payload'}), 400
 
     kwargs = {}
-    for key in ('alias', 'description', 'sampling_interval', 'project_id', 'firmware_version'):
+    for key in ('alias', 'description', 'sampling_interval', 'project_id', 'firmware_version',
+                'high_current_threshold', 'high_power_threshold', 'low_voltage_threshold'):
         if key in body:
             kwargs[key] = body[key]
     if 'enabled' in body:

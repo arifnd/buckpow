@@ -86,3 +86,9 @@ def projects():
 @login_required
 def measurements():
     return render_template('measurements/index.html', active_page='measurements')
+
+
+@dashboard_bp.route('/alerts')
+@login_required
+def alerts():
+    return render_template('alerts/index.html', active_page='alerts')

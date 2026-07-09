@@ -7,6 +7,7 @@ from app.models import Measurement
 from app.utils.calculations import calc_load_voltage, calc_energy_increment
 from app.services.device_service import DeviceService
 from app.services.session_service import SessionService
+from app.services.alert_service import AlertService
 
 
 class MeasurementService:
@@ -48,6 +49,9 @@ class MeasurementService:
         )
         db.session.add(measurement)
         db.session.commit()
+
+        AlertService.generate_alerts(device, bus_voltage, current_a, power_w)
+
         return measurement
 
     @staticmethod

@@ -20,6 +20,9 @@ class Device(db.Model):
     firmware_version = db.Column(db.String(64), default='')
     api_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
     project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
+    high_current_threshold = db.Column(db.Float, nullable=True)
+    high_power_threshold = db.Column(db.Float, nullable=True)
+    low_voltage_threshold = db.Column(db.Float, nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
@@ -57,6 +60,9 @@ class Device(db.Model):
             'firmware_version': self.firmware_version or '',
             'project_id': self.project_id,
             'project_name': self.project.name if self.project else None,
+            'high_current_threshold': self.high_current_threshold,
+            'high_power_threshold': self.high_power_threshold,
+            'low_voltage_threshold': self.low_voltage_threshold,
             'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
             'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
         }

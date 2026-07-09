@@ -20,6 +20,10 @@ class Config:
     DEVICE_ONLINE_TIMEOUT = int(os.getenv('DEVICE_ONLINE_TIMEOUT', 30))
     DEFAULT_SAMPLING_INTERVAL = int(os.getenv('DEFAULT_SAMPLING_INTERVAL', 1))
 
+    HIGH_CURRENT_THRESHOLD = float(os.getenv('HIGH_CURRENT_THRESHOLD', 0.5))
+    HIGH_POWER_THRESHOLD = float(os.getenv('HIGH_POWER_THRESHOLD', 2.5))
+    LOW_VOLTAGE_THRESHOLD = float(os.getenv('LOW_VOLTAGE_THRESHOLD', 4.5))
+
 
 class DevConfig(Config):
     DEBUG = True

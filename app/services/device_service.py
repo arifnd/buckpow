@@ -43,7 +43,8 @@ class DeviceService:
         return secrets.token_hex(32)
 
     @staticmethod
-    def create(device_id, alias='', description='', sampling_interval=None, project_id=None, firmware_version=''):
+    def create(device_id, alias='', description='', sampling_interval=None, project_id=None, firmware_version='',
+               high_current_threshold=None, high_power_threshold=None, low_voltage_threshold=None):
         device = Device(
             device_id=device_id,
             alias=alias,
@@ -54,6 +55,9 @@ class DeviceService:
             firmware_version=firmware_version,
             project_id=project_id,
             api_key=DeviceService.generate_api_key(),
+            high_current_threshold=high_current_threshold,
+            high_power_threshold=high_power_threshold,
+            low_voltage_threshold=low_voltage_threshold,
         )
         db.session.add(device)
         db.session.commit()
