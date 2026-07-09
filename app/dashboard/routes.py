@@ -1,0 +1,74 @@
+from flask import Blueprint, render_template, redirect, url_for
+from flask_login import login_required, login_user, logout_user, current_user
+from app.services.user_service import UserService
+
+dashboard_bp = Blueprint('dashboard', __name__, template_folder='../templates')
+
+
+@dashboard_bp.route('/auth/login', methods=['GET'])
+def login():
+    if current_user.is_authenticated:
+        return redirect('/')
+    return render_template('auth/login.html')
+
+
+@dashboard_bp.route('/auth/logout', methods=['POST'])
+def logout():
+    logout_user()
+    return {'status': 'ok'}
+
+
+@dashboard_bp.route('/')
+@login_required
+def index():
+    return render_template('dashboard/index.html', active_page='dashboard')
+
+
+@dashboard_bp.route('/devices')
+@login_required
+def devices():
+    return render_template('devices/index.html', active_page='devices')
+
+
+@dashboard_bp.route('/devices/new')
+@login_required
+def devices_new():
+    return render_template('devices/form.html', active_page='devices', device=None)
+
+
+@dashboard_bp.route('/devices/<int:device_id>/edit')
+@login_required
+def devices_edit(device_id):
+    from app.services.device_service import DeviceService
+    device = DeviceService.get_by_id(device_id)
+    return render_template('devices/form.html', active_page='devices', device=device)
+
+
+@dashboard_bp.route('/sessions')
+@login_required
+def sessions():
+    return render_template('sessions/index.html', active_page='sessions')
+
+
+@dashboard_bp.route('/sessions/new')
+@login_required
+def sessions_new():
+    from app.services.device_service import DeviceService
+    devices = DeviceService.get_all()
+    return render_template('sessions/form.html', active_page='sessions', session=None, devices=devices)
+
+
+@dashboard_bp.route('/sessions/<int:session_id>/edit')
+@login_required
+def sessions_edit(session_id):
+    from app.services.session_service import SessionService
+    from app.services.device_service import DeviceService
+    session = SessionService.get_by_id(session_id)
+    devices = DeviceService.get_all()
+    return render_template('sessions/form.html', active_page='sessions', session=session, devices=devices)
+
+
+@dashboard_bp.route('/measurements')
+@login_required
+def measurements():
+    return render_template('measurements/index.html', active_page='measurements')

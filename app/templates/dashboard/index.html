@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-4">
+  <h2 class="text-xl font-semibold">Dashboard</h2>
+  <div class="flex items-center gap-2">
+    <small class="text-[var(--muted)]" id="last-updated">—</small>
+    <span id="session-indicator"></span>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6" id="summary-cards">
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <iconify-icon class="w-4 h-4 text-[var(--muted)]" icon="heroicons-outline:computer-desktop"></iconify-icon>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Device</small>
+      </div>
+      <h5 class="text-base font-semibold mb-0" id="val-device">—</h5>
+      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium mt-1" id="val-status">—</span>
+    </div>
+  </div>
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <iconify-icon class="w-4 h-4 text-[#58a6ff]" icon="heroicons-outline:bolt"></iconify-icon>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Bus Voltage</small>
+      </div>
+      <h4 class="text-lg font-semibold text-[#58a6ff] mb-0" id="val-voltage">—</h4>
+      <small class="text-[var(--muted)]">V</small>
+    </div>
+  </div>
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <iconify-icon class="w-4 h-4 text-[#58a6ff]" icon="heroicons-outline:trending-up"></iconify-icon>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Load Voltage</small>
+      </div>
+      <h4 class="text-lg font-semibold text-[#58a6ff] mb-0" id="val-load-voltage">—</h4>
+      <small class="text-[var(--muted)]">V</small>
+    </div>
+  </div>
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <iconify-icon class="w-4 h-4 text-[#3fb950]" icon="heroicons-outline:bolt"></iconify-icon>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Current</small>
+      </div>
+      <h4 class="text-lg font-semibold text-[#3fb950] mb-0" id="val-current">—</h4>
+      <small class="text-[var(--muted)]">A</small>
+    </div>
+  </div>
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <iconify-icon class="w-4 h-4 text-[#d29922]" icon="heroicons-outline:bolt"></iconify-icon>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Power</small>
+      </div>
+      <h4 class="text-lg font-semibold text-[#d29922] mb-0" id="val-power">—</h4>
+      <small class="text-[var(--muted)]">W</small>
+    </div>
+  </div>
+  <div>
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+      <div class="flex items-center gap-2 mb-2">
+        <iconify-icon class="w-4 h-4 text-[#d2a8ff]" icon="heroicons-outline:chart-pie"></iconify-icon>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Energy</small>
+      </div>
+      <h4 class="text-lg font-semibold text-[#d2a8ff] mb-0" id="val-energy">—</h4>
+      <small class="text-[var(--muted)]">Wh</small>
+    </div>
+  </div>
+</div>
+
+<div class="flex items-center gap-2 mb-4">
+  <span class="text-sm text-[var(--muted)]">Chart granularity:</span>
+  <div class="flex rounded overflow-hidden border border-[var(--border)]" id="granularity-group">
+    <button class="px-3 py-1 text-sm font-medium text-[var(--body-text)] bg-[var(--surface)] hover:bg-[var(--hover)] transition-colors active" data-granularity="">Raw</button>
+    <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-granularity="s">s</button>
+    <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-granularity="m">m</button>
+    <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-granularity="h">h</button>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <iconify-icon class="w-4 h-4 text-[#58a6ff]" icon="heroicons-outline:trending-up"></iconify-icon>
+      <h6 class="text-base text-[var(--muted)] font-medium">Voltage vs Time</h6>
+    </div>
+    <div class="chart-container"><canvas id="voltageChart"></canvas></div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <iconify-icon class="w-4 h-4 text-[#3fb950]" icon="heroicons-outline:bolt"></iconify-icon>
+      <h6 class="text-base text-[var(--muted)] font-medium">Current vs Time</h6>
+    </div>
+    <div class="chart-container"><canvas id="currentChart"></canvas></div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <iconify-icon class="w-4 h-4 text-[#d29922]" icon="heroicons-outline:bolt"></iconify-icon>
+      <h6 class="text-base text-[var(--muted)] font-medium">Power vs Time</h6>
+    </div>
+    <div class="chart-container"><canvas id="powerChart"></canvas></div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <iconify-icon class="w-4 h-4 text-[#d2a8ff]" icon="heroicons-outline:chart-pie"></iconify-icon>
+      <h6 class="text-base text-[var(--muted)] font-medium">Energy vs Time</h6>
+    </div>
+    <div class="chart-container"><canvas id="energyChart"></canvas></div>
+  </div>
+</div>
+
+<div class="mb-6" id="stats-section">
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <iconify-icon class="w-4 h-4 text-[var(--muted)]" icon="heroicons-outline:chart-bar-square"></iconify-icon>
+      <h6 class="text-base text-[var(--muted)] font-medium">Statistics</h6>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center" id="stats-cards"></div>
+  </div>
+</div>
+
+<div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4 mb-4">
+  <div class="flex items-center gap-2 mb-3">
+    <iconify-icon class="w-4 h-4 text-[var(--muted)]" icon="heroicons-outline:tv"></iconify-icon>
+    <h6 class="text-base text-[var(--muted)] font-medium">Recent Measurements</h6>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-[var(--border)] text-[var(--muted)]">
+          <th class="text-left py-2 px-2 font-medium">Timestamp</th>
+          <th class="text-left py-2 px-2 font-medium">Session</th>
+          <th class="text-right py-2 px-2 font-medium">Bus V</th>
+          <th class="text-right py-2 px-2 font-medium">Shunt V</th>
+          <th class="text-right py-2 px-2 font-medium">Load V</th>
+          <th class="text-right py-2 px-2 font-medium">Current</th>
+          <th class="text-right py-2 px-2 font-medium">Power</th>
+          <th class="text-right py-2 px-2 font-medium">Energy</th>
+        </tr>
+      </thead>
+      <tbody id="readings-body"></tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

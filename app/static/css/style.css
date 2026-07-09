@@ -1,0 +1,52 @@
+html {
+  font-size: 17px;
+}
+
+:root {
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --muted: #6b7280;
+  --body-bg: #f9fafb;
+  --body-text: #111827;
+  --hover: #f3f4f6;
+  --surface-alt: #f9fafb;
+}
+html.dark {
+  --surface: #161b22;
+  --border: #21262d;
+  --muted: #8b949e;
+  --body-bg: #0d1117;
+  --body-text: #c9d1d9;
+  --hover: #1c2333;
+  --surface-alt: #0d1117;
+}
+html.dark body {
+  background-color: #0d1117;
+  color: #c9d1d9;
+}
+
+.chart-container {
+  position: relative;
+  height: 220px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #30363d;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}

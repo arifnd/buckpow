@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-xl font-semibold mb-4">Measurements</h2>
+
+<div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+  <form class="flex flex-wrap gap-2 mb-4 items-end" id="filter-form">
+    <div>
+      <label class="block text-sm text-[var(--muted)] mb-1">Device</label>
+      <select class="px-2 py-1 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]" id="filter-device">
+        <option value="">All</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm text-[var(--muted)] mb-1">Session</label>
+      <select class="px-2 py-1 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]" id="filter-session">
+        <option value="">All</option>
+      </select>
+    </div>
+    <div class="flex gap-1 items-end">
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">From</label>
+        <input type="text" class="w-40 px-2 py-1 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]" id="filter-from" placeholder="From">
+      </div>
+      <div>
+        <label class="block text-sm text-[var(--muted)] mb-1">To</label>
+        <input type="text" class="w-40 px-2 py-1 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff]" id="filter-to" placeholder="To">
+      </div>
+    </div>
+    <div class="flex gap-1">
+      <button type="submit" class="px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Filter</button>
+      <button type="button" class="px-3 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="reset-filters">Reset</button>
+    </div>
+    <div class="ml-auto">
+      <button type="button" class="px-3 py-1.5 rounded text-sm font-medium bg-green-600 text-white hover:bg-green-500 transition-colors" id="download-csv">Download CSV</button>
+    </div>
+  </form>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-[var(--border)] text-[var(--muted)]">
+          <th class="text-left py-2 px-2 font-medium">ID</th>
+          <th class="text-left py-2 px-2 font-medium">Device</th>
+          <th class="text-left py-2 px-2 font-medium">Session</th>
+          <th class="text-right py-2 px-2 font-medium">Bus V</th>
+          <th class="text-right py-2 px-2 font-medium">Shunt V</th>
+          <th class="text-right py-2 px-2 font-medium">Load V</th>
+          <th class="text-right py-2 px-2 font-medium">Current</th>
+          <th class="text-right py-2 px-2 font-medium">Power</th>
+          <th class="text-right py-2 px-2 font-medium">Energy</th>
+          <th class="text-left py-2 px-2 font-medium">Timestamp</th>
+        </tr>
+      </thead>
+      <tbody id="measurements-body"></tbody>
+    </table>
+  </div>
+
+  <nav class="mt-4">
+    <ul class="flex items-center justify-center gap-1" id="pagination"></ul>
+  </nav>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+var currentPage = 1;
+
+function getFilterParams() {
+  const p = new URLSearchParams();
+  const d = document.getElementById('filter-device').value;
+  const s = document.getElementById('filter-session').value;
+  const f = document.getElementById('filter-from').value;
+  const t = document.getElementById('filter-to').value;
+  if (d) p.set('device_id', d);
+  if (s) p.set('session_id', s);
+  if (f) p.set('start_date', new Date(f).toISOString());
+  if (t) p.set('end_date', new Date(t).toISOString());
+  return p;
+}
+
+async function loadMeasurements(page) {
+  page = page || 1;
+  const params = getFilterParams();
+  params.set('page', page);
+  params.set('per_page', 10);
+  const res = await fetch(`/api/v1/measurements?${params}`);
+  const data = await res.json();
+
+  const tbody = document.getElementById('measurements-body');
+  tbody.innerHTML = data.measurements.map(m => `<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">
+    <td class="py-2 px-2">${m.id}</td>
+    <td class="py-2 px-2">${m.device_name || m.device_id}</td>
+    <td class="py-2 px-2">${m.session_name || '—'}</td>
+    <td class="py-2 px-2 text-right">${m.bus_voltage.toFixed(3)}</td>
+    <td class="py-2 px-2 text-right">${m.shunt_voltage.toFixed(3)}</td>
+    <td class="py-2 px-2 text-right">${m.load_voltage.toFixed(3)}</td>
+    <td class="py-2 px-2 text-right">${(m.current * 1000).toFixed(2)} mA</td>
+    <td class="py-2 px-2 text-right">${(m.power * 1000).toFixed(2)} mW</td>
+    <td class="py-2 px-2 text-right">${m.energy.toFixed(6)}</td>
+    <td class="py-2 px-2">${m.created_at ? new Date(m.created_at).toLocaleString() : '—'}</td>
+  </tr>`).join('');
+
+  const pagination = document.getElementById('pagination');
+  const p = data.page, total = data.pages;
+  pagination.parentElement.style.display = total <= 1 ? 'none' : '';
+  let html = `<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ${p <= 1 ? 'text-[#484f58] pointer-events-none' : 'text-[#c9d1d9] hover:bg-[#30363d]'} border border-[#30363d] transition-colors" href="#" onclick="loadMeasurements(${p - 1}); return false;">&laquo;</a></li>`;
+  let pages = new Set([1, total]);
+  for (let i = Math.max(2, p - 2); i <= Math.min(total - 1, p + 2); i++) pages.add(i);
+  [...pages].sort((a, b) => a - b).forEach((n, i, arr) => {
+    if (i > 0 && n - arr[i - 1] > 1) html += '<li><span class="flex items-center justify-center w-7 h-7 text-xs text-[#484f58]">&hellip;</span></li>';
+    html += `<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs border border-[#30363d] transition-colors ${n === p ? 'bg-[#1f6feb] border-[#1f6feb] text-white' : 'text-[#c9d1d9] hover:bg-[#30363d]'}" href="#" onclick="loadMeasurements(${n}); return false;">${n}</a></li>`;
+  });
+  html += `<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ${p >= total ? 'text-[#484f58] pointer-events-none' : 'text-[#c9d1d9] hover:bg-[#30363d]'} border border-[#30363d] transition-colors" href="#" onclick="loadMeasurements(${p + 1}); return false;">&raquo;</a></li>`;
+  pagination.innerHTML = html;
+  currentPage = p;
+}
+
+async function loadFilterOptions() {
+  const [devices, sessions] = await Promise.all([
+    fetch('/api/v1/devices?page=0').then(r => r.json()),
+    fetch('/api/v1/sessions?page=0').then(r => r.json()),
+  ]);
+  const deviceSel = document.getElementById('filter-device');
+  deviceSel.innerHTML = '<option value="">All</option>';
+  devices.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = d.alias || d.device_id;
+    deviceSel.appendChild(opt);
+  });
+  const sessionSel = document.getElementById('filter-session');
+  sessionSel.innerHTML = '<option value="">All</option>';
+  sessions.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    sessionSel.appendChild(opt);
+  });
+}
+
+function initMeasurements() {
+  var fromEl = document.getElementById('filter-from');
+  var toEl = document.getElementById('filter-to');
+  if (!fromEl || !toEl) return;
+
+  if (fromEl.datepicker) fromEl.datepicker.destroy();
+  if (toEl.datepicker) toEl.datepicker.destroy();
+
+  var fpFrom = new Datepicker(fromEl, { format: 'yyyy-mm-dd', autohide: true });
+  var fpTo = new Datepicker(toEl, { format: 'yyyy-mm-dd', autohide: true });
+
+  fromEl.addEventListener('changeDate', function(e) {
+    fpTo.update({ minDate: (e.detail && e.detail.date) || null });
+  });
+  toEl.addEventListener('changeDate', function(e) {
+    fpFrom.update({ maxDate: (e.detail && e.detail.date) || null });
+  });
+
+  loadFilterOptions();
+  loadMeasurements(1);
+
+  document.getElementById('filter-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    loadMeasurements(1);
+  });
+  document.getElementById('reset-filters').addEventListener('click', function() {
+    document.getElementById('filter-device').value = '';
+    document.getElementById('filter-session').value = '';
+    fpFrom.setDate({clear: true});
+    fpTo.setDate({clear: true});
+    fpFrom.update({ maxDate: null });
+    fpTo.update({ minDate: null });
+    loadMeasurements(1);
+  });
+  document.getElementById('download-csv').addEventListener('click', function() {
+    window.location.href = '/api/v1/measurements/export/csv?' + getFilterParams().toString();
+  });
+}
+
+if (document.getElementById('measurements-body')) initMeasurements();
+document.addEventListener('htmx:afterSettle', function() {
+  if (document.getElementById('filter-from') && !document.getElementById('filter-from').datepicker) {
+    initMeasurements();
+  }
+});
+</script>
+{% endblock %}
