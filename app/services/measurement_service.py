@@ -62,12 +62,17 @@ class MeasurementService:
         return q.order_by(Measurement.created_at.desc()).limit(limit).all()
 
     @staticmethod
-    def get_chart_data(limit=100, device_id=None, session_id=None, granularity=None):
+    def get_chart_data(limit=500, device_id=None, session_id=None, granularity=None,
+                       start_date=None, end_date=None):
         q = Measurement.query
         if device_id:
             q = q.filter_by(device_id=device_id)
         if session_id:
             q = q.filter_by(session_id=session_id)
+        if start_date:
+            q = q.filter(Measurement.created_at >= start_date)
+        if end_date:
+            q = q.filter(Measurement.created_at <= end_date)
 
         if granularity and granularity in ('s', 'm', 'h'):
             fmt_map = {'s': '%Y-%m-%dT%H:%M:%S', 'm': '%Y-%m-%dT%H:%M:00', 'h': '%Y-%m-%dT%H:00:00'}

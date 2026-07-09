@@ -3,25 +3,66 @@
 {% block content %}
 <div class="flex justify-between items-center mb-4">
   <h2 class="text-xl font-semibold">Dashboard</h2>
+</div>
+
+<div id="summary-cards-row" class="grid grid-cols-3 md:grid-cols-6 gap-2 mb-4">
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2 text-center">
+    <small class="text-[var(--muted)] uppercase tracking-wide text-xs">Online</small>
+    <div class="text-lg font-bold text-[#3fb950]" id="sum-online">—</div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2 text-center">
+    <small class="text-[var(--muted)] uppercase tracking-wide text-xs">Offline</small>
+    <div class="text-lg font-bold text-[#8b949e]" id="sum-offline">—</div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2 text-center">
+    <small class="text-[var(--muted)] uppercase tracking-wide text-xs">Projects</small>
+    <div class="text-lg font-bold text-[#58a6ff]" id="sum-projects">—</div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2 text-center">
+    <small class="text-[var(--muted)] uppercase tracking-wide text-xs">Active Sessions</small>
+    <div class="text-lg font-bold text-[#d29922]" id="sum-sessions">—</div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2 text-center">
+    <small class="text-[var(--muted)] uppercase tracking-wide text-xs">Today Energy</small>
+    <div class="text-lg font-bold text-[#d2a8ff]" id="sum-energy">— <small class="text-[var(--muted)] text-xs font-normal">Wh</small></div>
+  </div>
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-2 text-center">
+    <small class="text-[var(--muted)] uppercase tracking-wide text-xs">Current Power</small>
+    <div class="text-lg font-bold text-[#f85149]" id="sum-power">— <small class="text-[var(--muted)] text-xs font-normal">W</small></div>
+  </div>
+</div>
+
+<div class="flex flex-wrap items-center gap-4 mb-4">
   <div class="flex items-center gap-2">
-    <small class="text-[var(--muted)]" id="last-updated">—</small>
-    <span id="session-indicator"></span>
+    <span class="text-sm text-[var(--muted)]">Session:</span>
+    <select id="session-selector" class="px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)]">
+      <option value="">Select a session</option>
+    </select>
+  </div>
+  <div class="flex items-center gap-2">
+    <span class="text-sm text-[var(--muted)]">Time range:</span>
+    <div class="flex rounded overflow-hidden border border-[var(--border)]" id="time-range-group">
+      <button class="px-3 py-1 text-sm font-medium text-[var(--body-text)] bg-[var(--surface)] hover:bg-[var(--hover)] transition-colors" data-range="">All</button>
+      <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-range="1h">1h</button>
+      <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-range="24h">24h</button>
+      <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-range="7d">7d</button>
+    </div>
   </div>
 </div>
 
 <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6" id="summary-cards">
   <div>
-    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full transition-all duration-200">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-[var(--muted)]" icon="heroicons-outline:computer-desktop"></iconify-icon>
         <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Device</small>
       </div>
-      <h5 class="text-base font-semibold mb-0" id="val-device">—</h5>
-      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium mt-1" id="val-status">—</span>
+      <h5 class="text-base font-semibold mb-0" id="val-device"><span id="val-status-dot" class="inline-block w-2.5 h-2.5 rounded-full bg-[#8b949e] align-middle mr-1.5"></span><span id="val-device-name">—</span></h5>
+      <small class="text-[var(--muted)] text-xs mt-1 block" id="last-updated">—</small>
     </div>
   </div>
   <div>
-    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full transition-all duration-200">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-[#58a6ff]" icon="heroicons-outline:bolt"></iconify-icon>
         <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Bus Voltage</small>
@@ -31,7 +72,7 @@
     </div>
   </div>
   <div>
-    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full transition-all duration-200">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-[#58a6ff]" icon="heroicons-outline:trending-up"></iconify-icon>
         <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Load Voltage</small>
@@ -41,7 +82,7 @@
     </div>
   </div>
   <div>
-    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full transition-all duration-200">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-[#3fb950]" icon="heroicons-outline:bolt"></iconify-icon>
         <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Current</small>
@@ -51,7 +92,7 @@
     </div>
   </div>
   <div>
-    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full transition-all duration-200">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-[#d29922]" icon="heroicons-outline:bolt"></iconify-icon>
         <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Power</small>
@@ -61,7 +102,7 @@
     </div>
   </div>
   <div>
-    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full hover:-translate-y-0.5 hover:shadow-lg hover:border-[#30363d] transition-all duration-200">
+    <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3 h-full transition-all duration-200">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-[#d2a8ff]" icon="heroicons-outline:chart-pie"></iconify-icon>
         <small class="text-[var(--muted)] uppercase tracking-wide text-sm">Energy</small>
@@ -69,16 +110,6 @@
       <h4 class="text-lg font-semibold text-[#d2a8ff] mb-0" id="val-energy">—</h4>
       <small class="text-[var(--muted)]">Wh</small>
     </div>
-  </div>
-</div>
-
-<div class="flex items-center gap-2 mb-4">
-  <span class="text-sm text-[var(--muted)]">Chart granularity:</span>
-  <div class="flex rounded overflow-hidden border border-[var(--border)]" id="granularity-group">
-    <button class="px-3 py-1 text-sm font-medium text-[var(--body-text)] bg-[var(--surface)] hover:bg-[var(--hover)] transition-colors active" data-granularity="">Raw</button>
-    <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-granularity="s">s</button>
-    <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-granularity="m">m</button>
-    <button class="px-3 py-1 text-sm font-medium text-[var(--muted)] bg-transparent hover:bg-[var(--hover)] transition-colors border-l border-[var(--border)]" data-granularity="h">h</button>
   </div>
 </div>
 
@@ -123,9 +154,48 @@
   </div>
 </div>
 
+<div class="mb-6" id="energy-section">
+  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <iconify-icon class="w-4 h-4 text-[var(--muted)]" icon="heroicons-outline:chart-bar-square"></iconify-icon>
+      <h6 class="text-base text-[var(--muted)] font-medium">Energy Breakdown</h6>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="energy-cards">
+      <div>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-xs">Hourly</small>
+        <table class="w-full text-xs mt-1 border-collapse" id="energy-hourly">
+          <thead><tr class="text-[var(--muted)] border-b border-[var(--border)]"><th class="text-left py-1 pr-2">Period</th><th class="text-right py-1">Wh</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-xs">Daily</small>
+        <table class="w-full text-xs mt-1 border-collapse" id="energy-daily">
+          <thead><tr class="text-[var(--muted)] border-b border-[var(--border)]"><th class="text-left py-1 pr-2">Date</th><th class="text-right py-1">Wh</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-xs">Weekly</small>
+        <table class="w-full text-xs mt-1 border-collapse" id="energy-weekly">
+          <thead><tr class="text-[var(--muted)] border-b border-[var(--border)]"><th class="text-left py-1 pr-2">Week</th><th class="text-right py-1">Wh</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div>
+        <small class="text-[var(--muted)] uppercase tracking-wide text-xs">Monthly</small>
+        <table class="w-full text-xs mt-1 border-collapse" id="energy-monthly">
+          <thead><tr class="text-[var(--muted)] border-b border-[var(--border)]"><th class="text-left py-1 pr-2">Month</th><th class="text-right py-1">Wh</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4 mb-4">
   <div class="flex items-center gap-2 mb-3">
-    <iconify-icon class="w-4 h-4 text-[var(--muted)]" icon="heroicons-outline:tv"></iconify-icon>
+    <iconify-icon class="w-4 h-4 text-[var(--muted)]" icon="heroicons-outline:document-text"></iconify-icon>
     <h6 class="text-base text-[var(--muted)] font-medium">Recent Measurements</h6>
   </div>
   <div class="overflow-x-auto">

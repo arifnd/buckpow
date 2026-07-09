@@ -1,4 +1,5 @@
 import csv, io
+from datetime import datetime, timezone, timedelta
 from functools import wraps
 from flask import Blueprint, request, jsonify, Response
 from app.services.measurement_service import MeasurementService
@@ -109,14 +110,24 @@ def export_csv():
 def chart_data():
     device_id = request.args.get('device_id', type=int)
     session_id = request.args.get('session_id', type=int)
-    limit = request.args.get('limit', 100, type=int)
+    limit = request.args.get('limit', 500, type=int)
     granularity = request.args.get('granularity')
+    time_range = request.args.get('range')
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
 
     if granularity not in (None, 's', 'm', 'h'):
         granularity = None
 
+    if time_range == '1h':
+        start_date = datetime.now(timezone.utc) - timedelta(hours=1)
+    elif time_range == '24h':
+        start_date = datetime.now(timezone.utc) - timedelta(hours=24)
+    elif time_range == '7d':
+        start_date = datetime.now(timezone.utc) - timedelta(days=7)
+
     data = MeasurementService.get_chart_data(
         limit=limit, device_id=device_id, session_id=session_id,
-        granularity=granularity,
+        granularity=granularity, start_date=start_date, end_date=end_date,
     )
     return jsonify(data)

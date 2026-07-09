@@ -6,7 +6,7 @@ import urllib.request
 import urllib.error
 
 
-def send_reading(url, device_id, energy):
+def send_reading(url, device_id, energy, api_key=None):
     bus_v = round(random.uniform(4.8, 5.2), 3)
     shunt_v = round(random.uniform(75, 85), 1)
     current_ma = round(random.uniform(400, 600), 1)
@@ -21,7 +21,10 @@ def send_reading(url, device_id, energy):
         "power": power_mw,
     }).encode()
 
-    req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"})
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    req = urllib.request.Request(url, data=payload, headers=headers)
     try:
         resp = urllib.request.urlopen(req)
         print(f"{resp.status} {resp.read().decode()}")
@@ -35,15 +38,19 @@ def main():
     parser.add_argument("--interval", type=float, default=1.0, help="Seconds between readings (default: 1.0)")
     parser.add_argument("--url", default="http://localhost:5001/api/v1/measurements", help="API endpoint URL")
     parser.add_argument("--device", default="esp32-dummy", help="Device ID (default: esp32-dummy)")
+    parser.add_argument("--api-key", help="API key for device authentication (Bearer token)")
     args = parser.parse_args()
 
-    print(f"Sending dummy readings every {args.interval}s to {args.url} [device={args.device}]")
+    if args.api_key:
+        print(f"Sending dummy readings every {args.interval}s to {args.url} [device={args.device}, api_key=***]")
+    else:
+        print(f"Sending dummy readings every {args.interval}s to {args.url} [device={args.device}]")
     print("Press Ctrl+C to stop.\n")
 
     energy = 0.0
     try:
         while True:
-            energy = send_reading(args.url, args.device, energy)
+            energy = send_reading(args.url, args.device, energy, api_key=args.api_key)
             time.sleep(args.interval)
     except KeyboardInterrupt:
         print("\nStopped.")

@@ -1,0 +1,135 @@
+from datetime import datetime, timezone
+
+from sqlalchemy import func
+
+from app import db
+from app.models import Device, Session, Project, Measurement
+
+
+class DashboardService:
+
+    @staticmethod
+    def get_summary():
+        devices = Device.query.all()
+        online = sum(1 for d in devices if d._compute_status() == 'online')
+        offline = len(devices) - online
+        total_projects = Project.query.count()
+        active_sessions = Session.query.filter_by(status='running').count()
+
+        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        today_ms = Measurement.query.filter(
+            Measurement.created_at >= today_start
+        ).order_by(Measurement.created_at.asc()).all()
+
+        today_energy = 0.0
+        if today_ms:
+            seen_sessions = {}
+            for m in today_ms:
+                if m.session_id:
+                    seen_sessions[m.session_id] = m.energy
+            today_energy = sum(seen_sessions.values()) if seen_sessions else 0.0
+
+        latest = Measurement.query.order_by(Measurement.created_at.desc()).first()
+        current_power = round(latest.power, 3) if latest else 0.0
+
+        return {
+            'online_devices': online,
+            'offline_devices': offline,
+            'total_projects': total_projects,
+            'active_sessions': active_sessions,
+            'today_energy': round(today_energy, 6),
+            'current_power': current_power,
+        }
+
+    @staticmethod
+    def get_statistics(device_id=None, start_date=None, end_date=None):
+        q = Measurement.query
+        if device_id:
+            q = q.filter_by(device_id=device_id)
+        if start_date:
+            q = q.filter(Measurement.created_at >= start_date)
+        if end_date:
+            q = q.filter(Measurement.created_at <= end_date)
+        q = q.order_by(Measurement.created_at.desc()).limit(500)
+
+        rows = q.all()
+        if not rows:
+            return {
+                'voltage': {'min': 0, 'max': 0, 'avg': 0},
+                'current': {'min': 0, 'max': 0, 'avg': 0},
+                'power': {'min': 0, 'max': 0, 'avg': 0, 'peak': 0},
+                'energy': {'hourly': [], 'daily': [], 'weekly': [], 'monthly': []},
+            }
+
+        voltages = [r.bus_voltage for r in rows]
+        currents = [r.current for r in rows]
+        powers = [r.power for r in rows]
+
+        stats = {
+            'voltage': {
+                'min': round(min(voltages), 3),
+                'max': round(max(voltages), 3),
+                'avg': round(sum(voltages) / len(voltages), 3),
+            },
+            'current': {
+                'min': round(min(currents), 3),
+                'max': round(max(currents), 3),
+                'avg': round(sum(currents) / len(currents), 3),
+            },
+            'power': {
+                'min': round(min(powers), 3),
+                'max': round(max(powers), 3),
+                'avg': round(sum(powers) / len(powers), 3),
+                'peak': round(max(powers), 3),
+            },
+            'energy': DashboardService._get_energy_breakdown(device_id),
+        }
+        return stats
+
+    @staticmethod
+    def _get_energy_breakdown(device_id=None):
+        q = Measurement.query
+        if device_id:
+            q = q.filter_by(device_id=device_id)
+
+        rows = q.order_by(Measurement.created_at.asc()).all()
+        if not rows:
+            return {'hourly': [], 'daily': [], 'weekly': [], 'monthly': []}
+
+        hourly = {}
+        daily = {}
+        weekly = {}
+        monthly = {}
+        prev = None
+        for m in rows:
+            if prev is not None and m.session_id and m.session_id == prev.session_id:
+                inc = m.energy - prev.energy
+            elif prev is not None:
+                inc = 0
+            else:
+                inc = 0
+
+            if m.created_at:
+                hk = m.created_at.strftime('%Y-%m-%dT%H:00:00Z')
+                hourly[hk] = hourly.get(hk, 0) + inc
+
+                dk = m.created_at.strftime('%Y-%m-%d')
+                daily[dk] = daily.get(dk, 0) + inc
+
+                wk = m.created_at.strftime('%Y-W%W')
+                weekly[wk] = weekly.get(wk, 0) + inc
+
+                mk = m.created_at.strftime('%Y-%m')
+                monthly[mk] = monthly.get(mk, 0) + inc
+
+            prev = m
+
+        def to_sorted(adict):
+            return [{'period': k, 'energy': round(v, 6)} for k, v in sorted(adict.items())]
+
+        return {
+            'hourly': to_sorted(hourly),
+            'daily': to_sorted(daily),
+            'weekly': to_sorted(weekly),
+            'monthly': to_sorted(monthly),
+        }
