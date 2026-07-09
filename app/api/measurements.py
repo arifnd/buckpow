@@ -17,6 +17,8 @@ def require_device_api_key(f):
         device = DeviceService.get_by_api_key(api_key)
         if not device:
             return jsonify({'error': 'Invalid API key'}), 401
+        if not device.enabled:
+            return jsonify({'error': 'Device is disabled'}), 403
         request.device = device
         return f(*args, **kwargs)
     return decorated

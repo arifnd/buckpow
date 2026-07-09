@@ -36,6 +36,7 @@ def create_device():
         description=body.get('description', ''),
         sampling_interval=body.get('sampling_interval'),
         project_id=body.get('project_id'),
+        firmware_version=body.get('firmware_version', ''),
     )
     return jsonify(device.to_dict()), 201
 
@@ -54,13 +55,13 @@ def update_device(device_id):
     if not body:
         return jsonify({'error': 'No JSON payload'}), 400
 
-    device = DeviceService.update(
-        device_id,
-        alias=body.get('alias'),
-        description=body.get('description'),
-        sampling_interval=body.get('sampling_interval'),
-        project_id=body.get('project_id'),
-    )
+    kwargs = {}
+    for key in ('alias', 'description', 'sampling_interval', 'project_id', 'firmware_version'):
+        if key in body:
+            kwargs[key] = body[key]
+    if 'enabled' in body:
+        kwargs['enabled'] = body['enabled']
+    device = DeviceService.update(device_id, **kwargs)
     if not device:
         return jsonify({'error': 'Device not found'}), 404
     return jsonify(device.to_dict())
@@ -72,6 +73,14 @@ def get_device_key(device_id):
     if not device or not device.api_key:
         return jsonify({'error': 'Device not found or no API key'}), 404
     return jsonify({'api_key': device.api_key, 'id': device.id}), 200
+
+
+@devices_bp.route('/devices/<int:device_id>/toggle', methods=['PATCH'])
+def toggle_device(device_id):
+    device = DeviceService.toggle_enabled(device_id)
+    if not device:
+        return jsonify({'error': 'Device not found'}), 404
+    return jsonify(device.to_dict()), 200
 
 
 @devices_bp.route('/devices/<int:device_id>/regenerate-key', methods=['POST'])

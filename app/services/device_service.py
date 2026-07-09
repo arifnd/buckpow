@@ -43,13 +43,15 @@ class DeviceService:
         return secrets.token_hex(32)
 
     @staticmethod
-    def create(device_id, alias='', description='', sampling_interval=None, project_id=None):
+    def create(device_id, alias='', description='', sampling_interval=None, project_id=None, firmware_version=''):
         device = Device(
             device_id=device_id,
             alias=alias,
             description=description,
             sampling_interval=sampling_interval or Config.DEFAULT_SAMPLING_INTERVAL,
             status='offline',
+            enabled=True,
+            firmware_version=firmware_version,
             project_id=project_id,
             api_key=DeviceService.generate_api_key(),
         )
@@ -65,6 +67,15 @@ class DeviceService:
         for key, value in kwargs.items():
             if hasattr(device, key):
                 setattr(device, key, value)
+        db.session.commit()
+        return device
+
+    @staticmethod
+    def toggle_enabled(device_id):
+        device = db.session.get(Device, device_id)
+        if not device:
+            return None
+        device.enabled = not device.enabled
         db.session.commit()
         return device
 
