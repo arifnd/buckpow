@@ -4,6 +4,10 @@ from app import db
 from app.models import Alert
 from app.config import Config
 
+DEFAULT_HIGH_POWER_THRESHOLD = 2.5
+DEFAULT_HIGH_CURRENT_THRESHOLD = 0.5
+DEFAULT_LOW_VOLTAGE_THRESHOLD = 4.5
+
 
 class AlertService:
 
@@ -77,17 +81,17 @@ class AlertService:
                 if not AlertService._has_unresolved(device.id, 'Device back online'):
                     AlertService.create(device.id, 'info', f'Device back online ({device.device_id})')
 
-        threshold_w = device.high_power_threshold if device.high_power_threshold is not None else Config.HIGH_POWER_THRESHOLD
+        threshold_w = device.high_power_threshold if device.high_power_threshold is not None else DEFAULT_HIGH_POWER_THRESHOLD
         if power > threshold_w:
             if not AlertService._has_unresolved(device.id, 'High power'):
                 AlertService.create(device.id, 'critical', f'High power on {device.device_id}: {power:.3f}W (threshold: {threshold_w}W)')
 
-        threshold_a = device.high_current_threshold if device.high_current_threshold is not None else Config.HIGH_CURRENT_THRESHOLD
+        threshold_a = device.high_current_threshold if device.high_current_threshold is not None else DEFAULT_HIGH_CURRENT_THRESHOLD
         if current > threshold_a:
             if not AlertService._has_unresolved(device.id, 'High current'):
                 AlertService.create(device.id, 'critical', f'High current on {device.device_id}: {current:.3f}A (threshold: {threshold_a}A)')
 
-        threshold_v = device.low_voltage_threshold if device.low_voltage_threshold is not None else Config.LOW_VOLTAGE_THRESHOLD
+        threshold_v = device.low_voltage_threshold if device.low_voltage_threshold is not None else DEFAULT_LOW_VOLTAGE_THRESHOLD
         if bus_voltage < threshold_v:
             if not AlertService._has_unresolved(device.id, 'Low voltage'):
                 AlertService.create(device.id, 'warning', f'Low voltage on {device.device_id}: {bus_voltage:.3f}V (threshold: {threshold_v}V)')

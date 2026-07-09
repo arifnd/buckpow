@@ -1,4 +1,5 @@
 from flask import Blueprint
+from .health import health_bp
 from .measurements import measurements_bp
 from .dashboard import dashboard_bp
 from .devices import devices_bp
@@ -9,6 +10,7 @@ from .alerts import alerts_bp
 from .benchmark import benchmark_bp
 
 api_bp = Blueprint('api', __name__)
+api_bp.register_blueprint(health_bp)
 api_bp.register_blueprint(measurements_bp)
 api_bp.register_blueprint(dashboard_bp)
 api_bp.register_blueprint(devices_bp)

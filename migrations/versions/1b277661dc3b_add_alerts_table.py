@@ -6,6 +6,7 @@ Create Date: 2026-07-09 15:42:13.967519
 
 """
 from alembic import op
+from alembic.migration import MigrationContext
 import sqlalchemy as sa
 
 
@@ -17,11 +18,8 @@ depends_on = None
 
 
 def upgrade():
-    conn = op.get_bind()
-    existing = conn.execute(
-        sa.text("SELECT name FROM sqlite_master WHERE type='table' AND name='alerts'")
-    ).fetchone()
-    if existing:
+    ctx = op.get_context()
+    if ctx.dialect.has_table(ctx.connection, 'alerts'):
         return
     op.create_table(
         'alerts',

@@ -1,7 +1,5 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import func
-
 from app import db
 from app.models import Measurement, Session
 from app.utils.calculations import calc_load_voltage, calc_energy_increment
@@ -75,29 +73,47 @@ class MeasurementService:
             q = q.filter(Measurement.created_at <= end_date)
 
         if granularity and granularity in ('s', 'm', 'h', 'd'):
-            fmt_map = {
-                's': '%Y-%m-%dT%H:%M:%S',
-                'm': '%Y-%m-%dT%H:%M:00',
-                'h': '%Y-%m-%dT%H:00:00',
-                'd': '%Y-%m-%d',
-            }
-            bucket = func.strftime(fmt_map[granularity], Measurement.created_at)
-            rows = q.with_entities(
-                bucket.label('tb'),
-                func.avg(Measurement.bus_voltage).label('avg_voltage'),
-                func.avg(Measurement.load_voltage).label('avg_load_voltage'),
-                func.avg(Measurement.current).label('avg_current'),
-                func.avg(Measurement.power).label('avg_power'),
-                func.avg(Measurement.energy).label('avg_energy'),
-            ).group_by('tb').order_by(func.max(Measurement.created_at).desc()).limit(limit).all()
-            rows.reverse()
+            rows = q.order_by(Measurement.created_at.asc()).all()
+            buckets = {}
+            for m in rows:
+                ts = m.created_at
+                if granularity == 's':
+                    key = ts.replace(second=ts.second, microsecond=0).isoformat()
+                elif granularity == 'm':
+                    key = ts.replace(minute=ts.minute, second=0, microsecond=0).isoformat()
+                elif granularity == 'h':
+                    key = ts.replace(hour=ts.hour, minute=0, second=0, microsecond=0).isoformat()
+                else:
+                    key = ts.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+                if key not in buckets:
+                    buckets[key] = {'voltage': [], 'load_voltage': [], 'current': [], 'power': [], 'energy': []}
+                buckets[key]['voltage'].append(m.bus_voltage)
+                buckets[key]['load_voltage'].append(m.load_voltage)
+                buckets[key]['current'].append(m.current)
+                buckets[key]['power'].append(m.power)
+                buckets[key]['energy'].append(m.energy)
+            labels = []
+            voltage = []
+            load_voltage = []
+            current = []
+            power = []
+            energy = []
+            keys = sorted(buckets.keys())[-limit:] if len(buckets) > limit else sorted(buckets.keys())
+            for k in keys:
+                b = buckets[k]
+                labels.append(k + 'Z')
+                voltage.append(round(sum(b['voltage']) / len(b['voltage']), 3))
+                load_voltage.append(round(sum(b['load_voltage']) / len(b['load_voltage']), 3))
+                current.append(round(sum(b['current']) / len(b['current']), 3))
+                power.append(round(sum(b['power']) / len(b['power']), 3))
+                energy.append(round(sum(b['energy']) / len(b['energy']), 3))
             return {
-                'labels': [r.tb + 'Z' for r in rows],
-                'voltage': [round(r.avg_voltage, 3) for r in rows],
-                'load_voltage': [round(r.avg_load_voltage, 3) for r in rows],
-                'current': [round(r.avg_current, 3) for r in rows],
-                'power': [round(r.avg_power, 3) for r in rows],
-                'energy': [round(r.avg_energy, 3) for r in rows],
+                'labels': labels,
+                'voltage': voltage,
+                'load_voltage': load_voltage,
+                'current': current,
+                'power': power,
+                'energy': energy,
             }
 
         rows = q.order_by(Measurement.created_at.desc()).limit(limit).all()
