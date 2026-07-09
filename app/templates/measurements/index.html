@@ -179,5 +179,10 @@ function initMeasurements() {
 }
 
 if (document.getElementById('measurements-body')) initMeasurements();
+document.addEventListener('htmx:afterSettle', function() {
+  if (document.getElementById('filter-from') && !document.getElementById('filter-from').datepicker) {
+    initMeasurements();
+  }
+});
 </script>
 {% endblock %}
