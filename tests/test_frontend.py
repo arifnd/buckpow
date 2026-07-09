@@ -58,3 +58,57 @@ class TestFrontend:
         html = resp.data.decode()
         for link in ['Dashboard', 'Devices', 'Sessions', 'Measurements']:
             assert link in html
+
+
+class TestPageStructure:
+    def test_devices_page_has_table(self, client):
+        resp = client.get('/devices')
+        html = resp.data.decode()
+        assert 'id="devices-body"' in html
+        assert 'Add Device' in html
+
+    def test_devices_page_has_columns(self, client):
+        resp = client.get('/devices')
+        html = resp.data.decode()
+        for col in ['Device ID', 'Alias', 'Description', 'Status', 'Last Seen', 'Actions']:
+            assert col in html
+
+    def test_sessions_page_has_table(self, client):
+        resp = client.get('/sessions')
+        html = resp.data.decode()
+        assert 'id="sessions-body"' in html
+        assert 'Create Session' in html
+
+    def test_sessions_page_has_columns(self, client):
+        resp = client.get('/sessions')
+        html = resp.data.decode()
+        for col in ['Name', 'Device ID', 'Status', 'Started', 'Ended', 'Actions']:
+            assert col in html
+
+    def test_measurements_page_has_table(self, client):
+        resp = client.get('/measurements')
+        html = resp.data.decode()
+        assert 'id="measurements-body"' in html
+        assert 'Filter' in html
+        assert 'Download CSV' in html
+
+    def test_measurements_page_has_columns(self, client):
+        resp = client.get('/measurements')
+        html = resp.data.decode()
+        for col in ['Bus V', 'Shunt V', 'Load V', 'Current', 'Power', 'Energy', 'Timestamp']:
+            assert col in html
+
+    def test_measurements_page_has_pagination(self, client):
+        resp = client.get('/measurements')
+        html = resp.data.decode()
+        assert 'id="pagination"' in html
+
+    def test_devices_page_has_pagination(self, client):
+        resp = client.get('/devices')
+        html = resp.data.decode()
+        assert 'id="devices-pagination"' in html
+
+    def test_sessions_page_has_pagination(self, client):
+        resp = client.get('/sessions')
+        html = resp.data.decode()
+        assert 'id="sessions-pagination"' in html
