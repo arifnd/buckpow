@@ -23,6 +23,7 @@ class Project(db.Model):
             'owner_id': self.owner_id,
             'owner_name': self.owner.name if self.owner else None,
             'device_count': self.devices.count() if hasattr(self, 'devices') else 0,
+            'session_count': self.sessions.count() if hasattr(self, 'sessions') else 0,
             'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
             'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
         }

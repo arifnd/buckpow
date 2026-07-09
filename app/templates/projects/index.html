@@ -16,6 +16,7 @@
           <th class="text-left py-2 px-3 font-medium">Description</th>
           <th class="text-left py-2 px-3 font-medium">Owner</th>
           <th class="text-center py-2 px-3 font-medium">Devices</th>
+          <th class="text-center py-2 px-3 font-medium">Sessions</th>
           <th class="text-left py-2 px-3 font-medium">Created</th>
           <th class="text-right py-2 px-3 font-medium">Actions</th>
         </tr>
@@ -70,6 +71,7 @@ function loadProjects(page) {
           '<td class="py-2 px-3 text-[var(--muted)]">' + (p.description || '—') + '</td>' +
           '<td class="py-2 px-3">' + (p.owner_name || '—') + '</td>' +
           '<td class="py-2 px-3 text-center">' + (p.device_count || 0) + '</td>' +
+          '<td class="py-2 px-3 text-center">' + (p.session_count || 0) + '</td>' +
           '<td class="py-2 px-3">' + (p.created_at ? new Date(p.created_at).toLocaleString() : '—') + '</td>' +
           '<td class="py-2 px-3 text-right">' +
             '<button class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" onclick="openProjectModal(' + p.id + ')">Edit</button> ' +
