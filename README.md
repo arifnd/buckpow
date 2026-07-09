@@ -1,12 +1,12 @@
 # BakPow
 
-ESP32 power meter dashboard. Flask + SQLAlchemy + SQLite backend, Bootstrap 5 dashboard with Chart.js real-time charts.
+ESP32/ESP8266 power meter dashboard. Flask + SQLAlchemy + SQLite backend, Tailwind CSS + HTMX dashboard with Chart.js real-time charts and dark theme.
 
 ```
-ESP32 (INA219) ──HTTP POST──> Flask API ──> SQLite
-                                    │
-                             HTML Dashboard
-                            (Chart.js, auto-refresh)
+ESP32/ESP8266 (INA219) ──HTTP POST──> Flask API ──> SQLite
+                                           │
+                                    HTML Dashboard
+                                   (HTMX, Chart.js)
 ```
 
 ## Setup
@@ -31,12 +31,13 @@ Open http://localhost:5001. (Port 5000 is often taken by macOS AirPlay — `.env
 | Method | Path | Description |
 |---|---|---|
 | POST | `/api/v1/measurements` | Send a reading |
-| GET | `/api/v1/measurements` | Paginated readings |
+| GET | `/api/v1/measurements` | Paginated readings (10/page) |
+| GET | `/api/v1/measurements/export/csv` | Export filtered readings as CSV |
 | GET | `/api/v1/dashboard` | Latest + stats + devices |
 | GET | `/api/v1/chart` | Chart data (device/session filter) |
-| GET/POST | `/api/v1/devices` | List / create devices |
+| GET/POST | `/api/v1/devices` | List (paginated) / create devices |
 | GET/PUT/DELETE | `/api/v1/devices/<id>` | Device CRUD |
-| GET/POST | `/api/v1/sessions` | List / create sessions |
+| GET/POST | `/api/v1/sessions` | List (paginated) / create sessions |
 | GET/PUT/DELETE | `/api/v1/sessions/<id>` | Session CRUD |
 | POST | `/api/v1/sessions/<id>/start` | Start session |
 | POST | `/api/v1/sessions/<id>/stop` | Stop session |
@@ -56,7 +57,7 @@ curl -X POST http://localhost:5001/api/v1/measurements \
 | `/` | Dashboard with real-time charts & summary cards |
 | `/devices` | Device management |
 | `/sessions` | Session management |
-| `/measurements` | Paginated readings |
+| `/measurements` | Paginated readings with date range filter |
 
 ## Test
 

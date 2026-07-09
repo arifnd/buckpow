@@ -1,6 +1,6 @@
 # BakPow — v0.1
 
-Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives power readings from ESP32+INA219 via HTTP POST. Serves a Bootstrap 5 dashboard with Chart.js real-time charts.
+Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives power readings from ESP32/ESP8266 + INA219 via HTTP POST. Serves a Tailwind CSS + HTMX dashboard with Chart.js real-time charts and dark theme.
 
 ## Repository structure
 
@@ -13,12 +13,13 @@ Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives powe
 | `app/services/` | Business logic layer |
 | `app/api/` | REST API v1 blueprints (`/api/v1/*`) |
 | `app/dashboard/` | Server-rendered page routes |
-| `app/templates/` | Jinja2 templates (Bootstrap 5) |
-| `app/static/` | CSS, JS (Chart.js frontend) |
+| `app/templates/` | Jinja2 templates (Tailwind CSS, HTMX) |
+| `app/static/` | CSS, JS (Chart.js, dashboard, theme) |
+| `app/utils/` | Utility functions (calculations) |
 | `instance/bakpow.db` | SQLite database (auto-created) |
 | `migrations/` | Alembic migration files (Flask-Migrate) |
 | `scripts/send_dummy.py` | Dummy data generator matching v0.1 API |
-| `tests/` | Pytest suite (28 tests) |
+| `tests/` | Pytest suite (83 tests) |
 | `.env` | Config via env vars |
 
 ## Quick start
@@ -40,8 +41,9 @@ python run.py              # db.create_all() runs on startup
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/v1/measurements` | Receive ESP32 data |
-| GET | `/api/v1/measurements` | Paginated historical data |
+| POST | `/api/v1/measurements` | Receive ESP32/ESP8266 data |
+| GET | `/api/v1/measurements` | Paginated historical data (10/page) |
+| GET | `/api/v1/measurements/export/csv` | Export filtered data as CSV |
 | GET | `/api/v1/dashboard` | Latest + stats + devices |
 | GET | `/api/v1/chart` | Chart data (device/session filter) |
 | GET/POST | `/api/v1/devices` | List / create devices |
@@ -63,10 +65,14 @@ curl -X POST http://localhost:5001/api/v1/measurements \
 
 - **Migration ready** — Flask-Migrate / Alembic configured for future PostgreSQL
 - **Service layer** — business logic separated from HTTP handlers
+- **HTMX navigation** — `hx-boost="true"` on `<body>` for SPA-like page transitions with native `<script>` re-evaluation
+- **Tailwind CSS** — Utility-first styling with dark theme via CSS variables
+- **Flowbite Datepicker** — Used on measurements filter page for date range selection
 - **Device auto-registration** — unknown device IDs create devices automatically
 - **Session auto-assignment** — new measurements assigned to running session (if any)
 - **Energy calculation** — cumulative Wh = Σ(Power(W) × sampling_interval(h))
-- **Device status** — online if seen within 30s, else offline
+- **Device status** — dynamically computed: online if seen within 30s, else offline
+- **Pagination** — All tables (devices, sessions, measurements) show 10 items/page with page nav; hidden when only 1 page
 - **Virtual env** at `venv/` — activate before Python commands
 
 ## Tests
