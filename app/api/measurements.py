@@ -7,6 +7,8 @@ from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from app.services.measurement_service import MeasurementService
 from app.services.device_service import DeviceService
+from app.utils.errors import error_response
+from app.utils.validators import validate_required
 
 measurements_bp = Blueprint('api_measurements', __name__)
 
@@ -16,13 +18,13 @@ def require_device_api_key(f):
     def decorated(*args, **kwargs):
         auth = request.headers.get('Authorization', '')
         if not auth.startswith('Bearer '):
-            return jsonify({'error': 'Missing or invalid Authorization header'}), 401
+            return error_response('Missing or invalid Authorization header', 401)
         api_key = auth[7:]
         device = DeviceService.get_by_api_key(api_key)
         if not device:
-            return jsonify({'error': 'Invalid API key'}), 401
+            return error_response('Invalid API key', 401)
         if not device.enabled:
-            return jsonify({'error': 'Device is disabled'}), 403
+            return error_response('Device is disabled', 403)
         request.device = device
         return f(*args, **kwargs)
     return decorated
@@ -33,12 +35,12 @@ def require_device_api_key(f):
 def receive_measurement():
     body = request.get_json()
     if not body:
-        return jsonify({'error': 'No JSON payload'}), 400
+        return error_response('No JSON payload', 400)
 
     required = ['device_id', 'bus_voltage', 'shunt_voltage', 'current', 'power']
-    for field in required:
-        if field not in body:
-            return jsonify({'error': f'Missing field: {field}'}), 400
+    missing = validate_required(body, required)
+    if missing:
+        return error_response(f'Missing field: {missing}', 400)
 
     try:
         measurement = MeasurementService.create(
@@ -50,7 +52,7 @@ def receive_measurement():
         )
         return jsonify({'status': 'success', 'id': measurement.id}), 201
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        return error_response(str(e), 500)
 
 
 @measurements_bp.route('/measurements', methods=['GET'])

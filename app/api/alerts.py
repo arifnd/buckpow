@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.services.alert_service import AlertService
+from app.utils.errors import NotFoundError, ValidationError, error_response
+from app.utils.validators import validate_required
 
 alerts_bp = Blueprint('api_alerts', __name__)
 
@@ -30,13 +32,12 @@ def list_alerts():
 @alerts_bp.route('/alerts', methods=['POST'])
 def create_alert():
     body = request.get_json()
-    if not body:
-        return jsonify({'error': 'No JSON payload'}), 400
-    device_id = body.get('device_id')
+    missing = validate_required(body, ['device_id', 'message'])
+    if missing:
+        return error_response(f'{missing} is required', 400)
+    device_id = body['device_id']
     level = body.get('level', 'warning')
-    message = body.get('message', '')
-    if not device_id or not message:
-        return jsonify({'error': 'device_id and message are required'}), 400
+    message = body['message']
     alert = AlertService.create(device_id, level, message)
     return jsonify(alert.to_dict()), 201
 
@@ -45,7 +46,7 @@ def create_alert():
 def resolve_alert(alert_id):
     alert = AlertService.resolve(alert_id)
     if not alert:
-        return jsonify({'error': 'Alert not found'}), 404
+        raise NotFoundError('Alert not found')
     return jsonify(alert.to_dict())
 
 

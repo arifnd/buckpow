@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.services.session_service import SessionService
+from app.utils.errors import NotFoundError, error_response
+from app.utils.validators import validate_required
 
 sessions_bp = Blueprint('api_sessions', __name__)
 
@@ -24,8 +26,9 @@ def list_sessions():
 @sessions_bp.route('/sessions', methods=['POST'])
 def create_session():
     body = request.get_json()
-    if not body or 'name' not in body or 'device_id' not in body:
-        return jsonify({'error': 'name and device_id are required'}), 400
+    missing = validate_required(body, ['name', 'device_id'])
+    if missing:
+        return error_response(f'{missing} is required', 400)
 
     session = SessionService.create(
         device_id=body['device_id'],
@@ -41,7 +44,7 @@ def create_session():
 def get_session(session_id):
     session = SessionService.get_by_id(session_id)
     if not session:
-        return jsonify({'error': 'Session not found'}), 404
+        raise NotFoundError('Session not found')
     return jsonify(session.to_dict())
 
 
@@ -49,7 +52,7 @@ def get_session(session_id):
 def update_session(session_id):
     body = request.get_json()
     if not body:
-        return jsonify({'error': 'No JSON payload'}), 400
+        return error_response('No JSON payload', 400)
 
     session = SessionService.update(
         session_id,
@@ -59,7 +62,7 @@ def update_session(session_id):
         project_id=body.get('project_id'),
     )
     if not session:
-        return jsonify({'error': 'Session not found'}), 404
+        raise NotFoundError('Session not found')
     return jsonify(session.to_dict())
 
 
@@ -67,7 +70,7 @@ def update_session(session_id):
 def delete_session(session_id):
     if SessionService.delete(session_id):
         return jsonify({'status': 'deleted'}), 200
-    return jsonify({'error': 'Session not found'}), 404
+    raise NotFoundError('Session not found')
 
 
 @sessions_bp.route('/sessions/<int:session_id>/start', methods=['POST'])

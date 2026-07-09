@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from app import db
 from app.models import Device
 from app.services.device_service import DeviceService
+from app.utils.errors import NotFoundError, ValidationError, error_response
+from app.utils.validators import validate_required
 
 
 devices_bp = Blueprint('api_devices', __name__)
@@ -27,8 +29,9 @@ def list_devices():
 @devices_bp.route('/devices', methods=['POST'])
 def create_device():
     body = request.get_json()
-    if not body or 'device_id' not in body:
-        return jsonify({'error': 'device_id is required'}), 400
+    missing = validate_required(body, ['device_id'])
+    if missing:
+        return error_response('device_id is required', 400)
 
     device = DeviceService.create(
         device_id=body['device_id'],
@@ -48,7 +51,7 @@ def create_device():
 def get_device(device_id):
     device = DeviceService.get_by_id(device_id)
     if not device:
-        return jsonify({'error': 'Device not found'}), 404
+        raise NotFoundError('Device not found')
     return jsonify(device.to_dict())
 
 
@@ -56,7 +59,7 @@ def get_device(device_id):
 def update_device(device_id):
     body = request.get_json()
     if not body:
-        return jsonify({'error': 'No JSON payload'}), 400
+        return error_response('No JSON payload', 400)
 
     kwargs = {}
     for key in ('alias', 'description', 'sampling_interval', 'project_id', 'firmware_version',
@@ -67,7 +70,7 @@ def update_device(device_id):
         kwargs['enabled'] = body['enabled']
     device = DeviceService.update(device_id, **kwargs)
     if not device:
-        return jsonify({'error': 'Device not found'}), 404
+        raise NotFoundError('Device not found')
     return jsonify(device.to_dict())
 
 
@@ -75,7 +78,7 @@ def update_device(device_id):
 def get_device_key(device_id):
     device = db.session.get(Device, device_id)
     if not device or not device.api_key:
-        return jsonify({'error': 'Device not found or no API key'}), 404
+        return error_response('Device not found or no API key', 404)
     return jsonify({'api_key': device.api_key, 'id': device.id}), 200
 
 
@@ -83,7 +86,7 @@ def get_device_key(device_id):
 def toggle_device(device_id):
     device = DeviceService.toggle_enabled(device_id)
     if not device:
-        return jsonify({'error': 'Device not found'}), 404
+        raise NotFoundError('Device not found')
     return jsonify(device.to_dict()), 200
 
 
@@ -91,7 +94,7 @@ def toggle_device(device_id):
 def regenerate_key(device_id):
     device = DeviceService.regenerate_api_key(device_id)
     if not device:
-        return jsonify({'error': 'Device not found'}), 404
+        raise NotFoundError('Device not found')
     return jsonify({'api_key': device.api_key, 'id': device.id}), 200
 
 
@@ -99,4 +102,4 @@ def regenerate_key(device_id):
 def delete_device(device_id):
     if DeviceService.delete(device_id):
         return jsonify({'status': 'deleted'}), 200
-    return jsonify({'error': 'Device not found'}), 404
+    raise NotFoundError('Device not found')

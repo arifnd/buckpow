@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.services.measurement_service import MeasurementService
+from app.utils.errors import error_response
 
 benchmark_bp = Blueprint('api_benchmark', __name__)
 
@@ -8,11 +9,11 @@ benchmark_bp = Blueprint('api_benchmark', __name__)
 def compare():
     sessions_param = request.args.get('sessions', '')
     if not sessions_param:
-        return jsonify({'error': 'sessions parameter is required (comma-separated IDs)'}), 400
+        return error_response('sessions parameter is required (comma-separated IDs)', 400)
 
     session_ids = [s.strip() for s in sessions_param.split(',') if s.strip()]
     if len(session_ids) < 2:
-        return jsonify({'error': 'At least two session IDs are required'}), 400
+        return error_response('At least two session IDs are required', 400)
 
     results = []
     for sid in session_ids:
@@ -25,6 +26,6 @@ def compare():
             results.append(stats)
 
     if len(results) < 2:
-        return jsonify({'error': 'Could not find at least two valid sessions'}), 404
+        return error_response('Could not find at least two valid sessions', 404)
 
     return jsonify({'sessions': results})

@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from app.services.project_service import ProjectService
+from app.utils.errors import NotFoundError, ValidationError, error_response
+from app.utils.validators import validate_required
 
 projects_bp = Blueprint('api_projects', __name__)
 
@@ -27,8 +29,9 @@ def list_projects():
 @login_required
 def create_project():
     body = request.get_json()
-    if not body or 'name' not in body:
-        return jsonify({'error': 'name is required'}), 400
+    missing = validate_required(body, ['name'])
+    if missing:
+        return error_response('name is required', 400)
 
     project = ProjectService.create(
         name=body['name'],
@@ -43,7 +46,7 @@ def create_project():
 def get_project(project_id):
     project = ProjectService.get_by_id(project_id)
     if not project:
-        return jsonify({'error': 'Project not found'}), 404
+        raise NotFoundError('Project not found')
     return jsonify(project.to_dict())
 
 
@@ -52,7 +55,7 @@ def get_project(project_id):
 def update_project(project_id):
     body = request.get_json()
     if not body:
-        return jsonify({'error': 'No JSON payload'}), 400
+        return error_response('No JSON payload', 400)
 
     project = ProjectService.update(
         project_id,
@@ -60,7 +63,7 @@ def update_project(project_id):
         description=body.get('description'),
     )
     if not project:
-        return jsonify({'error': 'Project not found'}), 404
+        raise NotFoundError('Project not found')
     return jsonify(project.to_dict())
 
 
@@ -69,4 +72,4 @@ def update_project(project_id):
 def delete_project(project_id):
     if ProjectService.delete(project_id):
         return jsonify({'status': 'deleted'}), 200
-    return jsonify({'error': 'Project not found'}), 404
+    raise NotFoundError('Project not found')
