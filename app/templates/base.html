@@ -10,6 +10,7 @@ tailwind.config = { darkMode: 'class' };
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
 <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% block extra_head %}{% endblock %}
@@ -20,7 +21,7 @@ tailwind.config = { darkMode: 'class' };
     <div class="flex items-center justify-between h-12">
       <a class="text-lg font-bold text-[var(--body-text)]" href="/">BakPow</a>
       <button id="nav-toggle" class="md:hidden p-2 text-[var(--muted)] hover:text-[var(--body-text)]">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <iconify-icon class="w-5 h-5" icon="heroicons-outline:bars-3"></iconify-icon>
       </button>
       <div id="nav-menu" class="hidden md:flex items-center gap-1">
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'dashboard' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/">Dashboard</a>
@@ -28,7 +29,7 @@ tailwind.config = { darkMode: 'class' };
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'sessions' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/sessions">Sessions</a>
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'measurements' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/measurements">Measurements</a>
         <button class="ml-2 p-1.5 rounded text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]" id="theme-toggle" title="Toggle theme">
-          <svg id="theme-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path id="theme-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+          <iconify-icon id="theme-icon" class="w-4 h-4" icon="heroicons-outline:moon"></iconify-icon>
         </button>
       </div>
     </div>
