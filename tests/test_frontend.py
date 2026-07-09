@@ -90,7 +90,8 @@ class TestPageStructure:
         html = resp.data.decode()
         assert 'id="measurements-body"' in html
         assert 'Filter' in html
-        assert 'Download CSV' in html
+        assert 'CSV' in html
+        assert 'XLSX' in html
 
     def test_measurements_page_has_columns(self, client):
         resp = client.get('/measurements')

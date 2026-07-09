@@ -1,7 +1,10 @@
 import csv, io
 from datetime import datetime, timezone, timedelta
 from functools import wraps
-from flask import Blueprint, request, jsonify, Response
+from flask import Blueprint, request, jsonify, Response, send_file
+from openpyxl import Workbook
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 from app.services.measurement_service import MeasurementService
 from app.services.device_service import DeviceService
 
@@ -103,6 +106,59 @@ def export_csv():
         output.getvalue(),
         mimetype='text/csv',
         headers={'Content-Disposition': 'attachment; filename=measurements.csv'}
+    )
+
+
+@measurements_bp.route('/measurements/export/xlsx', methods=['GET'])
+def export_xlsx():
+    device_id = request.args.get('device_id', type=int)
+    session_id = request.args.get('session_id', type=int)
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+
+    rows = MeasurementService.get_all_filtered(
+        device_id=device_id, session_id=session_id,
+        start_date=start_date, end_date=end_date
+    )
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Measurements'
+
+    headers = ['ID', 'Device', 'Session', 'Bus Voltage', 'Shunt Voltage', 'Load Voltage', 'Current (A)', 'Power (W)', 'Energy (Wh)', 'Timestamp']
+    bold = Font(bold=True)
+    for col, h in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=h)
+        cell.font = bold
+
+    for i, m in enumerate(rows, 2):
+        ws.cell(row=i, column=1, value=m.id)
+        ws.cell(row=i, column=2, value=m.device.device_id if m.device else '')
+        ws.cell(row=i, column=3, value=m.session.name if m.session else '')
+        ws.cell(row=i, column=4, value=m.bus_voltage)
+        ws.cell(row=i, column=5, value=m.shunt_voltage)
+        ws.cell(row=i, column=6, value=m.load_voltage)
+        ws.cell(row=i, column=7, value=m.current)
+        ws.cell(row=i, column=8, value=m.power)
+        ws.cell(row=i, column=9, value=m.energy)
+        ws.cell(row=i, column=10, value=m.created_at.isoformat() if m.created_at else '')
+
+    for col in range(1, len(headers) + 1):
+        max_len = 0
+        for row in ws.iter_rows(min_col=col, max_col=col, values_only=True):
+            val = str(row[0] or '')
+            max_len = max(max_len, len(val))
+        ws.column_dimensions[get_column_letter(col)].width = max_len + 3
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='measurements.xlsx',
     )
 
 

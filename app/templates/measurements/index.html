@@ -32,7 +32,8 @@
       <button type="button" class="px-3 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="reset-filters">Reset</button>
     </div>
     <div class="ml-auto">
-      <button type="button" class="px-3 py-1.5 rounded text-sm font-medium bg-green-600 text-white hover:bg-green-500 transition-colors" id="download-csv">Download CSV</button>
+      <button type="button" class="px-3 py-1.5 rounded text-sm font-medium bg-green-600 text-white hover:bg-green-500 transition-colors" id="download-csv">CSV</button>
+      <button type="button" class="px-3 py-1.5 rounded text-sm font-medium bg-emerald-700 text-white hover:bg-emerald-600 transition-colors" id="download-xlsx">XLSX</button>
     </div>
   </form>
 
@@ -175,6 +176,9 @@ function initMeasurements() {
   });
   document.getElementById('download-csv').addEventListener('click', function() {
     window.location.href = '/api/v1/measurements/export/csv?' + getFilterParams().toString();
+  });
+  document.getElementById('download-xlsx').addEventListener('click', function() {
+    window.location.href = '/api/v1/measurements/export/xlsx?' + getFilterParams().toString();
   });
 }
 
