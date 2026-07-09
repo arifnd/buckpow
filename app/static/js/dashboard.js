@@ -1,9 +1,9 @@
 var MAX_POINTS = 50;
 var voltageChart, currentChart, powerChart, energyChart;
-var currentTimeRange = '';
+var currentTimeRange = '1h';
 var currentSessionId = '';
 var sessionStartedAts = {};
-var statIntervalId = null;
+
 
 function initCharts() {
   voltageChart = createChart('voltageChart', 'Voltage (V)', 'voltage');
@@ -41,44 +41,27 @@ function formatDuration(startedAt) {
   return parts.join(' ');
 }
 
-function clearSummaryCards() {
-  document.getElementById('val-device-name').textContent = '\u2014';
-  document.getElementById('val-status-dot').className = 'inline-block w-2.5 h-2.5 rounded-full bg-[#8b949e] align-middle mr-1.5';
-  document.getElementById('val-voltage').textContent = '\u2014';
-  document.getElementById('val-load-voltage').textContent = '\u2014';
-  document.getElementById('val-current').textContent = '\u2014';
-  document.getElementById('val-power').textContent = '\u2014';
-  document.getElementById('val-energy').textContent = '\u2014';
-}
-
 function updateSummaryCards(data) {
-  if (!data || !data.latest) {
-    clearSummaryCards();
-    return;
+  if (!data) return;
+  var online = 0, total = 0;
+  if (data.devices) {
+    total = data.devices.length;
+    data.devices.forEach(function(d) { if (d.status === 'online') online++; });
   }
-  const r = data.latest;
-  const dev = data.devices && data.devices.find(d => d.id === r.device_id);
-  document.getElementById('val-device-name').textContent = dev ? dev.device_id : r.device_id;
-  var dot = document.getElementById('val-status-dot');
-  if (dev) {
-    dot.className = 'inline-block w-2.5 h-2.5 rounded-full align-middle mr-1.5 ' + (dev.status === 'online' ? 'bg-[#3fb950]' : 'bg-[#8b949e]');
+  document.getElementById('val-device').textContent = online + '/' + total;
+
+  if (data.latest) {
+    var r = data.latest;
+    document.getElementById('val-current').textContent = toFixedSafe(r.current, 3);
+    document.getElementById('val-power').textContent = toFixedSafe(r.power, 3);
   }
-  document.getElementById('val-voltage').textContent = toFixedSafe(r.bus_voltage, 3);
-  document.getElementById('val-load-voltage').textContent = toFixedSafe(r.load_voltage, 3);
-  document.getElementById('val-current').textContent = toFixedSafe(r.current, 3);
-  document.getElementById('val-power').textContent = toFixedSafe(r.power, 3);
-  document.getElementById('val-energy').textContent = toFixedSafe(r.energy, 6);
-  document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
 }
 
-function updateSummaryRow(summary) {
+function updateSummaryFromSummary(summary) {
   if (!summary) return;
-  document.getElementById('sum-online').textContent = summary.online_devices;
-  document.getElementById('sum-offline').textContent = summary.offline_devices;
-  document.getElementById('sum-projects').textContent = summary.total_projects;
-  document.getElementById('sum-sessions').textContent = summary.active_sessions;
-  document.getElementById('sum-energy').innerHTML = toFixedSafe(summary.today_energy, 6) + ' <small class="text-[var(--muted)] text-xs font-normal">Wh</small>';
-  document.getElementById('sum-power').innerHTML = summary.current_power + ' <small class="text-[var(--muted)] text-xs font-normal">W</small>';
+  document.getElementById('val-load-voltage').textContent = summary.total_projects;
+  document.getElementById('val-voltage').textContent = summary.active_sessions;
+  document.getElementById('val-energy').textContent = toFixedSafe(summary.today_energy, 6);
 }
 
 const CARD_COLORS = {
@@ -154,6 +137,21 @@ function updateCharts(chartData) {
     return;
   }
 
+  var lastIdx = chartData.labels.length - 1;
+  var el;
+
+  el = document.getElementById('chart-val-voltage');
+  if (el && chartData.voltage && chartData.voltage[lastIdx] != null) el.textContent = toFixedSafe(chartData.voltage[lastIdx], 3);
+
+  el = document.getElementById('chart-val-current');
+  if (el && chartData.current && chartData.current[lastIdx] != null) el.textContent = toFixedSafe(chartData.current[lastIdx], 3);
+
+  el = document.getElementById('chart-val-power');
+  if (el && chartData.power && chartData.power[lastIdx] != null) el.textContent = toFixedSafe(chartData.power[lastIdx], 3);
+
+  el = document.getElementById('chart-val-energy');
+  if (el && chartData.energy && chartData.energy[lastIdx] != null) el.textContent = toFixedSafe(chartData.energy[lastIdx], 6);
+
   const slice = function(arr) { return arr.slice(-MAX_POINTS); };
   const labels = slice(chartData.labels).map(formatTime);
 
@@ -169,8 +167,13 @@ function updateCharts(chartData) {
   powerChart.data.datasets[0].data = slice(chartData.power);
   powerChart.update();
 
+  var energyData = slice(chartData.energy);
+  if (energyData.length > 0) {
+    var base = energyData[0];
+    energyData = energyData.map(function(v) { return v - base; });
+  }
   energyChart.data.labels = labels;
-  energyChart.data.datasets[0].data = slice(chartData.energy);
+  energyChart.data.datasets[0].data = energyData;
   energyChart.update();
 }
 
@@ -221,7 +224,7 @@ function buildSessionFilter() {
 
 async function fetchSummary() {
   var data = await fetchJSON('/api/v1/dashboard/summary');
-  if (data) updateSummaryRow(data);
+  if (data) updateSummaryFromSummary(data);
 }
 
 async function fetchDashboardData() {
@@ -229,7 +232,6 @@ async function fetchDashboardData() {
 
   var sessionFilter = buildSessionFilter();
   if (!sessionFilter) {
-    updateSummaryCards(null);
     updateCharts({labels: [], voltage: [], current: [], power: [], energy: []});
     clearStatistics();
     return;
@@ -240,15 +242,18 @@ async function fetchDashboardData() {
     updateStats(dashboard);
   }
 
-  var params = sessionFilter + '&limit=100';
-  if (currentTimeRange) params += '&range=' + currentTimeRange;
-  var [chart, recent] = await Promise.all([
+  var granularityMap = {'1h': 'm', '24h': 'h', '7d': 'd', '30d': 'd'};
+  var limitMap = {'1h': 60, '24h': 24, '7d': 7, '30d': 30};
+  var params = sessionFilter + '&limit=' + (limitMap[currentTimeRange] || 100) + '&range=' + currentTimeRange + '&granularity=' + (granularityMap[currentTimeRange] || '');
+  var [chart, recent, summary] = await Promise.all([
     fetchJSON('/api/v1/chart?' + params),
     fetchJSON('/api/v1/measurements?' + sessionFilter + '&per_page=10'),
+    fetchJSON('/api/v1/dashboard/summary'),
   ]);
 
   if (chart) updateCharts(chart);
   if (recent) updateTable(recent.measurements || []);
+  if (summary) updateSummaryFromSummary(summary);
 }
 
 function clearStatistics() {
@@ -270,6 +275,7 @@ async function fetchStatistics() {
     if (currentTimeRange === '1h') params += '&start_date=' + new Date(now - 3600000).toISOString();
     else if (currentTimeRange === '24h') params += '&start_date=' + new Date(now - 86400000).toISOString();
     else if (currentTimeRange === '7d') params += '&start_date=' + new Date(now - 604800000).toISOString();
+    else if (currentTimeRange === '30d') params += '&start_date=' + new Date(now - 2592000000).toISOString();
   }
   var stats = await fetchJSON('/api/v1/dashboard/statistics?' + params);
   if (stats) updateEnergyBreakdown(stats);

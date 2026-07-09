@@ -74,8 +74,13 @@ class MeasurementService:
         if end_date:
             q = q.filter(Measurement.created_at <= end_date)
 
-        if granularity and granularity in ('s', 'm', 'h'):
-            fmt_map = {'s': '%Y-%m-%dT%H:%M:%S', 'm': '%Y-%m-%dT%H:%M:00', 'h': '%Y-%m-%dT%H:00:00'}
+        if granularity and granularity in ('s', 'm', 'h', 'd'):
+            fmt_map = {
+                's': '%Y-%m-%dT%H:%M:%S',
+                'm': '%Y-%m-%dT%H:%M:00',
+                'h': '%Y-%m-%dT%H:00:00',
+                'd': '%Y-%m-%d',
+            }
             bucket = func.strftime(fmt_map[granularity], Measurement.created_at)
             rows = q.with_entities(
                 bucket.label('tb'),

@@ -172,7 +172,7 @@ def chart_data():
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
 
-    if granularity not in (None, 's', 'm', 'h'):
+    if granularity not in (None, 's', 'm', 'h', 'd'):
         granularity = None
 
     if time_range == '1h':
@@ -181,6 +181,8 @@ def chart_data():
         start_date = datetime.now(timezone.utc) - timedelta(hours=24)
     elif time_range == '7d':
         start_date = datetime.now(timezone.utc) - timedelta(days=7)
+    elif time_range == '30d':
+        start_date = datetime.now(timezone.utc) - timedelta(days=30)
 
     data = MeasurementService.get_chart_data(
         limit=limit, device_id=device_id, session_id=session_id,

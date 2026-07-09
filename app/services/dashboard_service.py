@@ -42,10 +42,12 @@ class DashboardService:
         }
 
     @staticmethod
-    def get_statistics(device_id=None, start_date=None, end_date=None):
+    def get_statistics(device_id=None, session_id=None, start_date=None, end_date=None):
         q = Measurement.query
         if device_id:
             q = q.filter_by(device_id=device_id)
+        if session_id:
+            q = q.filter_by(session_id=session_id)
         if start_date:
             q = q.filter(Measurement.created_at >= start_date)
         if end_date:
@@ -82,15 +84,25 @@ class DashboardService:
                 'avg': round(sum(powers) / len(powers), 3),
                 'peak': round(max(powers), 3),
             },
-            'energy': DashboardService._get_energy_breakdown(device_id),
+            'energy': DashboardService._get_energy_breakdown(
+                device_id=device_id, session_id=session_id,
+                start_date=start_date, end_date=end_date
+            ),
         }
         return stats
 
     @staticmethod
-    def _get_energy_breakdown(device_id=None):
+    def _get_energy_breakdown(device_id=None, session_id=None,
+                              start_date=None, end_date=None):
         q = Measurement.query
         if device_id:
             q = q.filter_by(device_id=device_id)
+        if session_id:
+            q = q.filter_by(session_id=session_id)
+        if start_date:
+            q = q.filter(Measurement.created_at >= start_date)
+        if end_date:
+            q = q.filter(Measurement.created_at <= end_date)
 
         rows = q.order_by(Measurement.created_at.asc()).all()
         if not rows:
