@@ -42,9 +42,13 @@ def receive_measurement():
     if missing:
         return error_response(f'Missing field: {missing}', 400)
 
+    device_id_str = body['device_id']
+    if device_id_str != request.device.device_id:
+        return error_response('device_id does not match the authenticated device', 403)
+
     try:
         measurement = MeasurementService.create(
-            device_id_str=body['device_id'],
+            device_id_str=device_id_str,
             bus_voltage=float(body['bus_voltage']),
             shunt_voltage=float(body['shunt_voltage']),
             current=float(body['current']),

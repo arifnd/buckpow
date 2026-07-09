@@ -4,7 +4,7 @@ import json
 class TestAPI:
     def test_post_measurement_success(self, client, device_auth_header):
         resp = client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-test',
+            'device_id': 'esp32-auth',
             'bus_voltage': 5.12,
             'shunt_voltage': 82,
             'current': 241,
@@ -15,7 +15,7 @@ class TestAPI:
         assert data['status'] == 'success'
 
     def test_post_measurement_missing_fields(self, client, device_auth_header):
-        resp = client.post('/api/v1/measurements', json={'device_id': 'esp32-test'},
+        resp = client.post('/api/v1/measurements', json={'device_id': 'esp32-auth'},
                            headers=device_auth_header)
         assert resp.status_code == 400
 
@@ -26,7 +26,7 @@ class TestAPI:
 
     def test_get_measurements_paginated(self, client, device_auth_header):
         client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-test', 'bus_voltage': 5.0, 'shunt_voltage': 80,
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0, 'shunt_voltage': 80,
             'current': 200, 'power': 1000,
         }, headers=device_auth_header)
         resp = client.get('/api/v1/measurements?per_page=10')
@@ -267,34 +267,36 @@ class TestAPI:
         assert data['measurements'] == []
         assert data['total'] == 0
 
-    def test_measurements_filter_by_device(self, client, device_auth_header):
-        ra = client.post('/api/v1/devices', json={'device_id': 'esp32-filt-a'})
-        rb = client.post('/api/v1/devices', json={'device_id': 'esp32-filt-b'})
-        dev_a_id = ra.get_json()['id']
-        dev_b_id = rb.get_json()['id']
+    def test_measurements_filter_by_device(self, client, app):
+        from app.services.device_service import DeviceService
+        with app.app_context():
+            da = DeviceService.create('esp32-filt-a')
+            db_ = DeviceService.create('esp32-filt-b')
+            ka = da.api_key
+            kb = db_.api_key
         client.post('/api/v1/measurements', json={
             'device_id': 'esp32-filt-a', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        }, headers=device_auth_header)
+        }, headers={'Authorization': f'Bearer {ka}'})
         client.post('/api/v1/measurements', json={
             'device_id': 'esp32-filt-b', 'bus_voltage': 6.0,
             'shunt_voltage': 90, 'current': 300, 'power': 2000,
-        }, headers=device_auth_header)
-        resp = client.get(f'/api/v1/measurements?device_id={dev_b_id}')
+        }, headers={'Authorization': f'Bearer {kb}'})
+        resp = client.get(f'/api/v1/measurements?device_id={db_.id}')
         assert resp.status_code == 200
         data = resp.get_json()
         assert len(data['measurements']) == 1
 
     def test_csv_export(self, client, device_auth_header):
         client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-csv', 'bus_voltage': 5.0,
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=device_auth_header)
         resp = client.get('/api/v1/measurements/export/csv')
         assert resp.status_code == 200
         assert resp.content_type == 'text/csv; charset=utf-8'
         assert b'Device' in resp.data
-        assert b'esp32-csv' in resp.data
+        assert b'esp32-auth' in resp.data
 
     def test_csv_export_empty(self, client):
         resp = client.get('/api/v1/measurements/export/csv')
@@ -303,21 +305,23 @@ class TestAPI:
         lines = resp.data.decode().strip().split('\n')
         assert len(lines) == 1
 
-    def test_chart_data_with_filters(self, client, device_auth_header):
-        dev_resp = client.post('/api/v1/devices', json={'device_id': 'esp32-chart'})
-        dev_id = dev_resp.get_json()['id']
+    def test_chart_data_with_filters(self, client, app):
+        from app.services.device_service import DeviceService
+        with app.app_context():
+            d = DeviceService.create('esp32-chart')
+            key = d.api_key
         client.post('/api/v1/measurements', json={
             'device_id': 'esp32-chart', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        }, headers=device_auth_header)
-        resp = client.get(f'/api/v1/chart?limit=5&device_id={dev_id}')
+        }, headers={'Authorization': f'Bearer {key}'})
+        resp = client.get(f'/api/v1/chart?limit=5&device_id={d.id}')
         assert resp.status_code == 200
         data = resp.get_json()
         assert len(data['labels']) == 1
 
     def test_get_measurements_with_date_range(self, client, device_auth_header):
         client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-date', 'bus_voltage': 5.0,
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=device_auth_header)
         resp = client.get('/api/v1/measurements?start_date=2000-01-01&end_date=2099-12-31')
@@ -329,7 +333,7 @@ class TestAPI:
 
     def test_xlsx_export(self, client, device_auth_header):
         client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-xlsx', 'bus_voltage': 5.0,
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=device_auth_header)
         resp = client.get('/api/v1/measurements/export/xlsx')
@@ -344,7 +348,7 @@ class TestAPI:
 
     def test_post_measurement_no_auth(self, client):
         resp = client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-test', 'bus_voltage': 5.0,
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         })
         assert resp.status_code == 401
@@ -352,17 +356,25 @@ class TestAPI:
 
     def test_post_measurement_malformed_auth(self, client):
         resp = client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-test', 'bus_voltage': 5.0,
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers={'Authorization': 'Invalid'})
         assert resp.status_code == 401
 
     def test_post_measurement_invalid_key(self, client):
         resp = client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-test', 'bus_voltage': 5.0,
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers={'Authorization': 'Bearer invalidkey123'})
         assert resp.status_code == 401
+
+    def test_post_measurement_device_id_mismatch(self, client, device_auth_header):
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'some-other-device', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=device_auth_header)
+        assert resp.status_code == 403
+        assert b'does not match' in resp.data
 
     def test_post_measurement_disabled_device(self, client, app):
         from app.services.device_service import DeviceService
@@ -382,7 +394,7 @@ class TestAPI:
 
     def test_chart_granularity_second(self, client, device_auth_header):
         client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-gran-s', 'bus_voltage': 5.0,
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=device_auth_header)
         resp = client.get('/api/v1/chart?granularity=s')
@@ -392,7 +404,7 @@ class TestAPI:
 
     def test_chart_granularity_day(self, client, device_auth_header):
         client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-gran-d', 'bus_voltage': 5.0,
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=device_auth_header)
         resp = client.get('/api/v1/chart?granularity=d')
@@ -400,7 +412,7 @@ class TestAPI:
 
     def test_chart_time_range_1h(self, client, device_auth_header):
         client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-range', 'bus_voltage': 5.0,
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=device_auth_header)
         resp = client.get('/api/v1/chart?range=1h')
