@@ -1,4 +1,4 @@
-# BuckPow — v0.1
+# BuckPow
 
 Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives power readings from ESP32/ESP8266 + INA219 via HTTP POST. Serves a Tailwind CSS + HTMX dashboard with Chart.js real-time charts and dark theme.
 
@@ -9,18 +9,23 @@ Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives powe
 | `run.py` | Flask entrypoint |
 | `app/` | Python package: config, models, services, API, dashboard |
 | `app/config.py` | Config classes (Config, DevConfig) |
-| `app/models/` | SQLAlchemy models (Device, Session, Measurement) |
-| `app/services/` | Business logic layer |
+| `app/models/` | SQLAlchemy models (User, Device, Session, Measurement, Alert, Project) |
+| `app/services/` | Business logic layer (User, Device, Session, Measurement, Alert, Project, Dashboard) |
 | `app/api/` | REST API v1 blueprints (`/api/v1/*`) |
+| `app/api/__init__.py` | Centralized blueprint registration |
+| `app/api/auth.py` | Login/logout/profile |
+| `app/api/health.py` | Health check |
 | `app/dashboard/` | Server-rendered page routes |
 | `app/templates/` | Jinja2 templates (Tailwind CSS, HTMX) |
 | `app/static/` | CSS, JS (Chart.js, dashboard, theme) |
-| `app/utils/` | Utility functions (calculations) |
+| `app/utils/` | Utility functions (calculations, errors, validators) |
 | `instance/buckpow.db` | SQLite database (auto-created) |
 | `migrations/` | Alembic migration files (Flask-Migrate) |
-| `scripts/send_dummy.py` | Dummy data generator matching v0.1 API |
-| `tests/` | Pytest suite (83 tests) |
+| `scripts/send_dummy.py` | Dummy data generator |
+| `firmware/` | Arduino sketches for ESP32/ESP8266 + INA219 |
+| `tests/` | Pytest suite (328 tests) |
 | `.env` | Config via env vars |
+| `docker-compose.yml` | PostgreSQL + Nginx production stack |
 
 ## Quick start
 
@@ -41,44 +46,102 @@ python run.py              # db.create_all() runs on startup
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/v1/measurements` | Receive ESP32/ESP8266 data |
+| POST | `/api/v1/measurements` | Receive ESP32/ESP8266 data (Bearer token auth) |
 | GET | `/api/v1/measurements` | Paginated historical data (10/page) |
 | GET | `/api/v1/measurements/export/csv` | Export filtered data as CSV |
+| GET | `/api/v1/measurements/export/xlsx` | Export filtered data as Excel |
 | GET | `/api/v1/dashboard` | Latest + stats + devices |
-| GET | `/api/v1/chart` | Chart data (device/session filter) |
+| GET | `/api/v1/dashboard/summary` | Online/offline count, active sessions, today energy |
+| GET | `/api/v1/dashboard/statistics` | Full stats with energy breakdown |
+| GET | `/api/v1/chart` | Chart data (device/session filter, granularity) |
 | GET/POST | `/api/v1/devices` | List / create devices |
 | GET/PUT/DELETE | `/api/v1/devices/<id>` | Device CRUD |
+| GET | `/api/v1/devices/<id>/key` | Get masked API key |
+| PATCH | `/api/v1/devices/<id>/toggle` | Enable/disable device |
+| POST | `/api/v1/devices/<id>/regenerate-key` | Generate new API key |
 | GET/POST | `/api/v1/sessions` | List / create sessions |
 | GET/PUT/DELETE | `/api/v1/sessions/<id>` | Session CRUD |
 | POST | `/api/v1/sessions/<id>/start` | Start session |
 | POST | `/api/v1/sessions/<id>/stop` | Stop session |
+| GET/POST | `/api/v1/projects` | List / create projects |
+| GET/PUT/DELETE | `/api/v1/projects/<id>` | Project CRUD |
+| GET | `/api/v1/alerts` | List alerts (filterable by device, level, resolved) |
+| POST | `/api/v1/alerts` | Create alert |
+| PATCH | `/api/v1/alerts/<id>/resolve` | Resolve a single alert |
+| POST | `/api/v1/alerts/resolve-all` | Resolve all unresolved alerts |
+| GET | `/api/v1/benchmark/compare` | Compare 2+ sessions |
+| POST | `/api/v1/auth/login` | Email/password login |
+| POST | `/api/v1/auth/logout` | Logout |
+| GET | `/api/v1/auth/me` | Current user info |
+| PUT | `/api/v1/auth/profile` | Update profile (name, email, password) |
+| GET | `/api/v1/settings` | Get user settings |
+| PUT | `/api/v1/settings` | Update user settings |
+| GET | `/api/v1/health` | Health check |
+
+## Dashboard pages
+
+| Path | Page |
+|---|---|
+| `/` | Dashboard with real-time charts & summary cards |
+| `/devices` | Device management |
+| `/devices/new` | Create device form |
+| `/devices/<id>/edit` | Edit device form |
+| `/sessions` | Session management |
+| `/sessions/new` | Create session form |
+| `/sessions/<id>/edit` | Edit session form |
+| `/measurements` | Paginated readings with date range filter |
+| `/projects` | Project management |
+| `/benchmark` | Session comparison |
+| `/alerts` | Alert management |
+| `/settings` | User preferences (thresholds, brand) |
+| `/profile` | Profile editing |
+| `/auth/login` | Login page |
 
 ## Test with curl
 
 ```bash
+# Without authentication (dev mode)
 curl -X POST http://localhost:5001/api/v1/measurements \
   -H 'Content-Type: application/json' \
+  -d '{"device_id":"esp32-01","bus_voltage":5.12,"shunt_voltage":82,"current":241,"power":1234}'
+
+# With API key
+curl -X POST http://localhost:5001/api/v1/measurements \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer <api_key>' \
   -d '{"device_id":"esp32-01","bus_voltage":5.12,"shunt_voltage":82,"current":241,"power":1234}'
 ```
 
 ## Key facts
 
-- **Migration ready** — Flask-Migrate / Alembic configured for future PostgreSQL
-- **Service layer** — business logic separated from HTTP handlers
+- **Models** — User, Device (with API key & thresholds), Session (with energy), Measurement (with energy), Alert (levels: info/warning/critical), Project
+- **Authentication** — `flask_login` for dashboard, Bearer token for device API
+- **Service layer** — business logic separated from HTTP handlers (7 services)
 - **HTMX navigation** — `hx-boost="true"` on `<body>` for SPA-like page transitions with native `<script>` re-evaluation
 - **Tailwind CSS** — Utility-first styling with dark theme via CSS variables
 - **Flowbite Datepicker** — Used on measurements filter page for date range selection
 - **Device auto-registration** — unknown device IDs create devices automatically
 - **Session auto-assignment** — new measurements assigned to running session (if any)
 - **Energy calculation** — cumulative Wh = Σ(Power(W) × sampling_interval(h))
+- **Alert engine** — automatic alerts on high power/current/low voltage thresholds
 - **Device status** — dynamically computed: online if seen within 30s, else offline
-- **Pagination** — All tables (devices, sessions, measurements) show 10 items/page with page nav; hidden when only 1 page
+- **Pagination** — All tables show 10 items/page with page nav; hidden when only 1 page
+- **Export** — CSV and XLSX with date range filtering
+- **Docker** — PostgreSQL + Nginx production stack via docker-compose
+- **Migration ready** — Flask-Migrate / Alembic configured for future PostgreSQL
 - **Virtual env** at `venv/` — activate before Python commands
 
 ## Tests
 
 ```bash
 python -m pytest tests/ -v
+```
+
+## Send dummy data
+
+```bash
+python scripts/send_dummy.py --interval 1
+python scripts/send_dummy.py --interval 1 --api-key <key>
 ```
 
 # Task Management
