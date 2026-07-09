@@ -1,0 +1,76 @@
+class TestProjectsAPI:
+    def test_create_project(self, client):
+        resp = client.post('/api/v1/projects', json={'name': 'New Project', 'description': 'Desc'})
+        assert resp.status_code == 201
+        data = resp.get_json()
+        assert data['name'] == 'New Project'
+        assert data['description'] == 'Desc'
+
+    def test_create_project_no_name(self, client):
+        resp = client.post('/api/v1/projects', json={'description': 'No name'})
+        assert resp.status_code == 400
+
+    def test_list_projects(self, client):
+        client.post('/api/v1/projects', json={'name': 'Project A'})
+        client.post('/api/v1/projects', json={'name': 'Project B'})
+        resp = client.get('/api/v1/projects')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data['total'] >= 2
+        assert len(data['projects']) >= 2
+
+    def test_list_projects_unauthorized(self, unauth_client):
+        resp = unauth_client.get('/api/v1/projects')
+        assert resp.status_code == 302
+
+    def test_get_project(self, client):
+        created = client.post('/api/v1/projects', json={'name': 'Get Me'}).get_json()
+        resp = client.get(f'/api/v1/projects/{created["id"]}')
+        assert resp.status_code == 200
+        assert resp.get_json()['name'] == 'Get Me'
+
+    def test_get_project_not_found(self, client):
+        resp = client.get('/api/v1/projects/99999')
+        assert resp.status_code == 404
+
+    def test_update_project(self, client):
+        created = client.post('/api/v1/projects', json={'name': 'Old'}).get_json()
+        resp = client.put(f'/api/v1/projects/{created["id"]}', json={'name': 'New'})
+        assert resp.status_code == 200
+        assert resp.get_json()['name'] == 'New'
+
+    def test_update_project_not_found(self, client):
+        resp = client.put('/api/v1/projects/99999', json={'name': 'Ghost'})
+        assert resp.status_code == 404
+
+    def test_update_project_no_json(self, client):
+        created = client.post('/api/v1/projects', json={'name': 'No JSON'}).get_json()
+        resp = client.put(f'/api/v1/projects/{created["id"]}', data=b'{}',
+                          content_type='application/json')
+        assert resp.status_code == 400
+
+    def test_delete_project(self, client):
+        created = client.post('/api/v1/projects', json={'name': 'Delete Me'}).get_json()
+        resp = client.delete(f'/api/v1/projects/{created["id"]}')
+        assert resp.status_code == 200
+        assert resp.get_json()['status'] == 'deleted'
+
+    def test_delete_project_not_found(self, client):
+        resp = client.delete('/api/v1/projects/99999')
+        assert resp.status_code == 404
+
+    def test_list_page_zero(self, client):
+        for i in range(3):
+            client.post('/api/v1/projects', json={'name': f'Project {i}'})
+        resp = client.get('/api/v1/projects?page=0')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert isinstance(data, list)
+
+    def test_pagination(self, client):
+        for i in range(15):
+            client.post('/api/v1/projects', json={'name': f'Pagination {i}'})
+        resp = client.get('/api/v1/projects?page=1&per_page=5')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data['pages'] == 3

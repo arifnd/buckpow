@@ -1,6 +1,6 @@
 from sqlalchemy import inspect
 from app import db
-from app.models import Device, Session, Measurement
+from app.models import Device, Session, Measurement, User, Project, Alert
 
 
 def test_init_db_creates_tables(app):
@@ -10,6 +10,9 @@ def test_init_db_creates_tables(app):
         assert 'devices' in tables
         assert 'sessions' in tables
         assert 'measurements' in tables
+        assert 'users' in tables
+        assert 'projects' in tables
+        assert 'alerts' in tables
 
 
 def test_create_device(app):

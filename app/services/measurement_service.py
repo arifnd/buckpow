@@ -211,10 +211,16 @@ class MeasurementService:
         voltage_stddev = variance ** 0.5
 
         duration = 0
-        if session.started_at and session.ended_at:
-            duration = (session.ended_at - session.started_at).total_seconds()
-        elif session.started_at:
-            duration = (datetime.now(timezone.utc) - session.started_at).total_seconds()
+        started_at = session.started_at
+        ended_at = session.ended_at
+        if started_at and started_at.tzinfo is None:
+            started_at = started_at.replace(tzinfo=timezone.utc)
+        if ended_at and ended_at.tzinfo is None:
+            ended_at = ended_at.replace(tzinfo=timezone.utc)
+        if started_at and ended_at:
+            duration = (ended_at - started_at).total_seconds()
+        elif started_at:
+            duration = (datetime.now(timezone.utc) - started_at).total_seconds()
 
         return {
             'session_id': session.id,

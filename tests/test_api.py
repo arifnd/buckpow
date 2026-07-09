@@ -325,7 +325,197 @@ class TestAPI:
         data = resp.get_json()
         assert len(data['measurements']) >= 1
 
-    # ── Dashboard ──
+    # ── XLSX export ──
+
+    def test_xlsx_export(self, client, device_auth_header):
+        client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-xlsx', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=device_auth_header)
+        resp = client.get('/api/v1/measurements/export/xlsx')
+        assert resp.status_code == 200
+        assert 'spreadsheetml' in resp.content_type or 'octet-stream' in resp.content_type
+
+    def test_xlsx_export_empty(self, client):
+        resp = client.get('/api/v1/measurements/export/xlsx')
+        assert resp.status_code == 200
+
+    # ── Measurement API auth ──
+
+    def test_post_measurement_no_auth(self, client):
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-test', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        })
+        assert resp.status_code == 401
+        assert 'Authorization' in resp.get_json()['error']
+
+    def test_post_measurement_malformed_auth(self, client):
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-test', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers={'Authorization': 'Invalid'})
+        assert resp.status_code == 401
+
+    def test_post_measurement_invalid_key(self, client):
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-test', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers={'Authorization': 'Bearer invalidkey123'})
+        assert resp.status_code == 401
+
+    def test_post_measurement_disabled_device(self, client, app):
+        from app.services.device_service import DeviceService
+        with app.app_context():
+            d = DeviceService.create('esp32-disabled')
+            d.enabled = False
+            from app import db
+            db.session.commit()
+            key = d.api_key
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-disabled', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers={'Authorization': f'Bearer {key}'})
+        assert resp.status_code == 403
+
+    # ── Chart with granularity and time_range ──
+
+    def test_chart_granularity_second(self, client, device_auth_header):
+        client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-gran-s', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=device_auth_header)
+        resp = client.get('/api/v1/chart?granularity=s')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert 'labels' in data
+
+    def test_chart_granularity_day(self, client, device_auth_header):
+        client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-gran-d', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=device_auth_header)
+        resp = client.get('/api/v1/chart?granularity=d')
+        assert resp.status_code == 200
+
+    def test_chart_time_range_1h(self, client, device_auth_header):
+        client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-range', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=device_auth_header)
+        resp = client.get('/api/v1/chart?range=1h')
+        assert resp.status_code == 200
+
+    def test_chart_time_range_24h(self, client, device_auth_header):
+        resp = client.get('/api/v1/chart?range=24h')
+        assert resp.status_code == 200
+
+    def test_chart_time_range_7d(self, client, device_auth_header):
+        resp = client.get('/api/v1/chart?range=7d')
+        assert resp.status_code == 200
+
+    def test_chart_time_range_30d(self, client, device_auth_header):
+        resp = client.get('/api/v1/chart?range=30d')
+        assert resp.status_code == 200
+
+    def test_chart_invalid_granularity(self, client):
+        resp = client.get('/api/v1/chart?granularity=x')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert 'voltage' in data
+
+    # ── Device API extras ──
+
+    def test_device_get_key(self, client):
+        created = client.post('/api/v1/devices', json={'device_id': 'esp32-getkey'}).get_json()
+        resp = client.get(f'/api/v1/devices/{created["id"]}/key')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert 'api_key' in data
+        assert len(data['api_key']) == 64
+
+    def test_device_get_key_not_found(self, client):
+        resp = client.get('/api/v1/devices/99999/key')
+        assert resp.status_code == 404
+
+    def test_device_toggle(self, client):
+        created = client.post('/api/v1/devices', json={'device_id': 'esp32-toggle'}).get_json()
+        assert created['enabled'] is True
+        resp = client.patch(f'/api/v1/devices/{created["id"]}/toggle')
+        assert resp.status_code == 200
+        assert resp.get_json()['enabled'] is False
+
+    def test_device_toggle_not_found(self, client):
+        resp = client.patch('/api/v1/devices/99999/toggle')
+        assert resp.status_code == 404
+
+    def test_device_regenerate_key(self, client):
+        created = client.post('/api/v1/devices', json={'device_id': 'esp32-regkey'}).get_json()
+        old_key = created['api_key']
+        resp = client.post(f'/api/v1/devices/{created["id"]}/regenerate-key')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data['api_key'] != old_key
+
+    def test_device_regenerate_key_not_found(self, client):
+        resp = client.post('/api/v1/devices/99999/regenerate-key')
+        assert resp.status_code == 404
+
+    def test_device_update_no_json(self, client):
+        resp = client.put('/api/v1/devices/1', data=b'{}', content_type='application/json')
+        assert resp.status_code == 400
+
+    def test_device_create_with_all_fields(self, client, sample_project):
+        resp = client.post('/api/v1/devices', json={
+            'device_id': 'esp32-full',
+            'alias': 'Full',
+            'description': 'All fields',
+            'sampling_interval': 5,
+            'project_id': sample_project['id'],
+            'firmware_version': 'v2.0',
+            'high_current_threshold': 0.5,
+            'high_power_threshold': 3.0,
+            'low_voltage_threshold': 4.0,
+        })
+        assert resp.status_code == 201
+        data = resp.get_json()
+        assert data['device_id'] == 'esp32-full'
+        assert data['sampling_interval'] == 5
+        assert data['firmware_version'] == 'v2.0'
+
+    def test_device_update_with_thresholds(self, client):
+        created = client.post('/api/v1/devices', json={'device_id': 'esp32-upd-thresh'}).get_json()
+        resp = client.put(f'/api/v1/devices/{created["id"]}', json={
+            'high_current_threshold': 0.8,
+            'high_power_threshold': 5.0,
+            'firmware_version': 'v3.0',
+        })
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data['firmware_version'] == 'v3.0'
+
+    # ── Dashboard API extras ──
+
+    def test_dashboard_summary(self, client):
+        resp = client.get('/api/v1/dashboard/summary')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert 'online_devices' in data
+        assert 'offline_devices' in data
+        assert 'active_sessions' in data
+
+    def test_dashboard_statistics(self, client):
+        resp = client.get('/api/v1/dashboard/statistics')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert 'voltage' in data
+        assert 'current' in data
+        assert 'power' in data
+        assert 'energy' in data
+
+    def test_dashboard_statistics_with_filters(self, client):
+        resp = client.get('/api/v1/dashboard/statistics?start_date=2000-01-01&end_date=2099-12-31')
+        assert resp.status_code == 200
 
     def test_dashboard_no_measurements(self, client):
         resp = client.get('/api/v1/dashboard')
