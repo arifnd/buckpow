@@ -99,7 +99,7 @@ class TestAPI:
     def test_dashboard_page(self, client):
         resp = client.get('/')
         assert resp.status_code == 200
-        assert b'BakPow' in resp.data
+        assert b'BuckPow' in resp.data
 
     def test_devices_page(self, client):
         resp = client.get('/devices')

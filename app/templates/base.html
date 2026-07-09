@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BakPow</title>
+<title>BuckPow</title>
 <script>
 tailwind.config = { darkMode: 'class' };
 </script>
@@ -93,7 +93,7 @@ function confirmDialog(msg) {
 <nav class="navbar relative bg-[var(--surface)] border-b border-[var(--border)] shadow-sm">
   <div class="max-w-7xl mx-auto w-full px-4">
     <div class="flex items-center justify-between h-12">
-      <a class="text-lg font-bold text-[var(--body-text)]" href="/">{{ current_user.settings.get('brand', 'BakPow') if current_user.is_authenticated else 'BakPow' }}</a>
+      <a class="text-lg font-bold text-[var(--body-text)]" href="/">{{ current_user.settings.get('brand', 'BuckPow') if current_user.is_authenticated else 'BuckPow' }}</a>
       <button id="nav-toggle" class="md:hidden p-2 text-[var(--muted)] hover:text-[var(--body-text)]">
         <iconify-icon class="w-5 h-5" icon="heroicons-outline:bars-3"></iconify-icon>
       </button>
@@ -148,9 +148,9 @@ function confirmDialog(msg) {
 
 <footer class="border-t border-[var(--border)] bg-[var(--surface)]">
   <div class="px-4 py-3 max-w-7xl mx-auto flex items-center justify-center gap-2 text-center">
-    <small class="text-[var(--muted)] opacity-70">BakPow v{{ app_version }}</small>
+    <small class="text-[var(--muted)] opacity-70">BuckPow v{{ app_version }}</small>
     <span class="text-[var(--muted)] opacity-40">&middot;</span>
-    <a class="text-[var(--muted)] opacity-70 hover:opacity-100 hover:text-[var(--body-text)] transition-colors" href="https://github.com/arifnd/bakpow" target="_blank" rel="noopener noreferrer">
+    <a class="text-[var(--muted)] opacity-70 hover:opacity-100 hover:text-[var(--body-text)] transition-colors" href="https://github.com/arifnd/buckpow" target="_blank" rel="noopener noreferrer">
       <iconify-icon class="w-4 h-4 align-text-bottom" icon="simple-icons:github"></iconify-icon>
     </a>
   </div>

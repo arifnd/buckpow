@@ -1,6 +1,6 @@
-# BakPow Firmware — ESP32/ESP8266 + INA219
+# BuckPow Firmware — ESP32/ESP8266 + INA219
 
-Arduino sketch for the BakPow power monitoring dashboard. Sends INA219 readings (voltage, current, power) via HTTP POST to the BakPow API.
+Arduino sketch for the BuckPow power monitoring dashboard. Sends INA219 readings (voltage, current, power) via HTTP POST to the BuckPow API.
 
 ## Wiring
 
@@ -20,7 +20,7 @@ Install via Arduino Library Manager (`Tools → Manage Libraries`):
 
 ## Configuration
 
-Edit these values near the top of `bakpow_ina219.ino`:
+Edit these values near the top of `buckpow_ina219.ino`:
 
 ```cpp
 const char* WIFI_SSID     = "your-ssid";
@@ -32,7 +32,7 @@ const char* DEVICE_ID     = "esp32-ina219-01";
 | Setting | Description |
 |---|---|
 | `WIFI_SSID` / `WIFI_PASSWORD` | Your 2.4 GHz WiFi credentials |
-| `API_BASE` | BakPow server address and port |
+| `API_BASE` | BuckPow server address and port |
 | `DEVICE_ID` | Unique identifier for this device (auto-registers on first reading) |
 | `API_KEY` | API key for device authentication (leave empty for dev without auth) |
 | `INTERVAL_MS` | Milliseconds between readings (default: 1000) |

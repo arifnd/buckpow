@@ -1,4 +1,4 @@
-# BakPow — v0.1
+# BuckPow — v0.1
 
 Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives power readings from ESP32/ESP8266 + INA219 via HTTP POST. Serves a Tailwind CSS + HTMX dashboard with Chart.js real-time charts and dark theme.
 
@@ -16,7 +16,7 @@ Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives powe
 | `app/templates/` | Jinja2 templates (Tailwind CSS, HTMX) |
 | `app/static/` | CSS, JS (Chart.js, dashboard, theme) |
 | `app/utils/` | Utility functions (calculations) |
-| `instance/bakpow.db` | SQLite database (auto-created) |
+| `instance/buckpow.db` | SQLite database (auto-created) |
 | `migrations/` | Alembic migration files (Flask-Migrate) |
 | `scripts/send_dummy.py` | Dummy data generator matching v0.1 API |
 | `tests/` | Pytest suite (83 tests) |

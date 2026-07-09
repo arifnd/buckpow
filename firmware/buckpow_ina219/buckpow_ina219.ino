@@ -1,5 +1,5 @@
 /*
- * BakPow INA219 - Power Monitor Firmware
+ * BuckPow INA219 - Power Monitor Firmware
  * Supports ESP32 and ESP8266 with INA219 sensor.
  *
  * Wiring (INA219 → ESP32/ESP8266):
@@ -9,7 +9,7 @@
  *   SDA  → GPIO 21 (ESP32) / D2 (ESP8266, GPIO 4)
  *
  * Sends bus_voltage (V), shunt_voltage (mV),
- * current (mA), power (mW) to BakPow API.
+ * current (mA), power (mW) to BuckPow API.
  *
  * Required libraries (install via Arduino Library Manager):
  *   - Adafruit INA219 by Adafruit
@@ -34,7 +34,7 @@
 const char* WIFI_SSID     = "your-ssid";
 const char* WIFI_PASSWORD = "your-password";
 
-// ── BakPow API Configuration ──
+// ── BuckPow API Configuration ──
 const char* API_BASE   = "http://192.168.100.16:5001";
 const char* API_PATH   = "/api/v1/measurements";
 const char* DEVICE_ID  = "esp32-ina219-01";
@@ -117,7 +117,7 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("\n\nBakPow INA219 Firmware");
+  Serial.println("\n\nBuckPow INA219 Firmware");
 
   Wire.begin();
   if (!ina219.begin()) {

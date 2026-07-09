@@ -3,13 +3,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: bakpow
-      POSTGRES_PASSWORD: bakpow
-      POSTGRES_DB: bakpow
+      POSTGRES_USER: buckpow
+      POSTGRES_PASSWORD: buckpow
+      POSTGRES_DB: buckpow
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bakpow -d bakpow"]
+      test: ["CMD-SHELL", "pg_isready -U buckpow -d buckpow"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
         condition: service_healthy
     environment:
       FLASK_ENV: production
-      DATABASE_URL: postgresql://bakpow:bakpow@db:5432/bakpow
+      DATABASE_URL: postgresql://buckpow:buckpow@db:5432/buckpow
       SECRET_KEY: ${SECRET_KEY?SECRET_KEY is required}
       DEVICE_ONLINE_TIMEOUT: "30"
       DEFAULT_SAMPLING_INTERVAL: "1"

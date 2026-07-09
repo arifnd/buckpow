@@ -12,7 +12,7 @@ class Config:
         raise RuntimeError('SECRET_KEY environment variable is required in production')
     SQLALCHEMY_DATABASE_URI = os.getenv(
         'DATABASE_URL',
-        f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'bakpow.db')}"
+        f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'buckpow.db')}"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FLASK_HOST = os.getenv('FLASK_HOST', '0.0.0.0')

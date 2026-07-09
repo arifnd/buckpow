@@ -6,7 +6,7 @@ class TestFrontend:
 
     def test_dashboard_has_title(self, client):
         resp = client.get('/')
-        assert b'BakPow' in resp.data
+        assert b'BuckPow' in resp.data
 
     def test_dashboard_has_cards(self, client):
         resp = client.get('/')
