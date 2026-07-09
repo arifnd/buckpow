@@ -120,9 +120,8 @@ async function deleteDevice(id) {
   loadDevices();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initDevices() {
   loadDevices();
-
   document.getElementById('add-device-btn').addEventListener('click', () => {
     editingDeviceId = null;
     document.getElementById('device-modal-title').textContent = 'Add Device';
@@ -133,9 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('field-interval').value = 1;
     showDeviceModal();
   });
-
   document.getElementById('device-modal-cancel').addEventListener('click', hideDeviceModal);
-
   document.getElementById('device-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = {
@@ -166,6 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Error: ' + (err.error || 'Unknown error'));
     }
   });
-});
+}
+
+initDevices();
 </script>
 {% endblock %}

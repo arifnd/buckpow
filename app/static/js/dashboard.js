@@ -174,26 +174,25 @@ async function fetchDashboardData() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  initCharts();
-  fetchDashboardData();
-  intervalId = setInterval(fetchDashboardData, 5000);
+if (window.__dashboardIntervalId) clearInterval(window.__dashboardIntervalId);
+initCharts();
+fetchDashboardData();
+window.__dashboardIntervalId = setInterval(fetchDashboardData, 5000);
 
-  document.getElementById('granularity-group').addEventListener('click', (e) => {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    const g = btn.dataset.granularity;
-    if (g === currentGranularity) return;
-    currentGranularity = g;
-    document.querySelectorAll('#granularity-group button').forEach(b => {
-      if (b.dataset.granularity === g) {
-        b.classList.remove('text-[var(--muted)]', 'bg-transparent');
-        b.classList.add('text-[var(--body-text)]', 'bg-[var(--surface)]');
-      } else {
-        b.classList.remove('text-[var(--body-text)]', 'bg-[var(--surface)]');
-        b.classList.add('text-[var(--muted)]', 'bg-transparent');
-      }
-    });
-    fetchDashboardData();
+document.getElementById('granularity-group')?.addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const g = btn.dataset.granularity;
+  if (g === currentGranularity) return;
+  currentGranularity = g;
+  document.querySelectorAll('#granularity-group button').forEach(b => {
+    if (b.dataset.granularity === g) {
+      b.classList.remove('text-[var(--muted)]', 'bg-transparent');
+      b.classList.add('text-[var(--body-text)]', 'bg-[var(--surface)]');
+    } else {
+      b.classList.remove('text-[var(--body-text)]', 'bg-[var(--surface)]');
+      b.classList.add('text-[var(--muted)]', 'bg-transparent');
+    }
   });
+  fetchDashboardData();
 });

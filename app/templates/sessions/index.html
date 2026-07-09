@@ -162,9 +162,8 @@ async function deleteSession(id) {
   loadSessions();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initSessions() {
   loadSessions();
-
   document.getElementById('create-session-btn').addEventListener('click', async () => {
     editingSessionId = null;
     document.getElementById('session-modal-title').textContent = 'Create Session';
@@ -174,9 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     await populateDeviceSelect();
     showSessionModal();
   });
-
   document.getElementById('session-modal-cancel').addEventListener('click', hideSessionModal);
-
   document.getElementById('session-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = {
@@ -208,6 +205,8 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('Error: ' + (err.error || 'Unknown error'));
     }
   });
-});
+}
+
+initSessions();
 </script>
 {% endblock %}

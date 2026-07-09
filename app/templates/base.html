@@ -8,10 +8,13 @@
 tailwind.config = { darkMode: 'class' };
 </script>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% block extra_head %}{% endblock %}
 </head>
-<body class="flex flex-col min-h-screen bg-[var(--body-bg)] text-[var(--body-text)]">
+<body hx-boost="true" class="flex flex-col min-h-screen bg-[var(--body-bg)] text-[var(--body-text)]">
 <nav class="navbar relative bg-[var(--surface)] border-b border-[var(--border)] shadow-sm">
   <div class="max-w-7xl mx-auto w-full px-4">
     <div class="flex items-center justify-between h-12">
@@ -33,7 +36,9 @@ tailwind.config = { darkMode: 'class' };
 </nav>
 
 <main class="flex-1 px-4 py-4 max-w-7xl mx-auto w-full">
+<div id="main-content">
 {% block content %}{% endblock %}
+</div>
 </main>
 
 <footer class="border-t border-[var(--border)] bg-[var(--surface)]">
@@ -53,69 +58,7 @@ tailwind.config = { darkMode: 'class' };
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-(function() {
-  var html = document.documentElement;
-  var path = document.getElementById('theme-path');
-  var saved = localStorage.getItem('theme') || 'system';
-  var mq = window.matchMedia('(prefers-color-scheme: dark)');
-
-  var moon = 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z';
-  var sun = 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z';
-  var monitor = 'M8 21h8m-4-4v4m-7-6a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2H5z';
-
-  function applyTheme(mode) {
-    if (mode === 'dark') {
-      html.classList.add('dark');
-      if (path) path.setAttribute('d', moon);
-    } else if (mode === 'light') {
-      html.classList.remove('dark');
-      if (path) path.setAttribute('d', sun);
-    } else {
-      if (mq.matches) {
-        html.classList.add('dark');
-      } else {
-        html.classList.remove('dark');
-      }
-      if (path) path.setAttribute('d', monitor);
-    }
-  }
-
-  function nextMode(mode) {
-    var modes = ['system', 'dark', 'light'];
-    var idx = modes.indexOf(mode);
-    return modes[(idx + 1) % modes.length];
-  }
-
-  applyTheme(saved);
-
-  if (saved === 'system') {
-    mq.addEventListener('change', function() { applyTheme('system'); });
-  }
-
-  var toggle = document.getElementById('theme-toggle');
-  if (toggle) {
-    toggle.addEventListener('click', function() {
-      var current = localStorage.getItem('theme') || 'system';
-      var next = nextMode(current);
-      localStorage.setItem('theme', next);
-      applyTheme(next);
-      if (next === 'system') {
-        mq.addEventListener('change', function() { applyTheme('system'); });
-      }
-    });
-  }
-
-  var navToggle = document.getElementById('nav-toggle');
-  var navMenu = document.getElementById('nav-menu');
-  if (navToggle && navMenu) {
-    navToggle.addEventListener('click', function() {
-      navMenu.classList.toggle('hidden');
-    });
-  }
-})();
-
 function confirmDialog(msg) {
   return new Promise(function(resolve) {
     var modal = document.getElementById('confirm-modal');

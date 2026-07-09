@@ -63,7 +63,7 @@ document.getElementById('session-form').addEventListener('submit', async (e) => 
   {% endif %}
 
   if (res.ok) {
-    window.location.href = '/sessions';
+    htmx.ajax('GET', '/sessions', { target: '#main-content', pushUrl: true, select: '#main-content' });
   } else {
     const err = await res.json();
     alert('Error: ' + (err.error || 'Unknown error'));
