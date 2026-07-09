@@ -41,7 +41,6 @@
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-[var(--border)] text-[var(--muted)]">
-          <th class="text-left py-2 px-2 font-medium">ID</th>
           <th class="text-left py-2 px-2 font-medium">Device</th>
           <th class="text-left py-2 px-2 font-medium">Session</th>
           <th class="text-right py-2 px-2 font-medium">Bus V</th>
@@ -90,7 +89,6 @@ async function loadMeasurements(page) {
 
   const tbody = document.getElementById('measurements-body');
   tbody.innerHTML = data.measurements.map(m => `<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">
-    <td class="py-2 px-2">${m.id}</td>
     <td class="py-2 px-2">${m.device_name || m.device_id}</td>
     <td class="py-2 px-2">${m.session_name || '—'}</td>
     <td class="py-2 px-2 text-right">${m.bus_voltage.toFixed(3)}</td>

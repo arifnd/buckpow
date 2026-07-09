@@ -25,7 +25,6 @@
     <table class="w-full border-collapse">
       <thead>
         <tr class="border-b border-[var(--border)] text-[var(--muted)]">
-          <th class="text-left py-2 px-3 font-medium">ID</th>
           <th class="text-left py-2 px-3 font-medium">Level</th>
           <th class="text-left py-2 px-3 font-medium">Device</th>
           <th class="text-left py-2 px-3 font-medium">Message</th>
@@ -53,7 +52,6 @@ function renderAlert(a) {
   var resolved = a.resolved_at ? new Date(a.resolved_at).toLocaleString() : '<span class="text-[var(--muted)]">—</span>';
   var actions = a.resolved_at ? '' : '<button class="px-2 py-1 rounded text-xs font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors" onclick="resolveAlert(' + a.id + ')">Resolve</button>';
   return '<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">'
-    + '<td class="py-2 px-3">' + a.id + '</td>'
     + '<td class="py-2 px-3">' + levelBadge(a.level) + '</td>'
     + '<td class="py-2 px-3"><code class="text-[#58a6ff]">' + (a.device_name || '—') + '</code></td>'
     + '<td class="py-2 px-3">' + a.message + '</td>'
@@ -76,7 +74,7 @@ function loadAlerts(page) {
       var tbody = document.getElementById('alerts-tbody');
       tbody.innerHTML = '';
       if (data.alerts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="py-4 text-center text-[var(--muted)]">No alerts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[var(--muted)]">No alerts found.</td></tr>';
       } else {
         data.alerts.forEach(function(a) { tbody.innerHTML += renderAlert(a); });
       }

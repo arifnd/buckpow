@@ -11,7 +11,6 @@
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-[var(--border)] text-[var(--muted)]">
-          <th class="text-left py-2 px-3 font-medium">ID</th>
           <th class="text-left py-2 px-3 font-medium">Device ID</th>
           <th class="text-left py-2 px-3 font-medium">Alias</th>
           <th class="text-left py-2 px-3 font-medium">Description</th>
@@ -147,7 +146,6 @@ async function loadDevices(page) {
     const badge = status === 'online' ? 'bg-[#3fb950]' : 'bg-[#8b949e]';
     var enabledBadge = d.enabled ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-[#3fb950]">Yes</span>' : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-[#8b949e]">No</span>';
     return `<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">
-      <td class="py-2 px-3">${d.id}</td>
       <td class="py-2 px-3"><code class="text-[#58a6ff]">${d.device_id}</code></td>
       <td class="py-2 px-3">${d.alias || '—'}</td>
       <td class="py-2 px-3">${d.description || '—'}</td>
