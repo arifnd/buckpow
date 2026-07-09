@@ -10,6 +10,7 @@ class Session(db.Model):
     target_device = db.Column(db.String(64), default='')
     description = db.Column(db.Text, default='')
     status = db.Column(db.String(16), default='draft')
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
     started_at = db.Column(db.DateTime, nullable=True)
     ended_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
@@ -26,6 +27,8 @@ class Session(db.Model):
             'target_device': self.target_device,
             'description': self.description,
             'status': self.status,
+            'project_id': self.project_id,
+            'project_name': self.project.name if self.project else None,
             'started_at': self.started_at.isoformat() + 'Z' if self.started_at else None,
             'ended_at': self.ended_at.isoformat() + 'Z' if self.ended_at else None,
             'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,

@@ -16,6 +16,7 @@ class Device(db.Model):
     sampling_interval = db.Column(db.Integer, default=1)
     last_seen = db.Column(db.DateTime, nullable=True)
     status = db.Column(db.String(16), default='offline')
+    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
 
@@ -41,6 +42,8 @@ class Device(db.Model):
             'sampling_interval': self.sampling_interval,
             'last_seen': self.last_seen.isoformat() + 'Z' if self.last_seen else None,
             'status': self._compute_status(),
+            'project_id': self.project_id,
+            'project_name': self.project.name if self.project else None,
             'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
             'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
         }

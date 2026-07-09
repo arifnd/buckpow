@@ -59,16 +59,17 @@ function confirmDialog(msg) {
         <iconify-icon class="w-5 h-5" icon="heroicons-outline:bars-3"></iconify-icon>
       </button>
       <div id="nav-menu" class="hidden md:flex items-center gap-1">
+        {% if current_user.is_authenticated %}
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'dashboard' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/">Dashboard</a>
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'devices' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/devices">Devices</a>
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'sessions' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/sessions">Sessions</a>
+        <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'projects' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/projects">Projects</a>
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'measurements' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/measurements">Measurements</a>
+        {% endif %}
         <div class="ml-2 flex items-center gap-2">
           {% if current_user.is_authenticated %}
           <span class="text-xs text-[var(--muted)]">{{ current_user.name }}</span>
           <a href="#" id="logout-btn" class="px-2 py-1 rounded text-xs font-medium text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)] transition-colors">Logout</a>
-          {% else %}
-          <a href="/auth/login" class="px-2 py-1 rounded text-xs font-medium text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)] transition-colors">Login</a>
           {% endif %}
           <button class="p-1.5 rounded text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]" id="theme-toggle" title="Toggle theme">
             <iconify-icon id="theme-icon" class="w-4 h-4" icon="heroicons-outline:moon"></iconify-icon>

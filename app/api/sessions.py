@@ -32,6 +32,7 @@ def create_session():
         name=body['name'],
         target_device=body.get('target_device', ''),
         description=body.get('description', ''),
+        project_id=body.get('project_id'),
     )
     return jsonify(session.to_dict()), 201
 
@@ -55,6 +56,7 @@ def update_session(session_id):
         name=body.get('name'),
         target_device=body.get('target_device'),
         description=body.get('description'),
+        project_id=body.get('project_id'),
     )
     if not session:
         return jsonify({'error': 'Session not found'}), 404

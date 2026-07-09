@@ -32,6 +32,7 @@ def create_device():
         alias=body.get('alias', ''),
         description=body.get('description', ''),
         sampling_interval=body.get('sampling_interval'),
+        project_id=body.get('project_id'),
     )
     return jsonify(device.to_dict()), 201
 
@@ -55,6 +56,7 @@ def update_device(device_id):
         alias=body.get('alias'),
         description=body.get('description'),
         sampling_interval=body.get('sampling_interval'),
+        project_id=body.get('project_id'),
     )
     if not device:
         return jsonify({'error': 'Device not found'}), 404

@@ -15,6 +15,7 @@
           <th class="text-left py-2 px-3 font-medium">Device ID</th>
           <th class="text-left py-2 px-3 font-medium">Alias</th>
           <th class="text-left py-2 px-3 font-medium">Description</th>
+          <th class="text-left py-2 px-3 font-medium">Project</th>
           <th class="text-right py-2 px-3 font-medium">Interval</th>
           <th class="text-center py-2 px-3 font-medium">Status</th>
           <th class="text-left py-2 px-3 font-medium">Last Seen</th>
@@ -55,6 +56,13 @@
         <input type="number" name="sampling_interval" id="field-interval" value="1" min="1"
                class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
       </div>
+      <div class="mb-4">
+        <label class="block text-sm text-[var(--muted)] mb-1">Project</label>
+        <select name="project_id" id="field-project"
+                class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+          <option value="">No project</option>
+        </select>
+      </div>
       <div class="flex justify-end gap-2">
         <button type="button" class="px-4 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="device-modal-cancel">Cancel</button>
         <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors">Save</button>
@@ -69,6 +77,24 @@
 var editingDeviceId = null;
 var _initialized = false;
 
+var projectOpts = [];
+
+async function populateProjectSelect(selectedId) {
+  const sel = document.getElementById('field-project');
+  sel.innerHTML = '<option value="">No project</option>';
+  if (projectOpts.length === 0) {
+    const res = await fetch('/api/v1/projects?page=0');
+    projectOpts = await res.json();
+  }
+  projectOpts.forEach(function(p) {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    if (selectedId && p.id === selectedId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
 async function loadDevices(page) {
   page = page || 1;
   const res = await fetch('/api/v1/devices?page=' + page + '&per_page=10');
@@ -82,6 +108,7 @@ async function loadDevices(page) {
       <td class="py-2 px-3"><code class="text-[#58a6ff]">${d.device_id}</code></td>
       <td class="py-2 px-3">${d.alias || '—'}</td>
       <td class="py-2 px-3">${d.description || '—'}</td>
+      <td class="py-2 px-3">${d.project_name || '—'}</td>
       <td class="py-2 px-3 text-right">${d.sampling_interval}s</td>
       <td class="py-2 px-3 text-center"><span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white ${badge}">${status}</span></td>
       <td class="py-2 px-3">${d.last_seen ? new Date(d.last_seen).toLocaleString() : '—'}</td>
@@ -129,6 +156,9 @@ async function openDeviceModal(id) {
   document.getElementById('field-alias').value = d.alias || '';
   document.getElementById('field-description').value = d.description || '';
   document.getElementById('field-interval').value = d.sampling_interval;
+  var projSel = document.getElementById('field-project');
+  if (projSel.options.length <= 1) await populateProjectSelect();
+  projSel.value = d.project_id || '';
   showDeviceModal();
 }
 
@@ -150,6 +180,7 @@ function initDevices() {
     document.getElementById('field-device-id').removeAttribute('readonly');
     document.getElementById('field-device-id').value = '';
     document.getElementById('field-interval').value = 1;
+    populateProjectSelect();
     showDeviceModal();
   });
   document.getElementById('device-modal-cancel').addEventListener('click', hideDeviceModal);
@@ -160,6 +191,7 @@ function initDevices() {
       alias: document.getElementById('field-alias').value,
       description: document.getElementById('field-description').value,
       sampling_interval: parseInt(document.getElementById('field-interval').value),
+      project_id: parseInt(document.getElementById('field-project').value) || null,
     };
     let res;
     if (editingDeviceId) {

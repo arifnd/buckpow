@@ -33,15 +33,19 @@ def devices():
 @dashboard_bp.route('/devices/new')
 @login_required
 def devices_new():
-    return render_template('devices/form.html', active_page='devices', device=None)
+    from app.services.project_service import ProjectService
+    projects = ProjectService.get_all()
+    return render_template('devices/form.html', active_page='devices', device=None, projects=projects)
 
 
 @dashboard_bp.route('/devices/<int:device_id>/edit')
 @login_required
 def devices_edit(device_id):
     from app.services.device_service import DeviceService
+    from app.services.project_service import ProjectService
     device = DeviceService.get_by_id(device_id)
-    return render_template('devices/form.html', active_page='devices', device=device)
+    projects = ProjectService.get_all()
+    return render_template('devices/form.html', active_page='devices', device=device, projects=projects)
 
 
 @dashboard_bp.route('/sessions')
@@ -54,8 +58,10 @@ def sessions():
 @login_required
 def sessions_new():
     from app.services.device_service import DeviceService
+    from app.services.project_service import ProjectService
     devices = DeviceService.get_all()
-    return render_template('sessions/form.html', active_page='sessions', session=None, devices=devices)
+    projects = ProjectService.get_all()
+    return render_template('sessions/form.html', active_page='sessions', session=None, devices=devices, projects=projects)
 
 
 @dashboard_bp.route('/sessions/<int:session_id>/edit')
@@ -63,9 +69,17 @@ def sessions_new():
 def sessions_edit(session_id):
     from app.services.session_service import SessionService
     from app.services.device_service import DeviceService
+    from app.services.project_service import ProjectService
     session = SessionService.get_by_id(session_id)
     devices = DeviceService.get_all()
-    return render_template('sessions/form.html', active_page='sessions', session=session, devices=devices)
+    projects = ProjectService.get_all()
+    return render_template('sessions/form.html', active_page='sessions', session=session, devices=devices, projects=projects)
+
+
+@dashboard_bp.route('/projects')
+@login_required
+def projects():
+    return render_template('projects/index.html', active_page='projects')
 
 
 @dashboard_bp.route('/measurements')

@@ -25,13 +25,14 @@ class DeviceService:
         return Device.query.filter_by(device_id=device_id_str).first()
 
     @staticmethod
-    def create(device_id, alias='', description='', sampling_interval=None):
+    def create(device_id, alias='', description='', sampling_interval=None, project_id=None):
         device = Device(
             device_id=device_id,
             alias=alias,
             description=description,
             sampling_interval=sampling_interval or Config.DEFAULT_SAMPLING_INTERVAL,
             status='offline',
+            project_id=project_id,
         )
         db.session.add(device)
         db.session.commit()

@@ -30,13 +30,14 @@ class SessionService:
         return Session.query.filter_by(status='running').first()
 
     @staticmethod
-    def create(device_id, name, target_device='', description=''):
+    def create(device_id, name, target_device='', description='', project_id=None):
         session = Session(
             device_id=device_id,
             name=name,
             target_device=target_device,
             description=description,
             status='draft',
+            project_id=project_id,
         )
         db.session.add(session)
         db.session.commit()

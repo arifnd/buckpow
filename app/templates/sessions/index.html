@@ -15,6 +15,7 @@
           <th class="text-left py-2 px-3 font-medium">Name</th>
           <th class="text-left py-2 px-3 font-medium">Device ID</th>
           <th class="text-left py-2 px-3 font-medium">Target Device</th>
+          <th class="text-left py-2 px-3 font-medium">Project</th>
           <th class="text-center py-2 px-3 font-medium">Status</th>
           <th class="text-left py-2 px-3 font-medium">Started</th>
           <th class="text-left py-2 px-3 font-medium">Ended</th>
@@ -57,6 +58,13 @@
         <textarea name="description" id="field-session-desc" rows="2"
                   class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"></textarea>
       </div>
+      <div class="mb-4">
+        <label class="block text-sm text-[var(--muted)] mb-1">Project</label>
+        <select name="project_id" id="field-session-project"
+                class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+          <option value="">No project</option>
+        </select>
+      </div>
       <div class="flex justify-end gap-2">
         <button type="button" class="px-4 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="session-modal-cancel">Cancel</button>
         <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors">Save</button>
@@ -70,6 +78,7 @@
 <script>
 var editingSessionId = null;
 var deviceOpts = [];
+var sessionProjectOpts = [];
 var _initialized = false;
 
 function statusBadge(status) {
@@ -93,6 +102,7 @@ async function loadSessions(page) {
       <td class="py-2 px-3 font-medium">${s.name}</td>
       <td class="py-2 px-3">${s.device_name || s.device_id}</td>
       <td class="py-2 px-3">${s.target_device || '—'}</td>
+      <td class="py-2 px-3">${s.project_name || '—'}</td>
       <td class="py-2 px-3 text-center">${statusBadge(s.status)}</td>
       <td class="py-2 px-3">${s.started_at ? new Date(s.started_at).toLocaleString() : '—'}</td>
       <td class="py-2 px-3">${s.ended_at ? new Date(s.ended_at).toLocaleString() : '—'}</td>
@@ -132,6 +142,22 @@ function hideSessionModal() {
   modal.classList.remove('flex');
 }
 
+async function populateSessionProjectSelect(selectedId) {
+  const sel = document.getElementById('field-session-project');
+  sel.innerHTML = '<option value="">No project</option>';
+  if (sessionProjectOpts.length === 0) {
+    const res = await fetch('/api/v1/projects?page=0');
+    sessionProjectOpts = await res.json();
+  }
+  sessionProjectOpts.forEach(function(p) {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name;
+    if (selectedId && p.id === selectedId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
 async function populateDeviceSelect(selectedId) {
   const sel = document.getElementById('field-session-device');
   sel.innerHTML = '<option value="">Select device</option>';
@@ -154,6 +180,7 @@ async function openSessionModal(id) {
   const [s, _] = await Promise.all([
     fetch('/api/v1/sessions/' + id).then(r => r.json()),
     populateDeviceSelect(),
+    populateSessionProjectSelect(),
   ]);
   document.getElementById('session-id').value = s.id;
   document.getElementById('field-session-name').value = s.name;
@@ -162,6 +189,8 @@ async function openSessionModal(id) {
   const sel = document.getElementById('field-session-device');
   sel.value = s.device_id;
   sel.setAttribute('disabled', true);
+  var projSel = document.getElementById('field-session-project');
+  projSel.value = s.project_id || '';
   showSessionModal();
 }
 
@@ -191,7 +220,7 @@ function initSessions() {
     document.getElementById('session-form').reset();
     document.getElementById('session-id').value = '';
     document.getElementById('field-session-device').removeAttribute('disabled');
-    await populateDeviceSelect();
+    await Promise.all([populateDeviceSelect(), populateSessionProjectSelect()]);
     showSessionModal();
   });
   document.getElementById('session-modal-cancel').addEventListener('click', hideSessionModal);
@@ -202,6 +231,7 @@ function initSessions() {
       device_id: parseInt(document.getElementById('field-session-device').value),
       target_device: document.getElementById('field-target-device').value,
       description: document.getElementById('field-session-desc').value,
+      project_id: parseInt(document.getElementById('field-session-project').value) || null,
     };
     let res;
     if (editingSessionId) {
