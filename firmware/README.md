@@ -34,6 +34,7 @@ const char* DEVICE_ID     = "esp32-ina219-01";
 | `WIFI_SSID` / `WIFI_PASSWORD` | Your 2.4 GHz WiFi credentials |
 | `API_BASE` | BakPow server address and port |
 | `DEVICE_ID` | Unique identifier for this device (auto-registers on first reading) |
+| `API_KEY` | API key for device authentication (leave empty for dev without auth) |
 | `INTERVAL_MS` | Milliseconds between readings (default: 1000) |
 
 ## Measurement Range

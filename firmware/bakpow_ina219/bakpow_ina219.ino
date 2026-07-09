@@ -38,6 +38,7 @@ const char* WIFI_PASSWORD = "your-password";
 const char* API_BASE   = "http://192.168.100.16:5001";
 const char* API_PATH   = "/api/v1/measurements";
 const char* DEVICE_ID  = "esp32-ina219-01";
+const char* API_KEY    = "";
 
 // ── Timing ──
 const unsigned long INTERVAL_MS  = 1000;
@@ -92,6 +93,9 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
     return false;
   }
   http.addHeader("Content-Type", "application/json");
+  if (API_KEY[0] != '\0') {
+    http.addHeader("Authorization", "Bearer " + String(API_KEY));
+  }
   int code = http.POST(payload);
   http.end();
 
