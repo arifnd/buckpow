@@ -8,6 +8,9 @@ db = SQLAlchemy()
 migrate = Migrate()
 
 
+APP_VERSION = '0.1.0'
+
+
 def create_app(config_class=DevConfig):
     flask_app = Flask(__name__)
     flask_app.config.from_object(config_class)
@@ -27,5 +30,9 @@ def create_app(config_class=DevConfig):
     def init_db_command():
         db.create_all()
         print("Database tables created.")
+
+    @flask_app.context_processor
+    def inject_globals():
+        return dict(app_version=APP_VERSION)
 
     return flask_app

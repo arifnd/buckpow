@@ -69,8 +69,12 @@ function confirmDialog(msg) {
 </main>
 
 <footer class="border-t border-[var(--border)] bg-[var(--surface)]">
-  <div class="px-4 py-3 max-w-7xl mx-auto text-center">
-    <small class="text-[var(--muted)] opacity-70">BakPow v0.1</small>
+  <div class="px-4 py-3 max-w-7xl mx-auto flex items-center justify-center gap-2 text-center">
+    <small class="text-[var(--muted)] opacity-70">BakPow v{{ app_version }}</small>
+    <span class="text-[var(--muted)] opacity-40">&middot;</span>
+    <a class="text-[var(--muted)] opacity-70 hover:opacity-100 hover:text-[var(--body-text)] transition-colors" href="https://github.com/arifnd/bakpow" target="_blank" rel="noopener noreferrer">
+      <iconify-icon class="w-4 h-4 align-text-bottom" icon="simple-icons:github"></iconify-icon>
+    </a>
   </div>
 </footer>
 
