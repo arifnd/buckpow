@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import func
 
 from app import db
-from app.models import Measurement
+from app.models import Measurement, Session
 from app.utils.calculations import calc_load_voltage, calc_energy_increment
 from app.services.device_service import DeviceService
 from app.services.session_service import SessionService
@@ -140,6 +140,74 @@ class MeasurementService:
             },
             'energy': {
                 'total': round(rows[0].energy, 6) if rows else 0,
+            },
+        }
+
+    @staticmethod
+    def get_session_stats(session_id):
+        session = db.session.get(Session, session_id)
+        if not session:
+            return None
+
+        measurements = Measurement.query.filter_by(session_id=session_id).order_by(
+            Measurement.created_at.asc()
+        ).all()
+
+        if not measurements:
+            return {
+                'session_id': session.id,
+                'session_name': session.name,
+                'device_name': session.device.alias or session.device.device_id if session.device else None,
+                'avg_power': 0,
+                'peak_power': 0,
+                'total_energy': 0,
+                'avg_current': 0,
+                'voltage_stddev': 0,
+                'duration': 0,
+                'measurement_count': 0,
+                'started_at': session.started_at.isoformat() + 'Z' if session.started_at else None,
+                'ended_at': session.ended_at.isoformat() + 'Z' if session.ended_at else None,
+                'chart_data': {'labels': [], 'power': [], 'voltage': [], 'current': []},
+            }
+
+        powers = [m.power for m in measurements]
+        currents = [m.current for m in measurements]
+        voltages = [m.bus_voltage for m in measurements]
+        n = len(measurements)
+
+        avg_power = sum(powers) / n
+        peak_power = max(powers)
+        avg_current = sum(currents) / n
+        total_energy = measurements[-1].energy if measurements else 0
+
+        avg_voltage = sum(voltages) / n
+        variance = sum((v - avg_voltage) ** 2 for v in voltages) / n
+        voltage_stddev = variance ** 0.5
+
+        duration = 0
+        if session.started_at and session.ended_at:
+            duration = (session.ended_at - session.started_at).total_seconds()
+        elif session.started_at:
+            duration = (datetime.now(timezone.utc) - session.started_at).total_seconds()
+
+        return {
+            'session_id': session.id,
+            'session_name': session.name,
+            'device_name': session.device.alias or session.device.device_id if session.device else None,
+            'avg_power': round(avg_power, 3),
+            'peak_power': round(peak_power, 3),
+            'total_energy': round(total_energy, 6),
+            'avg_current': round(avg_current, 3),
+            'voltage_stddev': round(voltage_stddev, 6),
+            'duration': round(duration, 1),
+            'measurement_count': n,
+            'started_at': session.started_at.isoformat() + 'Z' if session.started_at else None,
+            'ended_at': session.ended_at.isoformat() + 'Z' if session.ended_at else None,
+            'chart_data': {
+                'labels': [m.created_at.isoformat() + 'Z' if m.created_at else '' for m in measurements],
+                'power': [m.power for m in measurements],
+                'voltage': [m.bus_voltage for m in measurements],
+                'current': [m.current for m in measurements],
             },
         }
 

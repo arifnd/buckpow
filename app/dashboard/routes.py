@@ -88,6 +88,12 @@ def measurements():
     return render_template('measurements/index.html', active_page='measurements')
 
 
+@dashboard_bp.route('/benchmark')
+@login_required
+def benchmark():
+    return render_template('benchmark/index.html', active_page='benchmark')
+
+
 @dashboard_bp.route('/alerts')
 @login_required
 def alerts():

@@ -80,6 +80,7 @@ function confirmDialog(msg) {
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'sessions' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/sessions">Sessions</a>
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'projects' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/projects">Projects</a>
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'measurements' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/measurements">Measurements</a>
+        <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'benchmark' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/benchmark">Benchmark</a>
         <a class="px-3 py-1.5 rounded text-sm relative {% if active_page == 'alerts' %}text-white bg-[#1f6feb]{% else %}text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]{% endif %}" href="/alerts" id="alerts-nav">Alerts<span id="alert-badge" class="hidden ml-1 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-[#f85149] min-w-[18px]">0</span></a>
         {% endif %}
         <div class="ml-2 flex items-center gap-2">
