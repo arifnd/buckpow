@@ -15,7 +15,7 @@ Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives powe
 | `app/dashboard/` | Server-rendered page routes |
 | `app/templates/` | Jinja2 templates (Bootstrap 5) |
 | `app/static/` | CSS, JS (Chart.js frontend) |
-| `instance/powerdash.db` | SQLite database (auto-created) |
+| `instance/bakpow.db` | SQLite database (auto-created) |
 | `migrations/` | Alembic migration files (Flask-Migrate) |
 | `scripts/send_dummy.py` | Dummy data generator matching v0.1 API |
 | `tests/` | Pytest suite (28 tests) |
