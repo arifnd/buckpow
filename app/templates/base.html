@@ -21,10 +21,34 @@ tailwind.config = { darkMode: 'class' };
 {% block extra_head %}{% endblock %}
 <script>
 document.addEventListener('click', function(e) {
-  if (e.target && e.target.id === 'logout-btn') {
+  var btn = e.target.closest('#user-menu-btn');
+  if (btn) {
     e.preventDefault();
-    fetch('/api/v1/auth/logout', {method: 'POST'}).then(function() {
-      window.location.href = '/auth/login';
+    document.getElementById('user-menu').classList.toggle('hidden');
+    return;
+  }
+  var subBtn = e.target.closest('#theme-submenu-btn');
+  if (subBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.getElementById('theme-submenu-panel').classList.toggle('hidden');
+    return;
+  }
+  var menu = document.getElementById('user-menu');
+  if (menu && !menu.classList.contains('hidden') && !e.target.closest('#user-dropdown')) {
+    menu.classList.add('hidden');
+    var sub = document.getElementById('theme-submenu-panel');
+    if (sub) sub.classList.add('hidden');
+  }
+  var lBtn = e.target.closest('#logout-btn');
+  if (lBtn) {
+    e.preventDefault();
+    confirmDialog('Are you sure you want to logout?').then(function(ok) {
+      if (ok) {
+        fetch('/api/v1/auth/logout', {method: 'POST'}).then(function() {
+          window.location.href = '/auth/login';
+        });
+      }
     });
   }
 });
@@ -85,12 +109,30 @@ function confirmDialog(msg) {
         {% endif %}
         <div class="ml-2 flex items-center gap-2">
           {% if current_user.is_authenticated %}
-          <span class="text-xs text-[var(--muted)]">{{ current_user.name }}</span>
-          <a href="#" id="logout-btn" class="px-2 py-1 rounded text-xs font-medium text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)] transition-colors">Logout</a>
+          <div class="relative" id="user-dropdown">
+            <button id="user-menu-btn" class="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)] transition-colors">
+              <span>{{ current_user.name }}</span>
+              <iconify-icon class="w-3 h-3" icon="heroicons-outline:chevron-down"></iconify-icon>
+            </button>
+            <div id="user-menu" class="hidden absolute right-0 top-full mt-1 w-48 z-50 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg py-1">
+              <a href="/profile" class="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--body-text)] hover:bg-[var(--hover)]"><iconify-icon class="w-4 h-4" icon="heroicons-outline:user"></iconify-icon>Profile</a>
+              <a href="/settings" class="flex items-center gap-2 px-3 py-1.5 text-sm text-[var(--body-text)] hover:bg-[var(--hover)]"><iconify-icon class="w-4 h-4" icon="heroicons-outline:cog-6-tooth"></iconify-icon>Settings</a>
+              <div class="relative" id="theme-submenu">
+                <button class="flex items-center justify-between w-full px-3 py-1.5 text-sm text-[var(--body-text)] hover:bg-[var(--hover)]" id="theme-submenu-btn">
+                  <span class="flex items-center gap-2"><iconify-icon class="w-4 h-4" icon="heroicons-outline:moon"></iconify-icon>Theme</span>
+                  <iconify-icon class="w-3 h-3" icon="heroicons-outline:chevron-right"></iconify-icon>
+                </button>
+                <div id="theme-submenu-panel" class="hidden absolute right-full top-0 mr-1 w-36 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg py-1 z-50">
+                  <button class="theme-option flex items-center justify-between w-full px-3 py-1.5 text-sm text-[var(--body-text)] hover:bg-[var(--hover)]" data-theme="system"><span class="flex items-center gap-2"><iconify-icon class="w-4 h-4" icon="heroicons-outline:computer-desktop"></iconify-icon>System</span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
+                  <button class="theme-option flex items-center justify-between w-full px-3 py-1.5 text-sm text-[var(--body-text)] hover:bg-[var(--hover)]" data-theme="light"><span class="flex items-center gap-2"><iconify-icon class="w-4 h-4" icon="heroicons-outline:sun"></iconify-icon>Light</span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
+                  <button class="theme-option flex items-center justify-between w-full px-3 py-1.5 text-sm text-[var(--body-text)] hover:bg-[var(--hover)]" data-theme="dark"><span class="flex items-center gap-2"><iconify-icon class="w-4 h-4" icon="heroicons-outline:moon"></iconify-icon>Dark</span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
+                </div>
+              </div>
+              <hr class="border-t border-[var(--border)] my-1">
+              <button id="logout-btn" class="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-red-500 hover:bg-[var(--hover)]"><iconify-icon class="w-4 h-4" icon="heroicons-outline:arrow-left-on-rectangle"></iconify-icon>Logout</button>
+            </div>
+          </div>
           {% endif %}
-          <button class="p-1.5 rounded text-[var(--muted)] hover:text-[var(--body-text)] hover:bg-[var(--hover)]" id="theme-toggle" title="Toggle theme">
-            <iconify-icon id="theme-icon" class="w-4 h-4" icon="heroicons-outline:moon"></iconify-icon>
-          </button>
         </div>
       </div>
     </div>

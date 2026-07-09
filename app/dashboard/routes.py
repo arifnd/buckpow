@@ -94,6 +94,12 @@ def benchmark():
     return render_template('benchmark/index.html', active_page='benchmark')
 
 
+@dashboard_bp.route('/profile')
+@login_required
+def profile():
+    return render_template('auth/profile.html', active_page='profile')
+
+
 @dashboard_bp.route('/alerts')
 @login_required
 def alerts():

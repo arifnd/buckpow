@@ -24,6 +24,23 @@ class UserService:
         return user
 
     @staticmethod
+    def update(user_id, name=None, email=None, password=None):
+        user = db.session.get(User, user_id)
+        if not user:
+            return None
+        if name is not None:
+            user.name = name
+        if email is not None:
+            existing = UserService.get_by_email(email)
+            if existing and existing.id != user_id:
+                raise ValueError(f'Email {email} already in use')
+            user.email = email
+        if password:
+            user.set_password(password)
+        db.session.commit()
+        return user
+
+    @staticmethod
     def authenticate(email, password):
         user = UserService.get_by_email(email)
         if not user or not user.check_password(password):

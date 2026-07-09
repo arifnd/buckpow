@@ -31,6 +31,26 @@ def logout():
     return jsonify({'status': 'ok'})
 
 
+@auth_bp.route('/auth/profile', methods=['PUT'])
+@login_required
+def update_profile():
+    body = request.get_json()
+    if not body:
+        return jsonify({'error': 'No JSON payload'}), 400
+    try:
+        user = UserService.update(
+            current_user.id,
+            name=body.get('name'),
+            email=body.get('email'),
+            password=body.get('password') or None,
+        )
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        return jsonify({'status': 'ok', 'user': user.to_dict()})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 409
+
+
 @auth_bp.route('/auth/me', methods=['GET'])
 def me():
     if not current_user.is_authenticated:
