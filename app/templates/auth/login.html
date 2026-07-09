@@ -1,29 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex-1 flex items-center justify-center">
+<div class="flex-1 flex items-center justify-center px-4">
   <div class="w-full max-w-sm">
     <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-xl p-6">
-      <h2 class="text-xl font-semibold text-center mb-6">Sign in to BuckPow</h2>
-      <form id="login-form" hx-boost="false" class="space-y-4">
+      <h2 class="text-xl font-semibold text-center mb-2">Sign in to BuckPow</h2>
+      <div id="login-error" class="text-sm text-red-500 text-center mb-4 hidden"></div>
+      <form id="login-form" hx-boost="false" novalidate class="space-y-4">
         <div>
           <label class="block text-sm text-[var(--muted)] mb-1" for="email">Email</label>
-          <input type="email" name="email" id="email" required autocomplete="email"
+          <input type="email" name="email" id="email" autocomplete="email"
                  class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+          <div id="email-error" class="text-xs text-red-500 mt-1 hidden"></div>
         </div>
         <div>
           <label class="block text-sm text-[var(--muted)] mb-1" for="password">Password</label>
           <div class="relative">
-            <input type="password" name="password" id="password" required autocomplete="current-password"
+            <input type="password" name="password" id="password" autocomplete="current-password"
                    class="w-full px-3 py-1.5 pr-9 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
             <button type="button" id="password-toggle" tabindex="-1"
                     class="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--body-text)] transition-colors">
               <iconify-icon icon="mdi:eye" class="text-lg"></iconify-icon>
             </button>
           </div>
+          <div id="password-error" class="text-xs text-red-500 mt-1 hidden"></div>
         </div>
         <input type="hidden" id="next" value="">
-        <div id="login-error" class="text-sm text-red-500 hidden"></div>
         <button type="submit" class="w-full px-4 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors">
           Sign In
         </button>
@@ -54,14 +56,33 @@
   document.getElementById('login-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     var errorEl = document.getElementById('login-error');
+    var emailError = document.getElementById('email-error');
+    var passwordError = document.getElementById('password-error');
     errorEl.classList.add('hidden');
+    emailError.classList.add('hidden');
+    passwordError.classList.add('hidden');
+
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+
+    if (!email) {
+      emailError.textContent = 'Email is required';
+      emailError.classList.remove('hidden');
+      return;
+    }
+    if (!password) {
+      passwordError.textContent = 'Password is required';
+      passwordError.classList.remove('hidden');
+      return;
+    }
+
     try {
       var res = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
-          email: document.getElementById('email').value,
-          password: document.getElementById('password').value,
+          email: email,
+          password: password,
         }),
       });
       if (res.ok) {
