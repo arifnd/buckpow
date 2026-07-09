@@ -21,6 +21,7 @@ class Session(db.Model):
         return {
             'id': self.id,
             'device_id': self.device_id,
+            'device_name': self.device.alias or self.device.device_id if self.device else None,
             'name': self.name,
             'target_device': self.target_device,
             'description': self.description,

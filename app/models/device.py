@@ -1,4 +1,9 @@
+from datetime import datetime, timezone, timedelta
+
 from app import db
+
+
+ONLINE_TIMEOUT = 30
 
 
 class Device(db.Model):
@@ -17,6 +22,16 @@ class Device(db.Model):
     sessions = db.relationship('Session', backref='device', lazy='dynamic')
     measurements = db.relationship('Measurement', backref='device', lazy='dynamic')
 
+    def _compute_status(self):
+        if not self.last_seen:
+            return 'offline'
+        last = self.last_seen
+        if last.tzinfo is None:
+            last = last.replace(tzinfo=timezone.utc)
+        if datetime.now(timezone.utc) - last < timedelta(seconds=ONLINE_TIMEOUT):
+            return 'online'
+        return 'offline'
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -25,7 +40,7 @@ class Device(db.Model):
             'description': self.description,
             'sampling_interval': self.sampling_interval,
             'last_seen': self.last_seen.isoformat() + 'Z' if self.last_seen else None,
-            'status': self.status,
+            'status': self._compute_status(),
             'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
             'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
         }

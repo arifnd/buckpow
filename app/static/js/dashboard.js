@@ -1,7 +1,7 @@
-const MAX_POINTS = 50;
-let voltageChart, currentChart, powerChart, energyChart;
-let intervalId;
-let currentGranularity = '';
+var MAX_POINTS = 50;
+var voltageChart, currentChart, powerChart, energyChart;
+var intervalId;
+var currentGranularity = '';
 
 function initCharts() {
   voltageChart = createChart('voltageChart', 'Voltage (V)', 'voltage');
@@ -23,6 +23,22 @@ function toFixedSafe(val, digits) {
   return (val != null ? Number(val) : 0).toFixed(digits);
 }
 
+function formatDuration(startedAt) {
+  if (!startedAt) return '—';
+  var diff = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+  if (diff < 0) return '—';
+  var d = Math.floor(diff / 86400); diff %= 86400;
+  var h = Math.floor(diff / 3600); diff %= 3600;
+  var m = Math.floor(diff / 60);
+  var s = diff % 60;
+  var parts = [];
+  if (d > 0) parts.push(d + 'd');
+  if (h > 0) parts.push(h + 'h');
+  if (m > 0) parts.push(m + 'm');
+  parts.push(s + 's');
+  return parts.join(' ');
+}
+
 function updateSummaryCards(data) {
   if (!data || !data.latest) return;
   const r = data.latest;
@@ -32,13 +48,13 @@ function updateSummaryCards(data) {
   document.getElementById('val-load-voltage').textContent = toFixedSafe(r.load_voltage, 3);
   document.getElementById('val-current').textContent = toFixedSafe(r.current, 3);
   document.getElementById('val-power').textContent = toFixedSafe(r.power, 3);
-  document.getElementById('val-energy').textContent = toFixedSafe(r.energy, 3);
+  document.getElementById('val-energy').textContent = toFixedSafe(r.energy, 6);
   document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
 
   const statusEl = document.getElementById('val-status');
   if (dev) {
     statusEl.textContent = dev.status;
-    statusEl.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-sm font-medium ' + (dev.status === 'online' ? 'bg-[#3fb950] text-white' : 'bg-[#8b949e] text-white');
+    statusEl.className = 'inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium ' + (dev.status === 'online' ? 'bg-[#3fb950] text-white' : 'bg-[#8b949e] text-white');
   }
 }
 
@@ -60,9 +76,17 @@ function statCard(title, unit, color, fields) {
   </div>`;
 }
 
-function updateStats(stats) {
+function updateStats(dashboard) {
+  var stats = dashboard.stats;
   if (!stats || !stats.voltage) return;
-  const container = document.getElementById('stats-cards');
+  var container = document.getElementById('stats-cards');
+  var totalFields = [];
+  if (dashboard.latest && dashboard.latest.energy != null) {
+    totalFields.push({ label: 'Energy', val: toFixedSafe(dashboard.latest.energy, 6) });
+  }
+  if (dashboard.active_session && dashboard.active_session.started_at) {
+    totalFields.push({ label: 'Running', val: formatDuration(dashboard.active_session.started_at) });
+  }
   container.innerHTML =
     statCard('Voltage', 'V', 'info', [
       { label: 'Min', val: toFixedSafe(stats.voltage.min, 3) },
@@ -80,14 +104,12 @@ function updateStats(stats) {
       { label: 'Avg', val: toFixedSafe(stats.power.avg, 3) },
       { label: 'Peak', val: toFixedSafe(stats.power.peak, 3) },
     ]) +
-    statCard('Energy', 'Wh', 'purple', [
-      { label: 'Total', val: toFixedSafe(stats.energy.total, 6) },
-    ]);
+    (totalFields.length ? statCard('TOTAL', '', 'purple', totalFields) : '');
 }
 
 function updateTable(measurements) {
   const tbody = document.getElementById('readings-body');
-  tbody.innerHTML = measurements.slice(0, 20).map(r => `<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">
+  tbody.innerHTML = measurements.slice(0, 10).map(r => `<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">
     <td class="py-2 px-2 text-left">${r.created_at ? new Date(r.created_at).toLocaleString() : ''}</td>
     <td class="py-2 px-2 text-left">${r.session_name || '—'}</td>
     <td class="py-2 px-2 text-right">${toFixedSafe(r.bus_voltage, 3)}</td>
@@ -144,27 +166,31 @@ async function fetchDashboardData() {
   var sessionEl = document.getElementById('session-indicator');
   if (!dashboard || !dashboard.active_session) {
     if (sessionEl) {
-      sessionEl.innerHTML = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#8b949e] text-white">No active session</span>';
+      sessionEl.innerHTML = '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-[#8b949e] text-white">No active session</span>';
     }
     updateCharts({labels: [], voltage: [], current: [], power: [], energy: []});
+    if (window.__dashboardIntervalId) {
+      clearInterval(window.__dashboardIntervalId);
+      window.__dashboardIntervalId = null;
+    }
     return;
   }
 
   if (sessionEl) {
     var s = dashboard.active_session;
-    sessionEl.innerHTML = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#3fb950] text-white">Session: ' + s.name + '</span>';
+    sessionEl.innerHTML = '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-[#3fb950] text-white">Session: ' + s.name + '</span>';
   }
 
   var sessionFilter = 'session_id=' + dashboard.active_session.id + '&';
   var params = currentGranularity ? 'granularity=' + currentGranularity + '&' : '';
   var [chart, recent] = await Promise.all([
     fetchJSON('/api/v1/chart?' + sessionFilter + params + 'limit=100'),
-    fetchJSON('/api/v1/measurements?' + sessionFilter + 'per_page=20'),
+    fetchJSON('/api/v1/measurements?' + sessionFilter + 'per_page=10'),
   ]);
 
   if (dashboard) {
     updateSummaryCards(dashboard);
-    updateStats(dashboard.stats || {});
+    updateStats(dashboard);
   }
   if (chart) {
     updateCharts(chart);
@@ -174,18 +200,34 @@ async function fetchDashboardData() {
   }
 }
 
-if (window.__dashboardIntervalId) clearInterval(window.__dashboardIntervalId);
-initCharts();
-fetchDashboardData();
-window.__dashboardIntervalId = setInterval(fetchDashboardData, 5000);
+function startDashboard() {
+  if (window.__dashboardIntervalId) clearInterval(window.__dashboardIntervalId);
+  initCharts();
+  fetchDashboardData();
+  window.__dashboardIntervalId = setInterval(fetchDashboardData, 5000);
+}
 
-document.getElementById('granularity-group')?.addEventListener('click', (e) => {
-  const btn = e.target.closest('button');
+function isDashboardPage() {
+  return !!document.getElementById('voltageChart');
+}
+
+function initOnDashboard() {
+  if (isDashboardPage()) {
+    startDashboard();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initOnDashboard);
+
+document.addEventListener('htmx:afterSettle', initOnDashboard);
+
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('#granularity-group button');
   if (!btn) return;
-  const g = btn.dataset.granularity;
+  var g = btn.dataset.granularity;
   if (g === currentGranularity) return;
   currentGranularity = g;
-  document.querySelectorAll('#granularity-group button').forEach(b => {
+  document.querySelectorAll('#granularity-group button').forEach(function(b) {
     if (b.dataset.granularity === g) {
       b.classList.remove('text-[var(--muted)]', 'bg-transparent');
       b.classList.add('text-[var(--body-text)]', 'bg-[var(--surface)]');

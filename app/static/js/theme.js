@@ -19,21 +19,23 @@
 
   applyTheme(saved);
 
+  function updateIcon(mode) {
+    var el = document.getElementById('theme-icon');
+    if (!el) return;
+    if (mode === 'dark') { el.setAttribute('icon', 'heroicons-outline:moon'); }
+    else if (mode === 'light') { el.setAttribute('icon', 'heroicons-outline:sun'); }
+    else { el.setAttribute('icon', 'heroicons-outline:computer-desktop'); }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { updateIcon(saved); });
+  } else {
+    updateIcon(saved);
+  }
+
   if (saved === 'system') {
     mq.addEventListener('change', function() { applyTheme('system'); });
   }
-
-  var toggle = document.getElementById('theme-toggle');
-  var icon = document.getElementById('theme-icon');
-
-  function updateIcon(mode) {
-    if (!icon) return;
-    if (mode === 'dark') { icon.setAttribute('icon', 'heroicons-outline:moon'); }
-    else if (mode === 'light') { icon.setAttribute('icon', 'heroicons-outline:sun'); }
-    else { icon.setAttribute('icon', 'heroicons-outline:computer-desktop'); }
-  }
-
-  updateIcon(saved);
 
   function nextMode(mode) {
     var modes = ['system', 'dark', 'light'];
@@ -41,21 +43,28 @@
     return modes[(idx + 1) % modes.length];
   }
 
-  if (toggle) {
-    toggle.addEventListener('click', function() {
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('#theme-toggle');
+    if (btn) {
       var current = localStorage.getItem('theme') || 'system';
       var next = nextMode(current);
       localStorage.setItem('theme', next);
       applyTheme(next);
       updateIcon(next);
-    });
-  }
+    }
+  });
 
-  var navToggle = document.getElementById('nav-toggle');
-  var navMenu = document.getElementById('nav-menu');
-  if (navToggle && navMenu) {
-    navToggle.addEventListener('click', function() {
-      navMenu.classList.toggle('hidden');
-    });
-  }
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('#nav-toggle');
+    if (btn) {
+      var menu = document.getElementById('nav-menu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+  });
+
+  document.addEventListener('htmx:afterSwap', function() {
+    var mode = localStorage.getItem('theme') || 'system';
+    applyTheme(mode);
+    updateIcon(mode);
+  });
 })();

@@ -8,17 +8,18 @@ const CHART_COLORS = {
 const CHART_OPTS = {
   responsive: true,
   maintainAspectRatio: false,
+  interaction: { mode: 'nearest', intersect: false },
   plugins: {
     legend: { display: false },
   },
   scales: {
     x: {
       ticks: { color: '#8b949e', maxTicksLimit: 8, font: { size: 13 } },
-      grid: { color: '#21262d' },
+      grid: { display: false },
     },
     y: {
       ticks: { color: '#8b949e', font: { size: 13 } },
-      grid: { color: '#21262d' },
+      grid: { display: false },
       beginAtZero: true,
     },
   },
@@ -39,7 +40,11 @@ function createChart(canvasId, label, colorKey) {
         tension: 0.2,
         fill: true,
         pointRadius: 1,
+        pointHitRadius: 10,
+        pointHoverRadius: 3,
         borderWidth: 2,
+        hoverBorderColor: c.border,
+        hoverBackgroundColor: c.bg,
       }],
     },
     options: CHART_OPTS,

@@ -4,7 +4,7 @@
 <h2 class="text-xl font-semibold mb-4">{% if device %}Edit Device{% else %}Add Device{% endif %}</h2>
 
 <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
-  <form id="device-form" class="max-w-lg">
+  <form id="device-form" class="max-w-lg" hx-boost="false">
     <div class="mb-4">
       <label class="block text-sm text-[var(--muted)] mb-1">Device ID</label>
       <input type="text" name="device_id" value="{{ device.device_id if device else '' }}"
@@ -28,8 +28,8 @@
              class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
     </div>
     <div class="flex gap-2">
-      <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors">Save</button>
-      <a href="/devices" class="px-4 py-1.5 rounded text-sm font-medium border border-[#30363d] text-[#c9d1d9] hover:bg-[#30363d] transition-colors">Cancel</a>
+      <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
+      <a href="/devices" class="inline-flex items-center px-4 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors">Cancel</a>
     </div>
   </form>
 </div>

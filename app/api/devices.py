@@ -6,8 +6,19 @@ devices_bp = Blueprint('api_devices', __name__)
 
 @devices_bp.route('/devices', methods=['GET'])
 def list_devices():
-    devices = DeviceService.get_all()
-    return jsonify([d.to_dict() for d in devices])
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    if page == 0:
+        devices = DeviceService.get_all()
+        return jsonify([d.to_dict() for d in devices])
+    pagination = DeviceService.get_paginated(page=page, per_page=per_page)
+    return jsonify({
+        'devices': [d.to_dict() for d in pagination.items],
+        'page': pagination.page,
+        'pages': pagination.pages,
+        'total': pagination.total,
+        'per_page': pagination.per_page,
+    })
 
 
 @devices_bp.route('/devices', methods=['POST'])

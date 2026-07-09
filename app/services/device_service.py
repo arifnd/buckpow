@@ -12,6 +12,11 @@ class DeviceService:
         return Device.query.order_by(Device.created_at.desc()).all()
 
     @staticmethod
+    def get_paginated(page=1, per_page=10):
+        q = Device.query.order_by(Device.created_at.desc())
+        return q.paginate(page=page, per_page=per_page, error_out=False)
+
+    @staticmethod
     def get_by_id(device_id):
         return db.session.get(Device, device_id)
 

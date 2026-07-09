@@ -6,8 +6,19 @@ sessions_bp = Blueprint('api_sessions', __name__)
 
 @sessions_bp.route('/sessions', methods=['GET'])
 def list_sessions():
-    sessions = SessionService.get_all()
-    return jsonify([s.to_dict() for s in sessions])
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    if page == 0:
+        sessions = SessionService.get_all()
+        return jsonify([s.to_dict() for s in sessions])
+    pagination = SessionService.get_paginated(page=page, per_page=per_page)
+    return jsonify({
+        'sessions': [s.to_dict() for s in pagination.items],
+        'page': pagination.page,
+        'pages': pagination.pages,
+        'total': pagination.total,
+        'per_page': pagination.per_page,
+    })
 
 
 @sessions_bp.route('/sessions', methods=['POST'])
