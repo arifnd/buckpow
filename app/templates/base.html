@@ -43,7 +43,7 @@ document.addEventListener('click', function(e) {
   var lBtn = e.target.closest('#logout-btn');
   if (lBtn) {
     e.preventDefault();
-    confirmDialog('Are you sure you want to logout?').then(function(ok) {
+    confirmDialog('Are you sure you want to logout?', 'Logout').then(function(ok) {
       if (ok) {
         fetch('/api/v1/auth/logout', {method: 'POST'}).then(function() {
           window.location.href = '/auth/login';
@@ -69,10 +69,12 @@ document.addEventListener('DOMContentLoaded', updateAlertBadge);
 document.addEventListener('htmx:afterSwap', updateAlertBadge);
 </script>
 <script>
-function confirmDialog(msg) {
+function confirmDialog(msg, confirmLabel) {
+  if (confirmLabel === undefined) confirmLabel = 'Delete';
   return new Promise(function(resolve) {
     var modal = document.getElementById('confirm-modal');
     document.getElementById('confirm-message').textContent = msg;
+    document.getElementById('confirm-ok').textContent = confirmLabel;
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     function cleanup() {
