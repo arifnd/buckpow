@@ -93,7 +93,7 @@ function confirmDialog(msg) {
 <nav class="navbar relative bg-[var(--surface)] border-b border-[var(--border)] shadow-sm">
   <div class="max-w-7xl mx-auto w-full px-4">
     <div class="flex items-center justify-between h-12">
-      <a class="text-lg font-bold text-[var(--body-text)]" href="/">BakPow</a>
+      <a class="text-lg font-bold text-[var(--body-text)]" href="/">{{ current_user.settings.get('brand', 'BakPow') if current_user.is_authenticated else 'BakPow' }}</a>
       <button id="nav-toggle" class="md:hidden p-2 text-[var(--muted)] hover:text-[var(--body-text)]">
         <iconify-icon class="w-5 h-5" icon="heroicons-outline:bars-3"></iconify-icon>
       </button>

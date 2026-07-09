@@ -97,10 +97,10 @@ def create_app(config_class=DevConfig):
         if not User.query.first():
             UserService.create(
                 name='Admin',
-                email='admin@bakpow.local',
-                password='admin',
+                email='admin@example.com',
+                password='password',
             )
-            print("Default admin user created (admin@bakpow.local / admin).")
+            print("Default admin user created (admin@example.com / password).")
         print("Database tables created.")
 
     @flask_app.context_processor

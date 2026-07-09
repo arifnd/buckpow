@@ -104,3 +104,9 @@ def profile():
 @login_required
 def alerts():
     return render_template('alerts/index.html', active_page='alerts')
+
+
+@dashboard_bp.route('/settings')
+@login_required
+def settings():
+    return render_template('settings/index.html', active_page='settings')

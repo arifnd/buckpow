@@ -11,6 +11,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(256), unique=True, nullable=False, index=True)
     password = db.Column(db.String(256), nullable=False)
+    settings = db.Column(db.JSON, nullable=False, default={})
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     def set_password(self, password):

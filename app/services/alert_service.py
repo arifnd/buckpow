@@ -67,6 +67,14 @@ class AlertService:
         ).count() > 0
 
     @staticmethod
+    def _owner_settings(device):
+        try:
+            owner = device.project.owner
+            return owner.settings or {} if owner else {}
+        except Exception:
+            return {}
+
+    @staticmethod
     def generate_alerts(device, bus_voltage, current, power):
         now = datetime.now(timezone.utc)
 
@@ -81,17 +89,25 @@ class AlertService:
                 if not AlertService._has_unresolved(device.id, 'Device back online'):
                     AlertService.create(device.id, 'info', f'Device back online ({device.device_id})')
 
-        threshold_w = device.high_power_threshold if device.high_power_threshold is not None else DEFAULT_HIGH_POWER_THRESHOLD
+        owner_s = AlertService._owner_settings(device)
+
+        threshold_w = device.high_power_threshold
+        if threshold_w is None:
+            threshold_w = owner_s.get('high_power_threshold') or DEFAULT_HIGH_POWER_THRESHOLD
         if power > threshold_w:
             if not AlertService._has_unresolved(device.id, 'High power'):
                 AlertService.create(device.id, 'critical', f'High power on {device.device_id}: {power:.3f}W (threshold: {threshold_w}W)')
 
-        threshold_a = device.high_current_threshold if device.high_current_threshold is not None else DEFAULT_HIGH_CURRENT_THRESHOLD
+        threshold_a = device.high_current_threshold
+        if threshold_a is None:
+            threshold_a = owner_s.get('high_current_threshold') or DEFAULT_HIGH_CURRENT_THRESHOLD
         if current > threshold_a:
             if not AlertService._has_unresolved(device.id, 'High current'):
                 AlertService.create(device.id, 'critical', f'High current on {device.device_id}: {current:.3f}A (threshold: {threshold_a}A)')
 
-        threshold_v = device.low_voltage_threshold if device.low_voltage_threshold is not None else DEFAULT_LOW_VOLTAGE_THRESHOLD
+        threshold_v = device.low_voltage_threshold
+        if threshold_v is None:
+            threshold_v = owner_s.get('low_voltage_threshold') or DEFAULT_LOW_VOLTAGE_THRESHOLD
         if bus_voltage < threshold_v:
             if not AlertService._has_unresolved(device.id, 'Low voltage'):
                 AlertService.create(device.id, 'warning', f'Low voltage on {device.device_id}: {bus_voltage:.3f}V (threshold: {threshold_v}V)')

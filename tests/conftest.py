@@ -40,7 +40,7 @@ def app():
     with app.app_context():
         db.create_all()
         if not User.query.first():
-            UserService.create(name='Admin', email='admin@bakpow.local', password='admin')
+            UserService.create(name='Admin', email='admin@example.com', password='password')
     return app
 
 
@@ -48,8 +48,8 @@ def app():
 def client(app):
     client = app.test_client()
     client.post('/api/v1/auth/login', json={
-        'email': 'admin@bakpow.local',
-        'password': 'admin',
+        'email': 'admin@example.com',
+        'password': 'password',
     })
     return client
 
