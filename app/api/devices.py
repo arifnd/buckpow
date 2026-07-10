@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import Device, Project, User
 from app.services.device_service import DeviceService
+from app.services.audit_service import AuditService
 from app.auth import require_user
 
 router = APIRouter()
@@ -65,7 +66,7 @@ def list_devices(
 
 
 @router.post('/devices', status_code=201)
-def create_device(body: DeviceCreate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+def create_device(body: DeviceCreate, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     device = DeviceService.create(
         db,
         device_id=body.device_id,
@@ -78,6 +79,8 @@ def create_device(body: DeviceCreate, db: Session = Depends(get_db), _current_us
         high_power_threshold=body.high_power_threshold,
         low_voltage_threshold=body.low_voltage_threshold,
     )
+    ip = request.client.host if request.client else None
+    AuditService.log(db, 'device.create', user_id=_current_user.id, target_type='device', target_id=device.id, ip_address=ip)
     return device.to_dict()
 
 
@@ -90,7 +93,7 @@ def get_device(device_id: int, db: Session = Depends(get_db), _current_user: Use
 
 
 @router.put('/devices/{device_id}')
-def update_device(device_id: int, body: DeviceUpdate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+def update_device(device_id: int, body: DeviceUpdate, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(status_code=403, detail='Not authorized to update this device')
     kwargs = {}
@@ -104,6 +107,8 @@ def update_device(device_id: int, body: DeviceUpdate, db: Session = Depends(get_
     device = DeviceService.update(db, device_id, **kwargs)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
+    ip = request.client.host if request.client else None
+    AuditService.log(db, 'device.update', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
     return device.to_dict()
 
 
@@ -116,29 +121,35 @@ def get_device_key(device_id: int, db: Session = Depends(get_db), _current_user:
 
 
 @router.patch('/devices/{device_id}/toggle')
-def toggle_device(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+def toggle_device(device_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(status_code=403, detail='Not authorized to toggle this device')
     device = DeviceService.toggle_enabled(db, device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
+    ip = request.client.host if request.client else None
+    AuditService.log(db, f'device.{"enable" if device.enabled else "disable"}', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
     return device.to_dict()
 
 
 @router.post('/devices/{device_id}/regenerate-key')
-def regenerate_key(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+def regenerate_key(device_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(status_code=403, detail='Not authorized to regenerate key for this device')
     device = DeviceService.regenerate_api_key(db, device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
+    ip = request.client.host if request.client else None
+    AuditService.log(db, 'api_key.regenerate', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
     return {'api_key': device.api_key, 'id': device.id}
 
 
 @router.delete('/devices/{device_id}')
-def delete_device(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+def delete_device(device_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(status_code=403, detail='Not authorized to delete this device')
     if DeviceService.delete(db, device_id):
+        ip = request.client.host if request.client else None
+        AuditService.log(db, 'device.delete', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Device not found')

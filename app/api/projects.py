@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -6,6 +6,7 @@ from app.database import get_db
 from app.auth import require_user
 from app.models import User
 from app.services.project_service import ProjectService
+from app.services.audit_service import AuditService
 
 router = APIRouter()
 
@@ -43,6 +44,7 @@ def list_projects(
 @router.post('/projects', status_code=201)
 def create_project(
     body: ProjectCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
@@ -52,6 +54,8 @@ def create_project(
         description=body.description,
         owner_id=current_user.id,
     )
+    ip = request.client.host if request.client else None
+    AuditService.log(db, 'project.create', user_id=current_user.id, target_type='project', target_id=project.id, ip_address=ip)
     return project.to_dict()
 
 
@@ -71,6 +75,7 @@ def get_project(
 def update_project(
     project_id: int,
     body: ProjectUpdate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
@@ -84,12 +89,15 @@ def update_project(
         name=body.name,
         description=body.description,
     )
+    ip = request.client.host if request.client else None
+    AuditService.log(db, 'project.update', user_id=current_user.id, target_type='project', target_id=project_id, ip_address=ip)
     return project.to_dict()
 
 
 @router.delete('/projects/{project_id}')
 def delete_project(
     project_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
@@ -99,5 +107,7 @@ def delete_project(
     if project.owner_id and project.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail='Not authorized to delete this project')
     if ProjectService.delete(db, project_id):
+        ip = request.client.host if request.client else None
+        AuditService.log(db, 'project.delete', user_id=current_user.id, target_type='project', target_id=project_id, ip_address=ip)
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Project not found')

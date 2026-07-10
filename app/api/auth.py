@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.auth import create_access_token, get_current_user, require_user
 from app.database import get_db
 from app.services.user_service import UserService
+from app.services.audit_service import AuditService
 from app.models import User
 from app.config import settings
 
@@ -23,7 +24,7 @@ class ProfileUpdate(BaseModel):
 
 
 @router.post('/auth/login')
-def login(body: LoginRequest, response: Response, db: Session = Depends(get_db)):
+def login(body: LoginRequest, request: Request, response: Response, db: Session = Depends(get_db)):
     email = body.email.strip()
     password = body.password
     if not email or not password:
@@ -39,6 +40,8 @@ def login(body: LoginRequest, response: Response, db: Session = Depends(get_db))
         samesite='lax',
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
+    ip = request.client.host if request.client else None
+    AuditService.log(db, 'login', user_id=user.id, ip_address=ip)
     return {'status': 'ok', 'user': user.to_dict(), 'token': token}
 
 

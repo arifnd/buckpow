@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
 from app.services.session_service import SessionService
+from app.services.audit_service import AuditService
 from app.auth import require_user
 
 router = APIRouter()
@@ -90,16 +91,20 @@ def delete_session(session_id: int, db: Session = Depends(get_db), _current_user
 
 
 @router.post('/sessions/{session_id}/start')
-def start_session(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+def start_session(session_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     session, error = SessionService.start(db, session_id)
     if error:
         raise HTTPException(status_code=400, detail=error)
+    ip = request.client.host if request.client else None
+    AuditService.log(db, 'session.start', user_id=_current_user.id, target_type='session', target_id=session_id, ip_address=ip)
     return session.to_dict()
 
 
 @router.post('/sessions/{session_id}/stop')
-def stop_session(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+def stop_session(session_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     session, error = SessionService.stop(db, session_id)
     if error:
         raise HTTPException(status_code=400, detail=error)
+    ip = request.client.host if request.client else None
+    AuditService.log(db, 'session.stop', user_id=_current_user.id, target_type='session', target_id=session_id, ip_address=ip)
     return session.to_dict()

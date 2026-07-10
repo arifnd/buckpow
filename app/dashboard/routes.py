@@ -183,3 +183,11 @@ def settings_page(current_user: User | None = Depends(get_current_user)):
     if isinstance(redir, RedirectResponse):
         return redir
     return HTMLResponse(_render('settings/index.html', current_user=current_user, active_page='settings'))
+
+
+@dashboard_router.get('/audit')
+def audit_page(current_user: User | None = Depends(get_current_user)):
+    redir = _require_dashboard_user(current_user)
+    if isinstance(redir, RedirectResponse):
+        return redir
+    return HTMLResponse(_render('audit/index.html', current_user=current_user, active_page='audit'))

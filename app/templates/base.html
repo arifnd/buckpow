@@ -112,6 +112,7 @@ function confirmDialog(msg, confirmLabel) {
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'measurements' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/measurements">Measurements</a>
         <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'benchmark' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/benchmark">Benchmark</a>
         <a class="px-3 py-1.5 rounded text-sm relative {% if active_page == 'alerts' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/alerts" id="alerts-nav">Alerts<span id="alert-badge" class="hidden ml-1 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-red-500 min-w-[18px]">0</span></a>
+        <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'audit' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/audit">Audit</a>
         {% endif %}
         <div class="ml-2 flex items-center gap-2">
           {% if current_user.is_authenticated %}

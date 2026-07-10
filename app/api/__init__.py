@@ -10,6 +10,7 @@ from .projects import router as projects_router
 from .alerts import router as alerts_router
 from .benchmark import router as benchmark_router
 from .settings import router as settings_router
+from .audit import router as audit_router
 
 api_router = APIRouter()
 api_router.include_router(health_router)
@@ -22,3 +23,4 @@ api_router.include_router(projects_router)
 api_router.include_router(alerts_router)
 api_router.include_router(benchmark_router)
 api_router.include_router(settings_router)
+api_router.include_router(audit_router)
