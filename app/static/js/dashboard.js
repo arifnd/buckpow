@@ -62,6 +62,9 @@ function updateSummaryFromSummary(summary) {
   document.getElementById('val-load-voltage').textContent = summary.total_projects;
   document.getElementById('val-voltage').textContent = summary.active_sessions;
   document.getElementById('val-energy').textContent = toFixedSafe(summary.today_energy, 6);
+  var online = summary.online_devices || 0;
+  var total = online + (summary.offline_devices || 0);
+  document.getElementById('val-device').textContent = online + '/' + total;
 }
 
 const CARD_COLORS = {
