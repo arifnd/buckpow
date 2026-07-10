@@ -1,49 +1,141 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-xl font-semibold mb-4">Settings</h2>
+<div class="flex justify-center">
+  <div class="w-full max-w-xl">
 
-<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6 max-w-lg">
-  <form id="settings-form">
-    <h3 class="text-base font-semibold mb-3">Alert Thresholds</h3>
-    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Leave empty to use global defaults.</p>
+    <h2 class="text-xl font-semibold mb-6">Settings</h2>
 
-    <div class="mb-3">
-      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">High Power Threshold (W)</label>
-      <input type="number" step="0.1" name="high_power_threshold" id="field-high-power"
-             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+    <div class="flex border-b border-gray-200 dark:border-gray-800 mb-4">
+      <button class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 -mb-px" data-tab="alerts">Alert Thresholds</button>
+      <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 border-b-2 border-transparent" data-tab="general">General</button>
+      <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 border-b-2 border-transparent" data-tab="backup">Backup</button>
     </div>
 
-    <div class="mb-3">
-      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">High Current Threshold (A)</label>
-      <input type="number" step="0.01" name="high_current_threshold" id="field-high-current"
-             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+    <div id="tab-alerts" class="tab-content">
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+        <div class="p-4 pb-0">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Leave empty to use global defaults.</p>
+          <form id="form-alerts" class="settings-card-form" data-fields='["high_power_threshold","high_current_threshold","low_voltage_threshold"]'>
+            <div class="mb-3">
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">High Power Threshold (W)</label>
+              <input type="number" step="0.1" name="high_power_threshold" id="field-high-power"
+                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">High Current Threshold (A)</label>
+              <input type="number" step="0.01" name="high_current_threshold" id="field-high-current"
+                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Low Voltage Threshold (V)</label>
+              <input type="number" step="0.1" name="low_voltage_threshold" id="field-low-voltage"
+                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+            </div>
+          </form>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center gap-3">
+          <button type="submit" form="form-alerts" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
+          <span class="status text-sm text-gray-500 dark:text-gray-400" id="status-alerts"></span>
+        </div>
+      </div>
     </div>
 
-    <div class="mb-4">
-      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Low Voltage Threshold (V)</label>
-      <input type="number" step="0.1" name="low_voltage_threshold" id="field-low-voltage"
-             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+    <div id="tab-general" class="tab-content hidden">
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+        <div class="p-4 pb-0">
+          <form id="form-general" class="settings-card-form" data-fields='["brand","timestamp_format","timezone","device_watchdog_timeout"]'>
+            <div class="mb-3">
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Brand Title</label>
+              <input type="text" name="brand" id="field-brand" placeholder="BuckPow"
+                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Timestamp Format</label>
+              <select name="timestamp_format" id="field-timestamp-format"
+                      class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+                <option value="24h">24-hour (14:30:00)</option>
+                <option value="12h">12-hour (2:30:00 PM)</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Timezone</label>
+              <select name="timezone" id="field-timezone"
+                      class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+                <option value="+0">GMT+0</option>
+                <option value="+1">GMT+1</option>
+                <option value="+2">GMT+2</option>
+                <option value="+3">GMT+3</option>
+                <option value="+4">GMT+4</option>
+                <option value="+5">GMT+5</option>
+                <option value="+6">GMT+6</option>
+                <option value="+7">GMT+7</option>
+                <option value="+8">GMT+8</option>
+                <option value="+9">GMT+9</option>
+                <option value="+10">GMT+10</option>
+                <option value="+11">GMT+11</option>
+                <option value="+12">GMT+12</option>
+                <option value="-1">GMT-1</option>
+                <option value="-2">GMT-2</option>
+                <option value="-3">GMT-3</option>
+                <option value="-4">GMT-4</option>
+                <option value="-5">GMT-5</option>
+                <option value="-6">GMT-6</option>
+                <option value="-7">GMT-7</option>
+                <option value="-8">GMT-8</option>
+                <option value="-9">GMT-9</option>
+                <option value="-10">GMT-10</option>
+                <option value="-11">GMT-11</option>
+                <option value="-12">GMT-12</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Device Watchdog Timeout (s)</label>
+              <input type="number" step="1" min="5" max="300" name="device_watchdog_timeout" id="field-device-watchdog-timeout" placeholder="30"
+                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Seconds without data before marking device offline (default: 30).</p>
+            </div>
+          </form>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center gap-3">
+          <button type="submit" form="form-general" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
+          <span class="status text-sm text-gray-500 dark:text-gray-400" id="status-general"></span>
+        </div>
+      </div>
     </div>
 
-    <hr class="border-t border-gray-200 dark:border-gray-800 my-4">
-
-    <h3 class="text-base font-semibold mb-3">Navbar Brand</h3>
-
-    <div class="mb-4">
-      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Brand Title</label>
-      <input type="text" name="brand" id="field-brand" placeholder="BuckPow"
-             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+    <div id="tab-backup" class="tab-content hidden">
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+        <div class="p-4 pb-0">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Download a copy of the database.</p>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center gap-3">
+          <a href="/api/v1/settings/backup" hx-boost="false"
+             class="inline-flex items-center px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">
+            Download Backup
+          </a>
+        </div>
+      </div>
     </div>
 
-    <div class="flex items-center gap-3">
-      <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
-      <span id="settings-status" class="text-sm text-gray-500 dark:text-gray-400"></span>
-    </div>
-  </form>
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+<script>
+document.querySelectorAll('.tab-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab-btn').forEach(function(b) {
+      b.classList.remove('border-blue-600', 'text-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
+      b.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    });
+    btn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+    btn.classList.add('border-blue-600', 'text-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
+    document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.add('hidden'); });
+    document.getElementById('tab-' + btn.getAttribute('data-tab')).classList.remove('hidden');
+  });
+});
+</script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 {% endblock %}
