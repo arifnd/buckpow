@@ -3,42 +3,42 @@
 {% block content %}
 <h2 class="text-xl font-semibold mb-4">Settings</h2>
 
-<div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-6 max-w-lg">
+<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-6 max-w-lg">
   <form id="settings-form">
     <h3 class="text-base font-semibold mb-3">Alert Thresholds</h3>
-    <p class="text-xs text-[var(--muted)] mb-4">Leave empty to use global defaults.</p>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Leave empty to use global defaults.</p>
 
     <div class="mb-3">
-      <label class="block text-sm text-[var(--muted)] mb-1">High Power Threshold (W)</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">High Power Threshold (W)</label>
       <input type="number" step="0.1" name="high_power_threshold" id="field-high-power"
-             class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
     </div>
 
     <div class="mb-3">
-      <label class="block text-sm text-[var(--muted)] mb-1">High Current Threshold (A)</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">High Current Threshold (A)</label>
       <input type="number" step="0.01" name="high_current_threshold" id="field-high-current"
-             class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
     </div>
 
     <div class="mb-4">
-      <label class="block text-sm text-[var(--muted)] mb-1">Low Voltage Threshold (V)</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Low Voltage Threshold (V)</label>
       <input type="number" step="0.1" name="low_voltage_threshold" id="field-low-voltage"
-             class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
     </div>
 
-    <hr class="border-t border-[var(--border)] my-4">
+    <hr class="border-t border-gray-200 dark:border-gray-800 my-4">
 
     <h3 class="text-base font-semibold mb-3">Navbar Brand</h3>
 
     <div class="mb-4">
-      <label class="block text-sm text-[var(--muted)] mb-1">Brand Title</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Brand Title</label>
       <input type="text" name="brand" id="field-brand" placeholder="BuckPow"
-             class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
     </div>
 
     <div class="flex items-center gap-3">
-      <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors">Save</button>
-      <span id="settings-status" class="text-sm text-[var(--muted)]"></span>
+      <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
+      <span id="settings-status" class="text-sm text-gray-500 dark:text-gray-400"></span>
     </div>
   </form>
 </div>

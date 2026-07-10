@@ -6,11 +6,11 @@
   <button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors" id="add-device-btn">Add Device</button>
 </div>
 
-<div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg">
+<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
   <div class="overflow-x-auto">
     <table class="w-full text-sm">
       <thead>
-        <tr class="border-b border-[var(--border)] text-[var(--muted)]">
+        <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
           <th class="text-left py-2 px-3 font-medium">Device ID</th>
           <th class="text-left py-2 px-3 font-medium">Alias</th>
           <th class="text-left py-2 px-3 font-medium">Description</th>
@@ -32,81 +32,81 @@
 </div>
 
 <div id="device-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-xl p-6 max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto">
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-6 max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto">
     <h3 class="text-base font-semibold mb-4" id="device-modal-title">Add Device</h3>
     <form id="device-form">
       <input type="hidden" name="id" id="device-id">
       <div class="mb-4">
-        <label class="block text-sm text-[var(--muted)] mb-1">Device ID</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Device ID</label>
         <input type="text" name="device_id" id="field-device-id" required
-               class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
-        <p class="text-xs text-[var(--muted)] mt-1">Permanent identifier matches the ESP32 firmware.</p>
+               class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Permanent identifier matches the ESP32 firmware.</p>
       </div>
       <div class="mb-4">
-        <label class="block text-sm text-[var(--muted)] mb-1">Alias</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Alias</label>
         <input type="text" name="alias" id="field-alias"
-               class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+               class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
       </div>
       <div class="mb-4">
-        <label class="block text-sm text-[var(--muted)] mb-1">Description</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Description</label>
         <textarea name="description" id="field-description" rows="2"
-                  class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"></textarea>
+                  class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"></textarea>
       </div>
       <div class="mb-4">
-        <label class="block text-sm text-[var(--muted)] mb-1">Sampling Interval (seconds)</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Sampling Interval (seconds)</label>
         <input type="number" name="sampling_interval" id="field-interval" value="1" min="1"
-               class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+               class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
       </div>
       <div class="mb-4">
-        <label class="block text-sm text-[var(--muted)] mb-1">Firmware Version</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Firmware Version</label>
         <input type="text" name="firmware_version" id="field-firmware"
-               class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+               class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
       </div>
       <div class="mb-4">
         <label class="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" name="enabled" id="field-enabled" value="true" checked
-                 class="w-4 h-4 rounded border-[#30363d] bg-[var(--body-bg)] text-[#1f6feb] focus:ring-[#58a6ff]">
-          <span class="text-sm text-[var(--muted)]">Enabled</span>
+                 class="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 text-blue-600 focus:ring-blue-400">
+          <span class="text-sm text-gray-500 dark:text-gray-400">Enabled</span>
         </label>
       </div>
-      <div class="mb-4 p-3 rounded border border-[#30363d]">
-        <p class="text-xs font-medium text-[var(--muted)] mb-2">Alert Thresholds (leave empty for global defaults)</p>
+      <div class="mb-4 p-3 rounded border border-gray-300 dark:border-gray-700">
+        <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Alert Thresholds (leave empty for global defaults)</p>
         <div class="grid grid-cols-3 gap-2">
           <div>
-            <label class="block text-xs text-[var(--muted)] mb-0.5">High Current (A)</label>
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">High Current (A)</label>
             <input type="number" name="high_current_threshold" id="field-high-current" step="0.01" min="0"
-                   class="w-full px-2 py-1 rounded text-xs bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+                   class="w-full px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
           </div>
           <div>
-            <label class="block text-xs text-[var(--muted)] mb-0.5">High Power (W)</label>
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">High Power (W)</label>
             <input type="number" name="high_power_threshold" id="field-high-power" step="0.01" min="0"
-                   class="w-full px-2 py-1 rounded text-xs bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+                   class="w-full px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
           </div>
           <div>
-            <label class="block text-xs text-[var(--muted)] mb-0.5">Low Voltage (V)</label>
+            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">Low Voltage (V)</label>
             <input type="number" name="low_voltage_threshold" id="field-low-voltage" step="0.01" min="0"
-                   class="w-full px-2 py-1 rounded text-xs bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+                   class="w-full px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
           </div>
         </div>
       </div>
       <div class="mb-4">
-        <label class="block text-sm text-[var(--muted)] mb-1">Project</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Project</label>
         <select name="project_id" id="field-project"
-                class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+                class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
           <option value="">No project</option>
         </select>
       </div>
       <div class="mb-4" id="api-key-section" style="display:none">
-        <label class="block text-sm text-[var(--muted)] mb-1">API Key</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">API Key</label>
         <div class="flex gap-2 items-center">
-          <code id="field-api-key" class="flex-1 px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] font-mono"></code>
+          <code id="field-api-key" class="flex-1 px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 font-mono"></code>
           <button type="button" id="copy-key-btn" class="px-2 py-1.5 rounded text-xs font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors whitespace-nowrap">Copy</button>
           <button type="button" id="regenerate-key-btn" class="px-2 py-1.5 rounded text-xs font-medium bg-yellow-500 text-white hover:bg-yellow-400 transition-colors whitespace-nowrap">Regenerate</button>
         </div>
       </div>
       <div class="flex justify-end gap-2">
         <button type="button" class="px-4 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="device-modal-cancel">Cancel</button>
-        <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors">Save</button>
+        <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
       </div>
     </form>
   </div>
@@ -143,10 +143,10 @@ async function loadDevices(page) {
   const tbody = document.getElementById('devices-body');
   tbody.innerHTML = data.devices.map(d => {
     const status = d.status || 'offline';
-    const badge = status === 'online' ? 'bg-[#3fb950]' : 'bg-[#8b949e]';
-    var enabledBadge = d.enabled ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-[#3fb950]">Yes</span>' : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-[#8b949e]">No</span>';
-    return `<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">
-      <td class="py-2 px-3"><code class="text-[#58a6ff]">${d.device_id}</code></td>
+    const badge = status === 'online' ? 'bg-green-500' : 'bg-gray-400';
+    var enabledBadge = d.enabled ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-green-500">Yes</span>' : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-gray-400">No</span>';
+    return `<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">
+      <td class="py-2 px-3"><code class="text-blue-400">${d.device_id}</code></td>
       <td class="py-2 px-3">${d.alias || '—'}</td>
       <td class="py-2 px-3">${d.description || '—'}</td>
       <td class="py-2 px-3">${d.project_name || '—'}</td>
@@ -166,14 +166,14 @@ async function loadDevices(page) {
   const pagination = document.getElementById('devices-pagination');
   const p = data.page, total = data.pages;
   pagination.parentElement.style.display = total <= 1 ? 'none' : '';
-  let html = `<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ${p <= 1 ? 'text-[#484f58] pointer-events-none' : 'text-[#c9d1d9] hover:bg-[#30363d]'} border border-[#30363d] transition-colors" href="#" onclick="loadDevices(${p - 1}); return false;">&laquo;</a></li>`;
+  let html = `<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ${p <= 1 ? 'text-gray-500 pointer-events-none' : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'} border border-gray-300 dark:border-gray-700 transition-colors" href="#" onclick="loadDevices(${p - 1}); return false;">&laquo;</a></li>`;
   let pages = new Set([1, total]);
   for (let i = Math.max(2, p - 2); i <= Math.min(total - 1, p + 2); i++) pages.add(i);
   [...pages].sort((a, b) => a - b).forEach((n, i, arr) => {
-    if (i > 0 && n - arr[i - 1] > 1) html += '<li><span class="flex items-center justify-center w-7 h-7 text-xs text-[#484f58]">&hellip;</span></li>';
-    html += `<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs border border-[#30363d] transition-colors ${n === p ? 'bg-[#1f6feb] border-[#1f6feb] text-white' : 'text-[#c9d1d9] hover:bg-[#30363d]'}" href="#" onclick="loadDevices(${n}); return false;">${n}</a></li>`;
+    if (i > 0 && n - arr[i - 1] > 1) html += '<li><span class="flex items-center justify-center w-7 h-7 text-xs text-gray-500">&hellip;</span></li>';
+    html += `<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs border border-gray-300 dark:border-gray-700 transition-colors ${n === p ? 'bg-blue-600 border-blue-600 text-white' : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}" href="#" onclick="loadDevices(${n}); return false;">${n}</a></li>`;
   });
-  html += `<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ${p >= total ? 'text-[#484f58] pointer-events-none' : 'text-[#c9d1d9] hover:bg-[#30363d]'} border border-[#30363d] transition-colors" href="#" onclick="loadDevices(${p + 1}); return false;">&raquo;</a></li>`;
+  html += `<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ${p >= total ? 'text-gray-500 pointer-events-none' : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'} border border-gray-300 dark:border-gray-700 transition-colors" href="#" onclick="loadDevices(${p + 1}); return false;">&raquo;</a></li>`;
   pagination.innerHTML = html;
 }
 
@@ -274,7 +274,7 @@ function initDevices() {
     const r = await fetch('/api/v1/devices/' + editingDeviceId + '/regenerate-key', {method: 'POST'});
     const data = await r.json();
     document.getElementById('field-api-key').textContent = data.api_key;
-    document.getElementById('field-api-key').style.color = 'var(--accent)';
+    document.getElementById('field-api-key').style.color = 'rgb(59,130,246)';
     setTimeout(() => { document.getElementById('field-api-key').style.color = ''; }, 3000);
   });
   document.getElementById('device-form').addEventListener('submit', async (e) => {

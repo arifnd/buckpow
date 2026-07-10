@@ -6,11 +6,11 @@
   <button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors" id="create-project-btn">Create Project</button>
 </div>
 
-<div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg">
+<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
   <div class="overflow-x-auto">
     <table class="w-full text-sm">
       <thead>
-        <tr class="border-b border-[var(--border)] text-[var(--muted)]">
+        <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
           <th class="text-left py-2 px-3 font-medium">Name</th>
           <th class="text-left py-2 px-3 font-medium">Description</th>
           <th class="text-left py-2 px-3 font-medium">Owner</th>
@@ -29,23 +29,23 @@
 </div>
 
 <div id="project-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-  <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
     <h3 class="text-base font-semibold mb-4" id="project-modal-title">Create Project</h3>
     <form id="project-form">
       <input type="hidden" name="id" id="project-id">
       <div class="mb-4">
-        <label class="block text-sm text-[var(--muted)] mb-1">Project Name</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Project Name</label>
         <input type="text" name="name" id="field-project-name" required
-               class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+               class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
       </div>
       <div class="mb-4">
-        <label class="block text-sm text-[var(--muted)] mb-1">Description</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Description</label>
         <textarea name="description" id="field-project-desc" rows="3"
-                  class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]"></textarea>
+                  class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"></textarea>
       </div>
       <div class="flex justify-end gap-2">
         <button type="button" class="px-4 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="project-modal-cancel">Cancel</button>
-        <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors">Save</button>
+        <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
       </div>
     </form>
   </div>
@@ -64,9 +64,9 @@ function loadProjects(page) {
     .then(function(data) {
       var tbody = document.getElementById('projects-body');
       tbody.innerHTML = data.projects.map(function(p) {
-        return '<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">' +
+        return '<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">' +
           '<td class="py-2 px-3 font-medium">' + p.name + '</td>' +
-          '<td class="py-2 px-3 text-[var(--muted)]">' + (p.description || '—') + '</td>' +
+          '<td class="py-2 px-3 text-gray-500 dark:text-gray-400">' + (p.description || '—') + '</td>' +
           '<td class="py-2 px-3">' + (p.owner_name || '—') + '</td>' +
           '<td class="py-2 px-3 text-center">' + (p.device_count || 0) + '</td>' +
           '<td class="py-2 px-3 text-center">' + (p.session_count || 0) + '</td>' +
@@ -81,17 +81,17 @@ function loadProjects(page) {
       var pagination = document.getElementById('projects-pagination');
       var p = data.page, total = data.pages;
       pagination.parentElement.style.display = total <= 1 ? 'none' : '';
-      var html = '<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ' + (p <= 1 ? 'text-[#484f58] pointer-events-none' : 'text-[#c9d1d9] hover:bg-[#30363d]') + ' border border-[#30363d] transition-colors" href="#" onclick="loadProjects(' + (p - 1) + '); return false;">&laquo;</a></li>';
+      var html = '<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ' + (p <= 1 ? 'text-gray-500 pointer-events-none' : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800') + ' border border-gray-300 dark:border-gray-700 transition-colors" href="#" onclick="loadProjects(' + (p - 1) + '); return false;">&laquo;</a></li>';
       var pages = new Set([1, total]);
       for (var i = Math.max(2, p - 2); i <= Math.min(total - 1, p + 2); i++) pages.add(i);
       var arr = [];
       pages.forEach(function(n) { arr.push(n); });
       arr.sort(function(a, b) { return a - b; });
       arr.forEach(function(n, i, a) {
-        if (i > 0 && n - a[i - 1] > 1) html += '<li><span class="flex items-center justify-center w-7 h-7 text-xs text-[#484f58]">&hellip;</span></li>';
-        html += '<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs border border-[#30363d] transition-colors ' + (n === p ? 'bg-[#1f6feb] border-[#1f6feb] text-white' : 'text-[#c9d1d9] hover:bg-[#30363d]') + '" href="#" onclick="loadProjects(' + n + '); return false;">' + n + '</a></li>';
+        if (i > 0 && n - a[i - 1] > 1) html += '<li><span class="flex items-center justify-center w-7 h-7 text-xs text-gray-500">&hellip;</span></li>';
+        html += '<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs border border-gray-300 dark:border-gray-700 transition-colors ' + (n === p ? 'bg-blue-600 border-blue-600 text-white' : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800') + '" href="#" onclick="loadProjects(' + n + '); return false;">' + n + '</a></li>';
       });
-      html += '<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ' + (p >= total ? 'text-[#484f58] pointer-events-none' : 'text-[#c9d1d9] hover:bg-[#30363d]') + ' border border-[#30363d] transition-colors" href="#" onclick="loadProjects(' + (p + 1) + '); return false;">&raquo;</a></li>';
+      html += '<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ' + (p >= total ? 'text-gray-500 pointer-events-none' : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800') + ' border border-gray-300 dark:border-gray-700 transition-colors" href="#" onclick="loadProjects(' + (p + 1) + '); return false;">&raquo;</a></li>';
       pagination.innerHTML = html;
     });
 }

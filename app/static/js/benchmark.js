@@ -97,8 +97,8 @@ function renderComparison(sessions) {
     { label: 'Ended', a: sessions[0].ended_at ? new Date(sessions[0].ended_at).toLocaleString() : '\u2014', b: sessions[1].ended_at ? new Date(sessions[1].ended_at).toLocaleString() : '\u2014' },
   ];
   tbody.innerHTML = rows.map(function(r, i) {
-    var cls = i % 2 === 0 ? 'bg-[var(--surface)]' : '';
-    return '<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)] ' + cls + '">'
+    var cls = i % 2 === 0 ? 'bg-white dark:bg-gray-900' : '';
+    return '<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 ' + cls + '">'
       + '<td class="py-2 px-3 font-medium">' + r.label + '</td>'
       + '<td class="py-2 px-3">' + r.a + '</td>'
       + '<td class="py-2 px-3">' + r.b + '</td>'

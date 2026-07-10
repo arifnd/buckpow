@@ -3,67 +3,67 @@
 {% block content %}
 <h2 class="text-xl font-semibold mb-4">{% if device %}Edit Device{% else %}Add Device{% endif %}</h2>
 
-<div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4">
+<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
   <form id="device-form" class="max-w-lg" hx-boost="false">
     <div class="mb-4">
-      <label class="block text-sm text-[var(--muted)] mb-1">Device ID</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Device ID</label>
       <input type="text" name="device_id" value="{{ device.device_id if device else '' }}"
              {% if device %}readonly{% endif %} required
-             class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
-      <p class="text-xs text-[var(--muted)] mt-1">Permanent identifier matches the ESP32 firmware.</p>
+             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Permanent identifier matches the ESP32 firmware.</p>
     </div>
     <div class="mb-4">
-      <label class="block text-sm text-[var(--muted)] mb-1">Alias</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Alias</label>
       <input type="text" name="alias" value="{{ device.alias if device else '' }}"
-             class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
     </div>
     <div class="mb-4">
-      <label class="block text-sm text-[var(--muted)] mb-1">Description</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Description</label>
       <textarea name="description" rows="2"
-                class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">{{ device.description if device else '' }}</textarea>
+                class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">{{ device.description if device else '' }}</textarea>
     </div>
     <div class="mb-4">
-      <label class="block text-sm text-[var(--muted)] mb-1">Sampling Interval (seconds)</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Sampling Interval (seconds)</label>
       <input type="number" name="sampling_interval" value="{{ device.sampling_interval if device else 1 }}" min="1"
-             class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
     </div>
     <div class="mb-4">
-      <label class="block text-sm text-[var(--muted)] mb-1">Firmware Version</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Firmware Version</label>
       <input type="text" name="firmware_version" value="{{ device.firmware_version if device else '' }}"
-             class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+             class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
     </div>
     <div class="mb-4">
       <label class="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" name="enabled" value="true"
                {% if device is none or device.enabled %}checked{% endif %}
-               class="w-4 h-4 rounded border-[#30363d] bg-[var(--body-bg)] text-[#1f6feb] focus:ring-[#58a6ff]">
-        <span class="text-sm text-[var(--muted)]">Enabled</span>
+               class="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 text-blue-600 focus:ring-blue-400">
+        <span class="text-sm text-gray-500 dark:text-gray-400">Enabled</span>
       </label>
     </div>
-    <div class="mb-4 p-3 rounded border border-[#30363d]">
-      <p class="text-xs font-medium text-[var(--muted)] mb-2">Alert Thresholds (leave empty for global defaults)</p>
+    <div class="mb-4 p-3 rounded border border-gray-300 dark:border-gray-700">
+      <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Alert Thresholds (leave empty for global defaults)</p>
       <div class="grid grid-cols-3 gap-2">
         <div>
-          <label class="block text-xs text-[var(--muted)] mb-0.5">High Current (A)</label>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">High Current (A)</label>
           <input type="number" name="high_current_threshold" value="{{ device.high_current_threshold if device and device.high_current_threshold is not none else '' }}" step="0.01" min="0"
-                 class="w-full px-2 py-1 rounded text-xs bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+                 class="w-full px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
         </div>
         <div>
-          <label class="block text-xs text-[var(--muted)] mb-0.5">High Power (W)</label>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">High Power (W)</label>
           <input type="number" name="high_power_threshold" value="{{ device.high_power_threshold if device and device.high_power_threshold is not none else '' }}" step="0.01" min="0"
-                 class="w-full px-2 py-1 rounded text-xs bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+                 class="w-full px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
         </div>
         <div>
-          <label class="block text-xs text-[var(--muted)] mb-0.5">Low Voltage (V)</label>
+          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">Low Voltage (V)</label>
           <input type="number" name="low_voltage_threshold" value="{{ device.low_voltage_threshold if device and device.low_voltage_threshold is not none else '' }}" step="0.01" min="0"
-                 class="w-full px-2 py-1 rounded text-xs bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+                 class="w-full px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
         </div>
       </div>
     </div>
     <div class="mb-4">
-      <label class="block text-sm text-[var(--muted)] mb-1">Project</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Project</label>
       <select name="project_id"
-              class="w-full px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[#c9d1d9] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff]">
+              class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
         <option value="">No project</option>
         {% for p in projects %}
         <option value="{{ p.id }}" {% if device and device.project_id == p.id %}selected{% endif %}>{{ p.name }}</option>

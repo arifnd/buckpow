@@ -68,15 +68,15 @@ function updateSummaryFromSummary(summary) {
 }
 
 const CARD_COLORS = {
-  info: 'text-[#58a6ff]',
-  success: 'text-[#3fb950]',
-  warning: 'text-[#d29922]',
-  purple: 'text-[#d2a8ff]',
+  info: 'text-blue-400',
+  success: 'text-green-500',
+  warning: 'text-yellow-600',
+  purple: 'text-purple-400',
 };
 
 function statCard(title, unit, color, fields) {
-  return '<div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-3">\n    <small class="text-[var(--muted)] uppercase tracking-wide text-xs">' + title + '</small>\n    ' + fields.map(function(f) {
-    return '\n      <div class="flex justify-between items-center py-1.5 border-b border-[var(--border)] last:border-0">\n        <small class="text-[var(--muted)]">' + f.label + '</small>\n        <span class="' + (CARD_COLORS[color] || 'text-[#c9d1d9]') + ' font-semibold">' + f.val + ' <small class="text-[var(--muted)] font-normal">' + unit + '</small></span>\n      </div>';
+  return '<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3">\n    <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">' + title + '</small>\n    ' + fields.map(function(f) {
+    return '\n      <div class="flex justify-between items-center py-1.5 border-b border-gray-200 dark:border-gray-800 last:border-0">\n        <small class="text-gray-500 dark:text-gray-400">' + f.label + '</small>\n        <span class="' + (CARD_COLORS[color] || 'text-gray-900 dark:text-gray-300') + ' font-semibold">' + f.val + ' <small class="text-gray-500 dark:text-gray-400 font-normal">' + unit + '</small></span>\n      </div>';
   }).join('') + '\n  </div>';
 }
 
@@ -123,15 +123,15 @@ function updateEnergyBreakdown(stats) {
   Object.keys(tables).forEach(function(key) {
     var rows = stats.energy[key] || [];
     tables[key].innerHTML = rows.slice(-20).map(function(r) {
-      return '<tr class="border-b border-[var(--border)]"><td class="py-0.5 pr-2">' + r.period + '</td><td class="py-0.5 text-right">' + r.energy.toFixed(6) + '</td></tr>';
-    }).join('') || '<tr><td class="py-1 text-[var(--muted)]" colspan="2">No data</td></tr>';
+      return '<tr class="border-b border-gray-200 dark:border-gray-800"><td class="py-0.5 pr-2">' + r.period + '</td><td class="py-0.5 text-right">' + r.energy.toFixed(6) + '</td></tr>';
+    }).join('') || '<tr><td class="py-1 text-gray-500 dark:text-gray-400" colspan="2">No data</td></tr>';
   });
 }
 
 function updateTable(measurements) {
   const tbody = document.getElementById('readings-body');
   tbody.innerHTML = measurements.slice(0, 10).map(function(r) {
-    return '<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">\n    <td class="py-2 px-2 text-left">' + (r.created_at ? new Date(r.created_at).toLocaleString() : '') + '</td>\n    <td class="py-2 px-2 text-left">' + (r.session_name || '\u2014') + '</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.bus_voltage, 3) + '</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.shunt_voltage, 3) + '</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.load_voltage, 3) + '</td>\n    <td class="py-2 px-2 text-right">' + (toFixedSafe(r.current, 3) * 1000).toFixed(2) + ' mA</td>\n    <td class="py-2 px-2 text-right">' + (toFixedSafe(r.power, 3) * 1000).toFixed(2) + ' mW</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.energy, 6) + '</td>\n  </tr>';
+    return '<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">\n    <td class="py-2 px-2 text-left">' + (r.created_at ? new Date(r.created_at).toLocaleString() : '') + '</td>\n    <td class="py-2 px-2 text-left">' + (r.session_name || '\u2014') + '</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.bus_voltage, 3) + '</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.shunt_voltage, 3) + '</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.load_voltage, 3) + '</td>\n    <td class="py-2 px-2 text-right">' + (toFixedSafe(r.current, 3) * 1000).toFixed(2) + ' mA</td>\n    <td class="py-2 px-2 text-right">' + (toFixedSafe(r.power, 3) * 1000).toFixed(2) + ' mW</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.energy, 6) + '</td>\n  </tr>';
   }).join('');
 }
 
@@ -330,11 +330,11 @@ document.addEventListener('click', function(e) {
   currentTimeRange = r;
   document.querySelectorAll('#time-range-group button').forEach(function(b) {
     if (b.dataset.range === r) {
-      b.classList.remove('text-[var(--muted)]', 'bg-transparent');
-      b.classList.add('text-[var(--body-text)]', 'bg-[var(--surface)]');
+      b.classList.remove('text-gray-500', 'dark:text-gray-400', 'bg-transparent');
+      b.classList.add('text-gray-900', 'dark:text-gray-300', 'bg-white', 'dark:bg-gray-900');
     } else {
-      b.classList.remove('text-[var(--body-text)]', 'bg-[var(--surface)]');
-      b.classList.add('text-[var(--muted)]', 'bg-transparent');
+      b.classList.remove('text-gray-900', 'dark:text-gray-300', 'bg-white', 'dark:bg-gray-900');
+      b.classList.add('text-gray-500', 'dark:text-gray-400', 'bg-transparent');
     }
   });
   if (currentSessionId) {

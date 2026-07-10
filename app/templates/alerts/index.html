@@ -3,28 +3,28 @@
 <div class="max-w-7xl mx-auto px-4 py-6" hx-boost="false">
   <div class="flex items-center justify-between mb-4">
     <h1 class="text-xl font-bold">Alerts</h1>
-    <button class="px-3 py-1.5 rounded text-sm font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors" onclick="resolveAllAlerts()">Resolve All</button>
+    <button class="px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors" onclick="resolveAllAlerts()">Resolve All</button>
   </div>
 
   <div class="flex flex-wrap gap-2 mb-4">
-    <select id="filter-level" class="px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)]" onchange="loadAlerts()">
+    <select id="filter-level" class="px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300" onchange="loadAlerts()">
       <option value="">All Levels</option>
       <option value="info">Info</option>
       <option value="warning">Warning</option>
       <option value="critical">Critical</option>
     </select>
-    <select id="filter-resolved" class="px-3 py-1.5 rounded text-sm bg-[var(--body-bg)] border border-[#30363d] text-[var(--body-text)]" onchange="loadAlerts()">
+    <select id="filter-resolved" class="px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300" onchange="loadAlerts()">
       <option value="">All Status</option>
       <option value="false">Unresolved</option>
       <option value="true">Resolved</option>
     </select>
-    <div class="text-sm text-[var(--muted)] self-center ml-auto" id="unresolved-count"></div>
+    <div class="text-sm text-gray-500 dark:text-gray-400 self-center ml-auto" id="unresolved-count"></div>
   </div>
 
   <div class="overflow-x-auto">
     <table class="w-full border-collapse">
       <thead>
-        <tr class="border-b border-[var(--border)] text-[var(--muted)]">
+        <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
           <th class="text-left py-2 px-3 font-medium">Level</th>
           <th class="text-left py-2 px-3 font-medium">Device</th>
           <th class="text-left py-2 px-3 font-medium">Message</th>
@@ -44,16 +44,16 @@
 let currentPage = 1;
 
 function levelBadge(level) {
-  var colors = { info: 'bg-[#58a6ff]', warning: 'bg-[#d29922]', critical: 'bg-[#f85149]' };
-  return '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white ' + (colors[level] || 'bg-[#8b949e]') + '">' + level + '</span>';
+  var colors = { info: 'bg-blue-400', warning: 'bg-yellow-600', critical: 'bg-red-500' };
+  return '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white ' + (colors[level] || 'bg-gray-400') + '">' + level + '</span>';
 }
 
 function renderAlert(a) {
-  var resolved = a.resolved_at ? new Date(a.resolved_at).toLocaleString() : '<span class="text-[var(--muted)]">—</span>';
-  var actions = a.resolved_at ? '' : '<button class="px-2 py-1 rounded text-xs font-medium bg-[#1f6feb] text-white hover:bg-[#388bfd] transition-colors" onclick="resolveAlert(' + a.id + ')">Resolve</button>';
-  return '<tr class="border-b border-[var(--border)] hover:bg-[var(--hover)]">'
+  var resolved = a.resolved_at ? new Date(a.resolved_at).toLocaleString() : '<span class="text-gray-500 dark:text-gray-400">—</span>';
+  var actions = a.resolved_at ? '' : '<button class="px-2 py-1 rounded text-xs font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors" onclick="resolveAlert(' + a.id + ')">Resolve</button>';
+  return '<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">'
     + '<td class="py-2 px-3">' + levelBadge(a.level) + '</td>'
-    + '<td class="py-2 px-3"><code class="text-[#58a6ff]">' + (a.device_name || '—') + '</code></td>'
+    + '<td class="py-2 px-3"><code class="text-blue-400">' + (a.device_name || '—') + '</code></td>'
     + '<td class="py-2 px-3">' + a.message + '</td>'
     + '<td class="py-2 px-3 text-sm">' + (a.created_at ? new Date(a.created_at).toLocaleString() : '—') + '</td>'
     + '<td class="py-2 px-3 text-sm">' + resolved + '</td>'
@@ -74,7 +74,7 @@ function loadAlerts(page) {
       var tbody = document.getElementById('alerts-tbody');
       tbody.innerHTML = '';
       if (data.alerts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-[var(--muted)]">No alerts found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="py-4 text-center text-gray-500 dark:text-gray-400">No alerts found.</td></tr>';
       } else {
         data.alerts.forEach(function(a) { tbody.innerHTML += renderAlert(a); });
       }
@@ -82,8 +82,8 @@ function loadAlerts(page) {
       if (data.pages > 1) {
         html += '<div class="flex gap-1">';
         for (var i = 1; i <= data.pages; i++) {
-          var cls = i === data.page ? 'bg-[#1f6feb] text-white' : 'bg-[var(--body-bg)] text-[var(--muted)] hover:bg-[var(--hover)]';
-          html += '<button class="px-2 py-1 rounded text-xs font-medium border border-[#30363d] ' + cls + '" onclick="loadAlerts(' + i + ')">' + i + '</button>';
+          var cls = i === data.page ? 'bg-blue-600 text-white' : 'bg-gray-50 dark:bg-gray-950 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800';
+          html += '<button class="px-2 py-1 rounded text-xs font-medium border border-gray-300 dark:border-gray-700 ' + cls + '" onclick="loadAlerts(' + i + ')">' + i + '</button>';
         }
         html += '</div>';
       }
