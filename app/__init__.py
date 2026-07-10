@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 from contextlib import asynccontextmanager
@@ -25,6 +26,11 @@ async def lifespan(app: FastAPI):
     logger.setLevel(logging.INFO)
 
     if 'sqlite' in settings.DATABASE_URL:
+        db_path = engine.url.database
+        if db_path:
+            db_dir = os.path.dirname(db_path)
+            if db_dir and not os.path.exists(db_dir):
+                os.makedirs(db_dir, exist_ok=True)
         Base.metadata.create_all(bind=engine)
         try:
             from alembic.config import Config
