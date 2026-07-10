@@ -88,15 +88,16 @@ function statusBadge(status) {
 
 async function loadSessions(page) {
   page = page || 1;
-  const [res, activeRes] = await Promise.all([
-    fetch('/api/v1/sessions?page=' + page + '&per_page=10'),
-    fetch('/api/v1/dashboard').then(r => r.json()),
-  ]);
+  const res = await fetch('/api/v1/sessions?page=' + page + '&per_page=10');
   const data = await res.json();
-  var activeId = activeRes.active_session ? activeRes.active_session.id : null;
+  var busyDevices = {};
+  data.sessions.forEach(function(s) {
+    if (s.status === 'running') busyDevices[s.device_id] = s.id;
+  });
   const tbody = document.getElementById('sessions-body');
   tbody.innerHTML = data.sessions.map(s => {
-    var startDisabled = s.status === 'draft' && activeId && activeId !== s.id;
+    var busyId = busyDevices[s.device_id];
+    var startDisabled = s.status === 'draft' && busyId && busyId !== s.id;
     return `<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">
       <td class="py-2 px-3 font-medium">${s.name}</td>
       <td class="py-2 px-3">${s.device_name || s.device_id}</td>

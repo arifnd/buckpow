@@ -308,6 +308,19 @@ class TestSessionService:
             b = SessionService.create(d.id, 'Session B')
             SessionService.start(a.id)
             assert a.status == 'running'
+            result, err = SessionService.start(b.id)
+            assert result is None
+            assert err == 'A session is already running for this device'
+            assert a.status == 'running'
+
+    def test_global_auto_finish_different_device(self, app):
+        with app.app_context():
+            d1 = DeviceService.create('esp32-d1')
+            d2 = DeviceService.create('esp32-d2')
+            a = SessionService.create(d1.id, 'Session A')
+            b = SessionService.create(d2.id, 'Session B')
+            SessionService.start(a.id)
+            assert a.status == 'running'
             SessionService.start(b.id)
             assert b.status == 'running'
             assert a.status == 'finished'

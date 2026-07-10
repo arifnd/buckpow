@@ -71,6 +71,10 @@ class SessionService:
         if session.status == 'running':
             return None, 'Session is already running'
 
+        device_running = SessionService.get_active_session(session.device_id)
+        if device_running and device_running.id != session.id:
+            return None, 'A session is already running for this device'
+
         running = SessionService.get_any_active_session()
         if running and running.id != session.id:
             running.status = 'finished'
