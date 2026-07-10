@@ -21,6 +21,9 @@ class Settings:
     DEBUG: bool = os.getenv('APP_ENV', 'development') == 'development'
     LOG_LEVEL: str = os.getenv('LOG_LEVEL', 'info')
 
+    ADMIN_EMAIL: str = os.getenv('ADMIN_EMAIL', '')
+    ADMIN_PASSWORD: str = os.getenv('ADMIN_PASSWORD', '')
+
     DEVICE_ONLINE_TIMEOUT: int = int(os.getenv('DEVICE_ONLINE_TIMEOUT', 30))
     DEFAULT_SAMPLING_INTERVAL: int = int(os.getenv('DEFAULT_SAMPLING_INTERVAL', 1))
 

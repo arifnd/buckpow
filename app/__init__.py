@@ -38,15 +38,18 @@ async def lifespan(app: FastAPI):
     db = SessionLocal()
     try:
         if not db.query(User).first():
-            from app.services.user_service import UserService
-            UserService.create(
-                db=db,
-                name='Admin',
-                email='admin@example.com',
-                password='password',
-                commit=True,
-            )
-            logger.info("Default admin user created (admin@example.com / password).")
+            if settings.ADMIN_EMAIL and settings.ADMIN_PASSWORD:
+                from app.services.user_service import UserService
+                UserService.create(
+                    db=db,
+                    name='Admin',
+                    email=settings.ADMIN_EMAIL,
+                    password=settings.ADMIN_PASSWORD,
+                    commit=True,
+                )
+                logger.info("Admin user created (%s).", settings.ADMIN_EMAIL)
+            else:
+                logger.info("No users found and ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping auto-create.")
         db.commit()
     finally:
         db.close()
