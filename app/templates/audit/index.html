@@ -20,7 +20,7 @@
       <option value="export">Export</option>
     </select>
   </div>
-  <div class="overflow-x-auto">
+  <div class="">
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
@@ -57,7 +57,7 @@ function loadLogs() {
       var details = l.details ? JSON.stringify(l.details) : '';
       var targetStr = l.target_type ? (l.target_type + (l.target_id ? ' #' + l.target_id : '')) : '—';
       tbody.innerHTML += '<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900">' +
-        '<td class="py-2 px-3 whitespace-nowrap text-gray-500 dark:text-gray-400">' + (l.created_at ? l.created_at.replace('T', ' ').replace(/\.\d+Z/, '') : '') + '</td>' +
+        '<td class="py-2 px-3 text-gray-500 dark:text-gray-400">' + (l.created_at ? l.created_at.replace('T', ' ').replace(/\.\d+Z/, '') : '') + '</td>' +
         '<td class="py-2 px-3">' + (l.user_name || '—') + '</td>' +
         '<td class="py-2 px-3 font-medium">' + l.action + '</td>' +
         '<td class="py-2 px-3 text-gray-500 dark:text-gray-400">' + targetStr + '</td>' +

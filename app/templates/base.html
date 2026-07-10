@@ -24,6 +24,135 @@ if (window.tailwind) {
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flowbite-datepicker@1.3.1/dist/css/datepicker.min.css">
 {% block extra_head %}{% endblock %}
 <script>
+function confirmDialog(msg, confirmLabel) {
+  if (confirmLabel === undefined) confirmLabel = 'Delete';
+  return new Promise(function(resolve) {
+    var modal = document.getElementById('confirm-modal');
+    document.getElementById('confirm-message').textContent = msg;
+    document.getElementById('confirm-ok').textContent = confirmLabel;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    function cleanup() {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('confirm-ok').removeEventListener('click', onOk);
+      document.getElementById('confirm-cancel').removeEventListener('click', onCancel);
+    }
+    function onOk() { cleanup(); resolve(true); }
+    function onCancel() { cleanup(); resolve(false); }
+    document.getElementById('confirm-ok').addEventListener('click', onOk);
+    document.getElementById('confirm-cancel').addEventListener('click', onCancel);
+  });
+}
+</script>
+</head>
+<body class="flex h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-300">
+
+{% if current_user.is_authenticated %}
+<div id="sidebar-backdrop" class="fixed inset-0 z-30 hidden bg-black/50 md:hidden" onclick="toggleSidebar()"></div>
+
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-56 -translate-x-full md:translate-x-0 transition-transform duration-200 bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 flex flex-col h-screen">
+  <div class="flex items-center gap-2 h-12 px-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
+    <iconify-icon class="w-8 h-8 text-blue-600 dark:text-blue-400 flex-shrink-0" icon="heroicons-outline:bolt"></iconify-icon>
+    <a class="text-lg font-bold text-gray-900 dark:text-white" href="/">{{ current_user.settings.get('brand', 'BuckPow') if current_user.is_authenticated else 'BuckPow' }}</a>
+  </div>
+  <nav class="flex-1 overflow-y-auto py-2">
+    {% set nav_items = [
+      ('/', 'dashboard', 'heroicons-outline:home', 'Dashboard'),
+      ('/devices', 'devices', 'heroicons-outline:server', 'Devices'),
+      ('/sessions', 'sessions', 'heroicons-outline:play-circle', 'Sessions'),
+      ('/projects', 'projects', 'heroicons-outline:folder-open', 'Projects'),
+      ('/measurements', 'measurements', 'heroicons-outline:chart-pie', 'Measurements'),
+      ('/benchmark', 'benchmark', 'heroicons-outline:scale', 'Benchmark'),
+      ('/alerts', 'alerts', 'heroicons-outline:bell', 'Alerts'),
+      ('/audit', 'audit', 'heroicons-outline:clipboard-list', 'Audit'),
+    ] %}
+    {% for href, page, icon, label in nav_items %}
+    <a href="{{ href }}" class="flex items-center gap-3 px-3 py-2.5 text-sm {% if active_page == page %}text-white bg-blue-600 dark:bg-blue-600{% else %}text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800{% endif %} transition-colors">
+      <iconify-icon class="w-5 h-5 flex-shrink-0" icon="{{ icon }}"></iconify-icon>
+      <span>{{ label }}</span>
+      {% if page == 'alerts' %}<span id="alert-badge-side" class="ml-auto hidden inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-red-500 min-w-[18px]">0</span>{% endif %}
+    </a>
+    {% endfor %}
+  </nav>
+</aside>
+{% endif %}
+
+<div class="flex-1 flex flex-col h-screen{% if current_user.is_authenticated %} md:ml-56{% endif %}">
+  {% if current_user.is_authenticated %}
+  <header class="h-12 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center px-4 gap-3 flex-shrink-0">
+    <button class="md:hidden p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" onclick="toggleSidebar()">
+      <iconify-icon class="w-5 h-5" icon="heroicons-outline:bars-3"></iconify-icon>
+    </button>
+    <div class="ml-auto flex items-center gap-2">
+      <a href="/alerts" class="relative p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors md:hidden">
+        <iconify-icon class="w-5 h-5" icon="heroicons-outline:bell"></iconify-icon>
+        <span id="alert-badge-mobile" class="absolute -top-0.5 -right-0.5 hidden inline-flex items-center justify-center px-1 py-0.5 rounded-full text-xs font-medium text-white bg-red-500 min-w-[14px]">0</span>
+      </a>
+      <div class="relative" id="user-dropdown">
+        <button id="user-menu-btn" class="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+          <span class="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 inline-flex items-center justify-center flex-shrink-0">
+            <iconify-icon class="w-3.5 h-3.5 text-gray-500 dark:text-gray-300 block" icon="heroicons-outline:user"></iconify-icon>
+          </span>
+          <span class="hidden sm:inline">{{ current_user.name }}</span>
+          <iconify-icon class="w-3 h-3" icon="heroicons-outline:chevron-down"></iconify-icon>
+        </button>
+        <div id="user-menu" class="hidden absolute right-0 top-full mt-1 w-40 z-50 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg py-1">
+          <a href="/profile" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:user"></iconify-icon><span>Profile</span></a>
+          <a href="/settings" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:cog-6-tooth"></iconify-icon><span>Settings</span></a>
+          <div class="relative" id="theme-submenu">
+            <button class="flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" id="theme-submenu-btn">
+              <span class="flex items-center gap-3"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:moon"></iconify-icon><span>Theme</span></span>
+              <iconify-icon class="w-3 h-3" icon="heroicons-outline:chevron-right"></iconify-icon>
+            </button>
+            <div id="theme-submenu-panel" class="hidden absolute right-full top-0 mr-1 w-32 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg py-1 z-50">
+              <button class="theme-option flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="system"><span class="flex items-center gap-3"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:computer-desktop"></iconify-icon><span>System</span></span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
+              <button class="theme-option flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="light"><span class="flex items-center gap-3"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:sun"></iconify-icon><span>Light</span></span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
+              <button class="theme-option flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="dark"><span class="flex items-center gap-3"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:moon"></iconify-icon><span>Dark</span></span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
+            </div>
+          </div>
+          <hr class="border-t border-gray-200 dark:border-gray-800 my-1">
+          <button id="logout-btn" class="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:arrow-left-on-rectangle"></iconify-icon><span>Logout</span></button>
+        </div>
+      </div>
+    </div>
+  </header>
+  {% endif %}
+
+  <main class="flex-1 overflow-y-auto flex flex-col">
+    <div class="flex-1 px-6 py-6 max-w-7xl mx-auto w-full{% if not current_user.is_authenticated %} flex items-center justify-center{% endif %}">
+{% block content %}{% endblock %}
+{% block extra_scripts %}{% endblock %}
+    </div>
+    <footer class="px-4 py-3 flex items-center justify-center gap-1.5 flex-shrink-0">
+      <span class="text-gray-500 dark:text-gray-400 opacity-50 text-sm leading-none">BuckPow v{{ app_version }}</span>
+      <span class="text-gray-500 dark:text-gray-400 opacity-30 leading-none">&middot;</span>
+      <a class="text-gray-500 dark:text-gray-400 opacity-50 hover:opacity-100 transition-colors leading-none" href="https://github.com/arifnd/buckpow" target="_blank" rel="noopener noreferrer">
+        <iconify-icon class="w-4 h-4" icon="simple-icons:github"></iconify-icon>
+      </a>
+    </footer>
+  </main>
+</div>
+
+<div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-6 max-w-sm w-full mx-4">
+    <h3 class="text-base font-semibold mb-2" id="confirm-title">Confirm</h3>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-5" id="confirm-message">Are you sure?</p>
+    <div class="flex justify-end gap-2">
+      <button class="px-3 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="confirm-cancel">Cancel</button>
+      <button class="px-3 py-1.5 rounded text-sm font-medium bg-red-600 text-white hover:bg-red-500 transition-colors" id="confirm-ok">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var backdrop = document.getElementById('sidebar-backdrop');
+  sidebar.classList.toggle('-translate-x-full');
+  if (backdrop) backdrop.classList.toggle('hidden');
+}
+
 document.addEventListener('click', function(e) {
   var btn = e.target.closest('#user-menu-btn');
   if (btn) {
@@ -56,123 +185,24 @@ document.addEventListener('click', function(e) {
     });
   }
 });
-</script>
-<script>
+
 function updateAlertBadge() {
   fetch('/api/v1/alerts?page=1&per_page=1&resolved=false').then(function(r) { return r.json(); }).then(function(d) {
-    var badge = document.getElementById('alert-badge');
-    if (d.unresolved_count > 0) {
-      badge.textContent = d.unresolved_count;
-      badge.classList.remove('hidden');
-    } else {
-      badge.classList.add('hidden');
+    var badgeSide = document.getElementById('alert-badge-side');
+    var badgeMobile = document.getElementById('alert-badge-mobile');
+    if (badgeSide) {
+      if (d.unresolved_count > 0) { badgeSide.textContent = d.unresolved_count; badgeSide.classList.remove('hidden'); }
+      else { badgeSide.classList.add('hidden'); }
+    }
+    if (badgeMobile) {
+      if (d.unresolved_count > 0) { badgeMobile.textContent = d.unresolved_count; badgeMobile.classList.remove('hidden'); }
+      else { badgeMobile.classList.add('hidden'); }
     }
   }).catch(function() {});
 }
 document.addEventListener('DOMContentLoaded', updateAlertBadge);
 document.addEventListener('htmx:afterSwap', updateAlertBadge);
 </script>
-<script>
-function confirmDialog(msg, confirmLabel) {
-  if (confirmLabel === undefined) confirmLabel = 'Delete';
-  return new Promise(function(resolve) {
-    var modal = document.getElementById('confirm-modal');
-    document.getElementById('confirm-message').textContent = msg;
-    document.getElementById('confirm-ok').textContent = confirmLabel;
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    function cleanup() {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      document.getElementById('confirm-ok').removeEventListener('click', onOk);
-      document.getElementById('confirm-cancel').removeEventListener('click', onCancel);
-    }
-    function onOk() { cleanup(); resolve(true); }
-    function onCancel() { cleanup(); resolve(false); }
-    document.getElementById('confirm-ok').addEventListener('click', onOk);
-    document.getElementById('confirm-cancel').addEventListener('click', onCancel);
-  });
-}
-</script>
-</head>
-<body hx-boost="true" class="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-300">
-<nav class="navbar relative bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm">
-  <div class="max-w-7xl mx-auto w-full px-4">
-    <div class="flex items-center justify-between h-12">
-      <a class="text-lg font-bold text-gray-900 dark:text-gray-300" href="/">{{ current_user.settings.get('brand', 'BuckPow') if current_user.is_authenticated else 'BuckPow' }}</a>
-      <button id="nav-toggle" class="md:hidden p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300">
-        <iconify-icon class="w-5 h-5" icon="heroicons-outline:bars-3"></iconify-icon>
-      </button>
-      <div id="nav-menu" class="hidden md:flex items-center gap-1">
-        {% if current_user.is_authenticated %}
-        <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'dashboard' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/">Dashboard</a>
-        <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'devices' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/devices">Devices</a>
-        <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'sessions' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/sessions">Sessions</a>
-        <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'projects' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/projects">Projects</a>
-        <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'measurements' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/measurements">Measurements</a>
-        <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'benchmark' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/benchmark">Benchmark</a>
-        <a class="px-3 py-1.5 rounded text-sm relative {% if active_page == 'alerts' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/alerts" id="alerts-nav">Alerts<span id="alert-badge" class="hidden ml-1 inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-red-500 min-w-[18px]">0</span></a>
-        <a class="px-3 py-1.5 rounded text-sm {% if active_page == 'audit' %}text-white bg-blue-600{% else %}text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800{% endif %}" href="/audit">Audit</a>
-        {% endif %}
-        <div class="ml-2 flex items-center gap-2">
-          {% if current_user.is_authenticated %}
-          <div class="relative" id="user-dropdown">
-            <button id="user-menu-btn" class="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-              <span>{{ current_user.name }}</span>
-              <iconify-icon class="w-3 h-3" icon="heroicons-outline:chevron-down"></iconify-icon>
-            </button>
-            <div id="user-menu" class="hidden absolute right-0 top-full mt-1 w-48 z-50 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg py-1">
-              <a href="/profile" class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4" icon="heroicons-outline:user"></iconify-icon>Profile</a>
-              <a href="/settings" class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4" icon="heroicons-outline:cog-6-tooth"></iconify-icon>Settings</a>
-              <div class="relative" id="theme-submenu">
-                <button class="flex items-center justify-between w-full px-3 py-1.5 text-sm text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" id="theme-submenu-btn">
-                  <span class="flex items-center gap-2"><iconify-icon class="w-4 h-4" icon="heroicons-outline:moon"></iconify-icon>Theme</span>
-                  <iconify-icon class="w-3 h-3" icon="heroicons-outline:chevron-right"></iconify-icon>
-                </button>
-                <div id="theme-submenu-panel" class="hidden absolute right-full top-0 mr-1 w-36 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg py-1 z-50">
-                  <button class="theme-option flex items-center justify-between w-full px-3 py-1.5 text-sm text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="system"><span class="flex items-center gap-2"><iconify-icon class="w-4 h-4" icon="heroicons-outline:computer-desktop"></iconify-icon>System</span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
-                  <button class="theme-option flex items-center justify-between w-full px-3 py-1.5 text-sm text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="light"><span class="flex items-center gap-2"><iconify-icon class="w-4 h-4" icon="heroicons-outline:sun"></iconify-icon>Light</span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
-                  <button class="theme-option flex items-center justify-between w-full px-3 py-1.5 text-sm text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="dark"><span class="flex items-center gap-2"><iconify-icon class="w-4 h-4" icon="heroicons-outline:moon"></iconify-icon>Dark</span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
-                </div>
-              </div>
-              <hr class="border-t border-gray-200 dark:border-gray-800 my-1">
-              <button id="logout-btn" class="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4" icon="heroicons-outline:arrow-left-on-rectangle"></iconify-icon>Logout</button>
-            </div>
-          </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
-
-<main class="flex-1 flex flex-col px-4 py-4 max-w-7xl mx-auto w-full">
-    <div id="main-content" class="flex flex-col flex-1">
-{% block content %}{% endblock %}
-{% block extra_scripts %}{% endblock %}
-</div>
-</main>
-
-<footer class="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-  <div class="px-4 py-3 max-w-7xl mx-auto flex items-center justify-center gap-2 text-center">
-    <small class="text-gray-500 dark:text-gray-400 opacity-70">BuckPow v{{ app_version }}</small>
-    <span class="text-gray-500 dark:text-gray-400 opacity-40">&middot;</span>
-    <a class="text-gray-500 dark:text-gray-400 opacity-70 hover:opacity-100 hover:text-gray-900 dark:hover:text-gray-300 transition-colors" href="https://github.com/arifnd/buckpow" target="_blank" rel="noopener noreferrer">
-      <iconify-icon class="w-4 h-4 align-text-bottom" icon="simple-icons:github"></iconify-icon>
-    </a>
-  </div>
-</footer>
-
-<div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
-  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-6 max-w-sm w-full mx-4">
-    <h3 class="text-base font-semibold mb-2" id="confirm-title">Confirm</h3>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mb-5" id="confirm-message">Are you sure?</p>
-    <div class="flex justify-end gap-2">
-      <button class="px-3 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="confirm-cancel">Cancel</button>
-      <button class="px-3 py-1.5 rounded text-sm font-medium bg-red-600 text-white hover:bg-red-500 transition-colors" id="confirm-ok">Delete</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
