@@ -6,6 +6,7 @@ from app.database import get_db
 from app.models import User
 from app.services.session_service import SessionService
 from app.services.audit_service import AuditService
+from app.utils.client_ip import get_client_ip
 from app.auth import require_user
 
 router = APIRouter()
@@ -95,7 +96,7 @@ def start_session(session_id: int, request: Request, db: Session = Depends(get_d
     session, error = SessionService.start(db, session_id)
     if error:
         raise HTTPException(status_code=400, detail=error)
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, 'session.start', user_id=_current_user.id, target_type='session', target_id=session_id, ip_address=ip)
     return session.to_dict()
 
@@ -105,6 +106,6 @@ def stop_session(session_id: int, request: Request, db: Session = Depends(get_db
     session, error = SessionService.stop(db, session_id)
     if error:
         raise HTTPException(status_code=400, detail=error)
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, 'session.stop', user_id=_current_user.id, target_type='session', target_id=session_id, ip_address=ip)
     return session.to_dict()

@@ -6,6 +6,7 @@ from app.database import get_db
 from app.models import Device, Project, User
 from app.services.device_service import DeviceService
 from app.services.audit_service import AuditService
+from app.utils.client_ip import get_client_ip
 from app.auth import require_user
 
 router = APIRouter()
@@ -79,7 +80,7 @@ def create_device(body: DeviceCreate, request: Request, db: Session = Depends(ge
         high_power_threshold=body.high_power_threshold,
         low_voltage_threshold=body.low_voltage_threshold,
     )
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, 'device.create', user_id=_current_user.id, target_type='device', target_id=device.id, ip_address=ip)
     return device.to_dict()
 
@@ -107,7 +108,7 @@ def update_device(device_id: int, body: DeviceUpdate, request: Request, db: Sess
     device = DeviceService.update(db, device_id, **kwargs)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, 'device.update', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
     return device.to_dict()
 
@@ -127,7 +128,7 @@ def toggle_device(device_id: int, request: Request, db: Session = Depends(get_db
     device = DeviceService.toggle_enabled(db, device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, f'device.{"enable" if device.enabled else "disable"}', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
     return device.to_dict()
 
@@ -139,7 +140,7 @@ def regenerate_key(device_id: int, request: Request, db: Session = Depends(get_d
     device = DeviceService.regenerate_api_key(db, device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, 'api_key.regenerate', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
     return {'api_key': device.api_key, 'id': device.id}
 
@@ -149,7 +150,7 @@ def delete_device(device_id: int, request: Request, db: Session = Depends(get_db
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(status_code=403, detail='Not authorized to delete this device')
     if DeviceService.delete(db, device_id):
-        ip = request.client.host if request.client else None
+        ip = get_client_ip(request)
         AuditService.log(db, 'device.delete', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Device not found')

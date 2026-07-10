@@ -15,6 +15,7 @@ from app.models import User
 from app.services.measurement_service import MeasurementService
 from app.services.device_service import DeviceService
 from app.services.audit_service import AuditService
+from app.utils.client_ip import get_client_ip
 from app.auth import get_api_key_device, require_user
 from app.api.health import MIN_FIRMWARE_VERSION
 
@@ -132,7 +133,7 @@ def export_csv(
             m.current, m.power, m.energy,
             m.created_at.isoformat() if m.created_at else '',
         ])
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, 'export.csv', user_id=_current_user.id, target_type='export', ip_address=ip, details={'rows': len(rows)})
     return Response(
         content=output.getvalue(),
@@ -188,7 +189,7 @@ def export_xlsx(
     wb.save(output)
     output.seek(0)
 
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, 'export.xlsx', user_id=_current_user.id, target_type='export', ip_address=ip, details={'rows': len(rows)})
     return Response(
         content=output.read(),

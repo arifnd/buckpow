@@ -6,6 +6,7 @@ from app.auth import create_access_token, get_current_user, require_user
 from app.database import get_db
 from app.services.user_service import UserService
 from app.services.audit_service import AuditService
+from app.utils.client_ip import get_client_ip
 from app.models import User
 from app.config import settings
 
@@ -40,7 +41,7 @@ def login(body: LoginRequest, request: Request, response: Response, db: Session 
         samesite='lax',
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, 'login', user_id=user.id, ip_address=ip)
     return {'status': 'ok', 'user': user.to_dict(), 'token': token}
 

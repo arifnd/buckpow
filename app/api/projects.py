@@ -7,6 +7,7 @@ from app.auth import require_user
 from app.models import User
 from app.services.project_service import ProjectService
 from app.services.audit_service import AuditService
+from app.utils.client_ip import get_client_ip
 
 router = APIRouter()
 
@@ -54,7 +55,7 @@ def create_project(
         description=body.description,
         owner_id=current_user.id,
     )
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, 'project.create', user_id=current_user.id, target_type='project', target_id=project.id, ip_address=ip)
     return project.to_dict()
 
@@ -89,7 +90,7 @@ def update_project(
         name=body.name,
         description=body.description,
     )
-    ip = request.client.host if request.client else None
+    ip = get_client_ip(request)
     AuditService.log(db, 'project.update', user_id=current_user.id, target_type='project', target_id=project_id, ip_address=ip)
     return project.to_dict()
 
@@ -107,7 +108,7 @@ def delete_project(
     if project.owner_id and project.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail='Not authorized to delete this project')
     if ProjectService.delete(db, project_id):
-        ip = request.client.host if request.client else None
+        ip = get_client_ip(request)
         AuditService.log(db, 'project.delete', user_id=current_user.id, target_type='project', target_id=project_id, ip_address=ip)
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Project not found')
