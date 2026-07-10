@@ -36,6 +36,15 @@ const char* DEVICE_ID     = "esp32-ina219-01";
 | `DEVICE_ID` | Unique identifier for this device (auto-registers on first reading) |
 | `API_KEY` | API key for device authentication (leave empty for dev without auth) |
 | `INTERVAL_MS` | Milliseconds between readings (default: 1000) |
+| `FW_VERSION` | Firmware version (defined as `#define FW_VERSION "1.0.0"`) — sent with each reading; API checks compatibility |
+
+## Firmware Compatibility
+
+| API Version (health endpoint) | Minimum Firmware |
+|---|---|
+| `min_firmware_version: "1.0.0"` | `FW_VERSION >= 1.0.0` |
+
+The API health endpoint (`GET /api/v1/health`) returns the minimum supported firmware version. If the device's firmware is below this version, the API still accepts readings but sets the `X-Firmware-Outdated: true` response header and auto-updates the device's `firmware_version` field in the database.
 
 ## Measurement Range
 
@@ -75,6 +84,7 @@ Each POST contains:
 ```json
 {
   "device_id": "esp32-ina219-01",
+  "firmware_version": "1.0.0",
   "bus_voltage": 5.12,
   "shunt_voltage": 82.0,
   "current": 241.0,
@@ -82,6 +92,7 @@ Each POST contains:
 }
 ```
 
+- `firmware_version` — sketch version (`FW_VERSION` define)
 - `bus_voltage` — load voltage (V)
 - `shunt_voltage` — shunt voltage (mV)
 - `current` — current draw (mA)

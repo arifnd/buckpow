@@ -6,6 +6,9 @@ import urllib.request
 import urllib.error
 
 
+FW_VERSION = "1.0.0"
+
+
 def send_reading(url, device_id, energy, api_key=None):
     bus_v = round(random.uniform(4.8, 5.2), 3)
     shunt_v = round(random.uniform(75, 85), 1)
@@ -15,6 +18,7 @@ def send_reading(url, device_id, energy, api_key=None):
 
     payload = json.dumps({
         "device_id": device_id,
+        "firmware_version": FW_VERSION,
         "bus_voltage": bus_v,
         "shunt_voltage": shunt_v,
         "current": current_ma,
@@ -39,7 +43,10 @@ def main():
     parser.add_argument("--url", default="http://localhost:5001/api/v1/measurements", help="API endpoint URL")
     parser.add_argument("--device", default="esp32-dummy", help="Device ID (default: esp32-dummy)")
     parser.add_argument("--api-key", help="API key for device authentication (Bearer token)")
+    parser.add_argument("--firmware", default="1.0.0", help="Firmware version to report (default: 1.0.0)")
     args = parser.parse_args()
+    global FW_VERSION
+    FW_VERSION = args.firmware
 
     if args.api_key:
         print(f"Sending dummy readings every {args.interval}s to {args.url} [device={args.device}, api_key=***]")

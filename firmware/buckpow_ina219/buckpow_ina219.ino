@@ -30,6 +30,9 @@
 #include <Adafruit_INA219.h>
 #include <ArduinoJson.h>
 
+// ── Firmware Version ──
+#define FW_VERSION "1.0.0"
+
 // ── WiFi Configuration ──
 const char* WIFI_SSID     = "your-ssid";
 const char* WIFI_PASSWORD = "your-password";
@@ -75,11 +78,12 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
   if (millis() - lastApiFail < RETRY_MS) return false;
 
   StaticJsonDocument<256> doc;
-  doc["device_id"]     = DEVICE_ID;
-  doc["bus_voltage"]   = busVoltage;
-  doc["shunt_voltage"] = shuntVoltage;
-  doc["current"]       = current;
-  doc["power"]         = power;
+  doc["device_id"]       = DEVICE_ID;
+  doc["firmware_version"] = FW_VERSION;
+  doc["bus_voltage"]     = busVoltage;
+  doc["shunt_voltage"]   = shuntVoltage;
+  doc["current"]         = current;
+  doc["power"]           = power;
 
   String url = String(API_BASE) + API_PATH;
   String payload;

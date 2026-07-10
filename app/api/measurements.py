@@ -5,12 +5,21 @@ from flask import Blueprint, request, jsonify, Response, send_file
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
+from app import db
 from app.services.measurement_service import MeasurementService
 from app.services.device_service import DeviceService
 from app.utils.errors import error_response
 from app.utils.validators import validate_required
+from app.api.health import MIN_FIRMWARE_VERSION
 
 measurements_bp = Blueprint('api_measurements', __name__)
+
+
+def _parse_version(v):
+    try:
+        return tuple(int(x) for x in v.split('.'))
+    except (ValueError, AttributeError):
+        return None
 
 
 def require_device_api_key(f):
@@ -46,6 +55,21 @@ def receive_measurement():
     if device_id_str != request.device.device_id:
         return error_response('device_id does not match the authenticated device', 403)
 
+    fw = body.get('firmware_version', '')
+    device = request.device
+    outdated = False
+    if fw:
+        parsed = _parse_version(fw)
+        min_fw = _parse_version(MIN_FIRMWARE_VERSION)
+        if parsed and min_fw and parsed < min_fw:
+            outdated = True
+        if fw != device.firmware_version:
+            device.firmware_version = fw
+            db.session.commit()
+    elif not device.firmware_version:
+        device.firmware_version = 'unknown'
+        db.session.commit()
+
     try:
         measurement = MeasurementService.create(
             device_id_str=device_id_str,
@@ -54,7 +78,10 @@ def receive_measurement():
             current=float(body['current']),
             power=float(body['power']),
         )
-        return jsonify({'status': 'success', 'id': measurement.id}), 201
+        resp = jsonify({'status': 'success', 'id': measurement.id})
+        if outdated:
+            resp.headers['X-Firmware-Outdated'] = 'true'
+        return resp, 201
     except Exception as e:
         return error_response(str(e), 500)
 

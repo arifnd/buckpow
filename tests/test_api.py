@@ -534,3 +534,74 @@ class TestAPI:
         assert resp.status_code == 200
         data = resp.get_json()
         assert data['stats']['energy']['total'] == 0
+
+
+class TestFirmwareCompatibility:
+
+    def _create_device(self, app):
+        from app.services.device_service import DeviceService
+        from app import db
+        with app.app_context():
+            d = DeviceService.create('esp32-fw')
+            key = d.api_key
+            d.firmware_version = ''
+            db.session.commit()
+        return key
+
+    def _auth_header(self, key):
+        return {'Authorization': f'Bearer {key}'}
+
+    def test_compatible_firmware(self, client, app):
+        key = self._create_device(app)
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-fw', 'firmware_version': '1.0.0',
+            'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=self._auth_header(key))
+        assert resp.status_code == 201
+        assert resp.headers.get('X-Firmware-Outdated') is None
+        with app.app_context():
+            from app.models import Device
+            d = Device.query.filter_by(device_id='esp32-fw').first()
+            assert d.firmware_version == '1.0.0'
+
+    def test_outdated_firmware(self, client, app):
+        key = self._create_device(app)
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-fw', 'firmware_version': '0.9.0',
+            'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=self._auth_header(key))
+        assert resp.status_code == 201
+        assert resp.headers.get('X-Firmware-Outdated') == 'true'
+        with app.app_context():
+            from app.models import Device
+            d = Device.query.filter_by(device_id='esp32-fw').first()
+            assert d.firmware_version == '0.9.0'
+
+    def test_no_firmware_sets_unknown(self, client, app):
+        key = self._create_device(app)
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-fw',
+            'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=self._auth_header(key))
+        assert resp.status_code == 201
+        with app.app_context():
+            from app.models import Device
+            d = Device.query.filter_by(device_id='esp32-fw').first()
+            assert d.firmware_version == 'unknown'
+
+    def test_firmware_upgrade(self, client, app):
+        key = self._create_device(app)
+        client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-fw', 'firmware_version': '0.9.0',
+            'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=self._auth_header(key))
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-fw', 'firmware_version': '1.0.0',
+            'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=self._auth_header(key))
+        assert resp.status_code == 201
+        assert resp.headers.get('X-Firmware-Outdated') is None
+        with app.app_context():
+            from app.models import Device
+            d = Device.query.filter_by(device_id='esp32-fw').first()
+            assert d.firmware_version == '1.0.0'
