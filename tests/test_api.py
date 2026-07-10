@@ -613,14 +613,90 @@ class TestFirmwareCompatibility:
         assert d.firmware_version == '0.9.0'
         db.close()
 
+
+class TestOwnerChecks:
+
+    def _second_user_client(self, app):
+        from app.database import SessionLocal
+        from app.services.user_service import UserService
+        from app.auth import create_access_token
+        from fastapi.testclient import TestClient
+        db = SessionLocal()
+        user = UserService.create(db, name='Other', email='other@example.com', password='otherpass')
+        token = create_access_token(data={'sub': user.id})
+        db.close()
+        client = TestClient(app)
+        client.headers.update({'Authorization': f'Bearer {token}'})
+        return client
+
+    def test_other_user_cannot_update_project(self, client, app):
+        other = self._second_user_client(app)
+        created = client.post('/api/v1/projects', json={'name': 'My Project'}).json()
+        resp = other.put(f'/api/v1/projects/{created["id"]}', json={'name': 'Hacked'})
+        assert resp.status_code == 403
+
+    def test_other_user_cannot_delete_project(self, client, app):
+        other = self._second_user_client(app)
+        created = client.post('/api/v1/projects', json={'name': 'My Project'}).json()
+        resp = other.delete(f'/api/v1/projects/{created["id"]}')
+        assert resp.status_code == 403
+
+    def test_other_user_cannot_update_device_in_project(self, client, app, sample_project):
+        other = self._second_user_client(app)
+        created = client.post('/api/v1/devices', json={
+            'device_id': 'esp32-owned',
+            'project_id': sample_project['id'],
+        }).json()
+        resp = other.put(f'/api/v1/devices/{created["id"]}', json={'alias': 'Hacked'})
+        assert resp.status_code == 403
+
+    def test_other_user_cannot_delete_device_in_project(self, client, app, sample_project):
+        other = self._second_user_client(app)
+        created = client.post('/api/v1/devices', json={
+            'device_id': 'esp32-owned-del',
+            'project_id': sample_project['id'],
+        }).json()
+        resp = other.delete(f'/api/v1/devices/{created["id"]}')
+        assert resp.status_code == 403
+
+    def test_other_user_cannot_toggle_device_in_project(self, client, app, sample_project):
+        other = self._second_user_client(app)
+        created = client.post('/api/v1/devices', json={
+            'device_id': 'esp32-owned-toggle',
+            'project_id': sample_project['id'],
+        }).json()
+        resp = other.patch(f'/api/v1/devices/{created["id"]}/toggle')
+        assert resp.status_code == 403
+
+    def test_other_user_cannot_regenerate_key_in_project(self, client, app, sample_project):
+        other = self._second_user_client(app)
+        created = client.post('/api/v1/devices', json={
+            'device_id': 'esp32-owned-key',
+            'project_id': sample_project['id'],
+        }).json()
+        resp = other.post(f'/api/v1/devices/{created["id"]}/regenerate-key')
+        assert resp.status_code == 403
+
+    def test_device_without_project_still_accessible(self, client, app):
+        other = self._second_user_client(app)
+        created = client.post('/api/v1/devices', json={'device_id': 'esp32-no-project'}).json()
+        resp = other.put(f'/api/v1/devices/{created["id"]}', json={'alias': 'Still OK'})
+        assert resp.status_code == 200
+
     def test_no_firmware_sets_unknown(self, client, app):
-        key = self._create_device(app)
+        from app.database import SessionLocal
+        from app.services.device_service import DeviceService
+        db = SessionLocal()
+        d = DeviceService.create(db, 'esp32-fw')
+        key = d.api_key
+        d.firmware_version = ''
+        db.commit()
+        db.close()
         resp = client.post('/api/v1/measurements', json={
             'device_id': 'esp32-fw',
             'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        }, headers=self._auth_header(key))
+        }, headers={'Authorization': f'Bearer {key}'})
         assert resp.status_code == 201
-        from app.database import SessionLocal
         from app.models import Device
         db = SessionLocal()
         d = db.query(Device).filter_by(device_id='esp32-fw').first()
@@ -628,18 +704,24 @@ class TestFirmwareCompatibility:
         db.close()
 
     def test_firmware_upgrade(self, client, app):
-        key = self._create_device(app)
+        from app.database import SessionLocal
+        from app.services.device_service import DeviceService
+        db = SessionLocal()
+        d = DeviceService.create(db, 'esp32-fw')
+        key = d.api_key
+        d.firmware_version = ''
+        db.commit()
+        db.close()
         client.post('/api/v1/measurements', json={
             'device_id': 'esp32-fw', 'firmware_version': '0.9.0',
             'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        }, headers=self._auth_header(key))
+        }, headers={'Authorization': f'Bearer {key}'})
         resp = client.post('/api/v1/measurements', json={
             'device_id': 'esp32-fw', 'firmware_version': '1.0.0',
             'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        }, headers=self._auth_header(key))
+        }, headers={'Authorization': f'Bearer {key}'})
         assert resp.status_code == 201
         assert resp.headers.get('x-firmware-outdated') is None
-        from app.database import SessionLocal
         from app.models import Device
         db = SessionLocal()
         d = db.query(Device).filter_by(device_id='esp32-fw').first()

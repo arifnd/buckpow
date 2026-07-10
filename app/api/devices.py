@@ -3,11 +3,21 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Device, User
+from app.models import Device, Project, User
 from app.services.device_service import DeviceService
 from app.auth import require_user
 
 router = APIRouter()
+
+
+def _check_device_owner(db, device_id, user_id):
+    device = db.get(Device, device_id)
+    if not device or not device.project_id:
+        return True
+    project = db.get(Project, device.project_id)
+    if project and project.owner_id and project.owner_id != user_id:
+        return False
+    return True
 
 
 class DeviceCreate(BaseModel):
@@ -81,6 +91,8 @@ def get_device(device_id: int, db: Session = Depends(get_db), _current_user: Use
 
 @router.put('/devices/{device_id}')
 def update_device(device_id: int, body: DeviceUpdate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+    if not _check_device_owner(db, device_id, _current_user.id):
+        raise HTTPException(status_code=403, detail='Not authorized to update this device')
     kwargs = {}
     for key in ('alias', 'description', 'sampling_interval', 'project_id', 'firmware_version',
                 'high_current_threshold', 'high_power_threshold', 'low_voltage_threshold'):
@@ -105,6 +117,8 @@ def get_device_key(device_id: int, db: Session = Depends(get_db), _current_user:
 
 @router.patch('/devices/{device_id}/toggle')
 def toggle_device(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+    if not _check_device_owner(db, device_id, _current_user.id):
+        raise HTTPException(status_code=403, detail='Not authorized to toggle this device')
     device = DeviceService.toggle_enabled(db, device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
@@ -113,6 +127,8 @@ def toggle_device(device_id: int, db: Session = Depends(get_db), _current_user: 
 
 @router.post('/devices/{device_id}/regenerate-key')
 def regenerate_key(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+    if not _check_device_owner(db, device_id, _current_user.id):
+        raise HTTPException(status_code=403, detail='Not authorized to regenerate key for this device')
     device = DeviceService.regenerate_api_key(db, device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
@@ -121,6 +137,8 @@ def regenerate_key(device_id: int, db: Session = Depends(get_db), _current_user:
 
 @router.delete('/devices/{device_id}')
 def delete_device(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+    if not _check_device_owner(db, device_id, _current_user.id):
+        raise HTTPException(status_code=403, detail='Not authorized to delete this device')
     if DeviceService.delete(db, device_id):
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Device not found')

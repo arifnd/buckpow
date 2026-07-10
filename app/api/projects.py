@@ -74,13 +74,16 @@ def update_project(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
+    project = ProjectService.get_by_id(db, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail='Project not found')
+    if project.owner_id and project.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail='Not authorized to update this project')
     project = ProjectService.update(
         db, project_id,
         name=body.name,
         description=body.description,
     )
-    if not project:
-        raise HTTPException(status_code=404, detail='Project not found')
     return project.to_dict()
 
 
@@ -90,6 +93,11 @@ def delete_project(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
+    project = ProjectService.get_by_id(db, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail='Project not found')
+    if project.owner_id and project.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail='Not authorized to delete this project')
     if ProjectService.delete(db, project_id):
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Project not found')
