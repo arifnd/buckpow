@@ -3,7 +3,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models import User
 from app.services.alert_service import AlertService
+from app.auth import require_user
 
 router = APIRouter()
 
@@ -22,6 +24,7 @@ def list_alerts(
     level: str | None = Query(None),
     resolved: str | None = Query(None),
     db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
 ):
     resolved_bool = None
     if resolved is not None:
@@ -41,13 +44,13 @@ def list_alerts(
 
 
 @router.post('/alerts', status_code=201)
-def create_alert(body: AlertCreate, db: Session = Depends(get_db)):
+def create_alert(body: AlertCreate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     alert = AlertService.create(db, body.device_id, body.level, body.message)
     return alert.to_dict()
 
 
 @router.patch('/alerts/{alert_id}/resolve')
-def resolve_alert(alert_id: int, db: Session = Depends(get_db)):
+def resolve_alert(alert_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     alert = AlertService.resolve(db, alert_id)
     if not alert:
         raise HTTPException(status_code=404, detail='Alert not found')
@@ -58,6 +61,7 @@ def resolve_alert(alert_id: int, db: Session = Depends(get_db)):
 def resolve_all(
     device_id: int | None = Query(None),
     db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
 ):
     AlertService.resolve_all(db, device_id=device_id)
     return {'status': 'ok'}

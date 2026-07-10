@@ -2,7 +2,9 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models import User
 from app.services.measurement_service import MeasurementService
+from app.auth import require_user
 
 router = APIRouter()
 
@@ -11,6 +13,7 @@ router = APIRouter()
 def compare(
     sessions: str = Query(''),
     db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
 ):
     if not sessions:
         raise HTTPException(status_code=400, detail='sessions parameter is required (comma-separated IDs)')

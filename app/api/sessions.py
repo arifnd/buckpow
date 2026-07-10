@@ -3,7 +3,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models import User
 from app.services.session_service import SessionService
+from app.auth import require_user
 
 router = APIRouter()
 
@@ -28,6 +30,7 @@ def list_sessions(
     page: int = Query(1),
     per_page: int = Query(10),
     db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
 ):
     if page == 0:
         sessions = SessionService.get_all(db)
@@ -43,7 +46,7 @@ def list_sessions(
 
 
 @router.post('/sessions', status_code=201)
-def create_session(body: SessionCreate, db: Session = Depends(get_db)):
+def create_session(body: SessionCreate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if not body.name or not body.device_id:
         raise HTTPException(status_code=400, detail='name and device_id are required')
     session = SessionService.create(
@@ -58,7 +61,7 @@ def create_session(body: SessionCreate, db: Session = Depends(get_db)):
 
 
 @router.get('/sessions/{session_id}')
-def get_session(session_id: int, db: Session = Depends(get_db)):
+def get_session(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     session = SessionService.get_by_id(db, session_id)
     if not session:
         raise HTTPException(status_code=404, detail='Session not found')
@@ -66,7 +69,7 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
 
 
 @router.put('/sessions/{session_id}')
-def update_session(session_id: int, body: SessionUpdate, db: Session = Depends(get_db)):
+def update_session(session_id: int, body: SessionUpdate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     session = SessionService.update(
         db, session_id,
         name=body.name,
@@ -80,14 +83,14 @@ def update_session(session_id: int, body: SessionUpdate, db: Session = Depends(g
 
 
 @router.delete('/sessions/{session_id}')
-def delete_session(session_id: int, db: Session = Depends(get_db)):
+def delete_session(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if SessionService.delete(db, session_id):
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Session not found')
 
 
 @router.post('/sessions/{session_id}/start')
-def start_session(session_id: int, db: Session = Depends(get_db)):
+def start_session(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     session, error = SessionService.start(db, session_id)
     if error:
         raise HTTPException(status_code=400, detail=error)
@@ -95,7 +98,7 @@ def start_session(session_id: int, db: Session = Depends(get_db)):
 
 
 @router.post('/sessions/{session_id}/stop')
-def stop_session(session_id: int, db: Session = Depends(get_db)):
+def stop_session(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     session, error = SessionService.stop(db, session_id)
     if error:
         raise HTTPException(status_code=400, detail=error)

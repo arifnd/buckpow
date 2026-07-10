@@ -11,9 +11,10 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models import User
 from app.services.measurement_service import MeasurementService
 from app.services.device_service import DeviceService
-from app.auth import get_api_key_device
+from app.auth import get_api_key_device, require_user
 from app.api.health import MIN_FIRMWARE_VERSION
 
 router = APIRouter()
@@ -88,6 +89,7 @@ def get_measurements(
     start_date: str | None = Query(None),
     end_date: str | None = Query(None),
     db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
 ):
     pagination = MeasurementService.get_paginated(
         db, page=page, per_page=per_page,
@@ -110,6 +112,7 @@ def export_csv(
     start_date: str | None = Query(None),
     end_date: str | None = Query(None),
     db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
 ):
     rows = MeasurementService.get_all_filtered(
         db, device_id=device_id, session_id=session_id,
@@ -141,6 +144,7 @@ def export_xlsx(
     start_date: str | None = Query(None),
     end_date: str | None = Query(None),
     db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
 ):
     rows = MeasurementService.get_all_filtered(
         db, device_id=device_id, session_id=session_id,
@@ -196,6 +200,7 @@ def chart_data(
     start_date: str | None = Query(None),
     end_date: str | None = Query(None),
     db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
 ):
     if granularity not in (None, 's', 'm', 'h', 'd'):
         granularity = None

@@ -3,8 +3,9 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Device
+from app.models import Device, User
 from app.services.device_service import DeviceService
+from app.auth import require_user
 
 router = APIRouter()
 
@@ -38,6 +39,7 @@ def list_devices(
     page: int = Query(1),
     per_page: int = Query(10),
     db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
 ):
     if page == 0:
         devices = DeviceService.get_all(db)
@@ -53,7 +55,7 @@ def list_devices(
 
 
 @router.post('/devices', status_code=201)
-def create_device(body: DeviceCreate, db: Session = Depends(get_db)):
+def create_device(body: DeviceCreate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     device = DeviceService.create(
         db,
         device_id=body.device_id,
@@ -70,7 +72,7 @@ def create_device(body: DeviceCreate, db: Session = Depends(get_db)):
 
 
 @router.get('/devices/{device_id}')
-def get_device(device_id: int, db: Session = Depends(get_db)):
+def get_device(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     device = DeviceService.get_by_id(db, device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
@@ -78,7 +80,7 @@ def get_device(device_id: int, db: Session = Depends(get_db)):
 
 
 @router.put('/devices/{device_id}')
-def update_device(device_id: int, body: DeviceUpdate, db: Session = Depends(get_db)):
+def update_device(device_id: int, body: DeviceUpdate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     kwargs = {}
     for key in ('alias', 'description', 'sampling_interval', 'project_id', 'firmware_version',
                 'high_current_threshold', 'high_power_threshold', 'low_voltage_threshold'):
@@ -94,7 +96,7 @@ def update_device(device_id: int, body: DeviceUpdate, db: Session = Depends(get_
 
 
 @router.get('/devices/{device_id}/key')
-def get_device_key(device_id: int, db: Session = Depends(get_db)):
+def get_device_key(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     device = db.get(Device, device_id)
     if not device or not device.api_key:
         raise HTTPException(status_code=404, detail='Device not found or no API key')
@@ -102,7 +104,7 @@ def get_device_key(device_id: int, db: Session = Depends(get_db)):
 
 
 @router.patch('/devices/{device_id}/toggle')
-def toggle_device(device_id: int, db: Session = Depends(get_db)):
+def toggle_device(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     device = DeviceService.toggle_enabled(db, device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
@@ -110,7 +112,7 @@ def toggle_device(device_id: int, db: Session = Depends(get_db)):
 
 
 @router.post('/devices/{device_id}/regenerate-key')
-def regenerate_key(device_id: int, db: Session = Depends(get_db)):
+def regenerate_key(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     device = DeviceService.regenerate_api_key(db, device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
@@ -118,7 +120,7 @@ def regenerate_key(device_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete('/devices/{device_id}')
-def delete_device(device_id: int, db: Session = Depends(get_db)):
+def delete_device(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if DeviceService.delete(db, device_id):
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Device not found')
