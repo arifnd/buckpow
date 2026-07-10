@@ -58,17 +58,27 @@ class TestProjectsAPI:
         resp = client.delete('/api/v1/projects/99999')
         assert resp.status_code == 404
 
-    def test_list_page_zero(self, client):
-        for i in range(3):
-            client.post('/api/v1/projects', json={'name': f'Project {i}'})
+    def test_list_page_zero(self, client, app):
+        from sqlalchemy import insert
+        from app.database import SessionLocal
+        from app.models import Project
+        db = SessionLocal()
+        db.execute(insert(Project), [{'name': f'Project {i}'} for i in range(3)])
+        db.commit()
+        db.close()
         resp = client.get('/api/v1/projects?page=0')
         assert resp.status_code == 200
         data = resp.json()
         assert isinstance(data, list)
 
-    def test_pagination(self, client):
-        for i in range(15):
-            client.post('/api/v1/projects', json={'name': f'Pagination {i}'})
+    def test_pagination(self, client, app):
+        from sqlalchemy import insert
+        from app.database import SessionLocal
+        from app.models import Project
+        db = SessionLocal()
+        db.execute(insert(Project), [{'name': f'Pagination {i}'} for i in range(15)])
+        db.commit()
+        db.close()
         resp = client.get('/api/v1/projects?page=1&per_page=5')
         assert resp.status_code == 200
         data = resp.json()

@@ -142,9 +142,18 @@ class TestAPI:
         resp = client.post('/api/v1/devices', content=b'{}')
         assert resp.status_code == 422
 
-    def test_device_pagination(self, client):
-        for i in range(15):
-            client.post('/api/v1/devices', json={'device_id': f'esp32-page-{i}'})
+    def test_device_pagination(self, client, app):
+        from sqlalchemy import insert
+        from app.database import SessionLocal
+        from app.models import Device
+        from app.services.device_service import DeviceService
+        db = SessionLocal()
+        db.execute(insert(Device), [
+            {'device_id': f'esp32-page-{i}', 'api_key': DeviceService.generate_api_key()}
+            for i in range(15)
+        ])
+        db.commit()
+        db.close()
         resp = client.get('/api/v1/devices?page=1&per_page=5')
         assert resp.status_code == 200
         data = resp.json()
@@ -153,9 +162,18 @@ class TestAPI:
         assert data['pages'] == 3
         assert data['page'] == 1
 
-    def test_device_page_zero_returns_all(self, client):
-        for i in range(3):
-            client.post('/api/v1/devices', json={'device_id': f'esp32-all-{i}'})
+    def test_device_page_zero_returns_all(self, client, app):
+        from sqlalchemy import insert
+        from app.database import SessionLocal
+        from app.models import Device
+        from app.services.device_service import DeviceService
+        db = SessionLocal()
+        db.execute(insert(Device), [
+            {'device_id': f'esp32-all-{i}', 'api_key': DeviceService.generate_api_key()}
+            for i in range(3)
+        ])
+        db.commit()
+        db.close()
         resp = client.get('/api/v1/devices?page=0')
         assert resp.status_code == 200
         data = resp.json()
@@ -229,12 +247,18 @@ class TestAPI:
         resp = client.post(f'/api/v1/sessions/{a["id"]}/start')
         assert resp.status_code == 400
 
-    def test_session_pagination(self, client):
-        d = client.post('/api/v1/devices', json={'device_id': 'esp32-sess-page'}).json()
-        for i in range(15):
-            client.post('/api/v1/sessions', json={
-                'device_id': d['id'], 'name': f'Session {i}',
-            })
+    def test_session_pagination(self, client, app):
+        from sqlalchemy import insert
+        from app.database import SessionLocal
+        from app.models import Device, Session as SessionModel
+        from app.services.device_service import DeviceService
+        db = SessionLocal()
+        device = DeviceService.create(db, 'esp32-sess-page')
+        db.execute(insert(SessionModel), [
+            {'device_id': device.id, 'name': f'Session {i}'} for i in range(15)
+        ])
+        db.commit()
+        db.close()
         resp = client.get('/api/v1/sessions?page=1&per_page=5')
         assert resp.status_code == 200
         data = resp.json()
@@ -242,12 +266,18 @@ class TestAPI:
         assert data['total'] == 15
         assert data['pages'] == 3
 
-    def test_session_page_zero_returns_all(self, client):
-        d = client.post('/api/v1/devices', json={'device_id': 'esp32-sess-all'}).json()
-        for i in range(3):
-            client.post('/api/v1/sessions', json={
-                'device_id': d['id'], 'name': f'Sess {i}',
-            })
+    def test_session_page_zero_returns_all(self, client, app):
+        from sqlalchemy import insert
+        from app.database import SessionLocal
+        from app.models import Device, Session as SessionModel
+        from app.services.device_service import DeviceService
+        db = SessionLocal()
+        device = DeviceService.create(db, 'esp32-sess-all')
+        db.execute(insert(SessionModel), [
+            {'device_id': device.id, 'name': f'Sess {i}'} for i in range(3)
+        ])
+        db.commit()
+        db.close()
         resp = client.get('/api/v1/sessions?page=0')
         assert resp.status_code == 200
         data = resp.json()

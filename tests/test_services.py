@@ -252,9 +252,14 @@ class TestDeviceService:
         db.close()
 
     def test_get_paginated(self, app):
+        from sqlalchemy import insert
+        from app.models import Device
         db = self._db(app)
-        for i in range(5):
-            DeviceService.create(db, f'esp32-page-{i}')
+        db.execute(insert(Device), [
+            {'device_id': f'esp32-page-{i}', 'api_key': DeviceService.generate_api_key()}
+            for i in range(5)
+        ])
+        db.commit()
         p = DeviceService.get_paginated(db, page=1, per_page=2)
         assert len(p.items) == 2
         assert p.total >= 5
@@ -706,9 +711,11 @@ class TestProjectService:
         db.close()
 
     def test_get_paginated(self, app):
+        from sqlalchemy import insert
+        from app.models import Project
         db = self._db(app)
-        for i in range(5):
-            ProjectService.create(db, name=f'Project {i}')
+        db.execute(insert(Project), [{'name': f'Project {i}'} for i in range(5)])
+        db.commit()
         p = ProjectService.get_paginated(db, page=1, per_page=2)
         assert len(p.items) == 2
         assert p.total >= 5
