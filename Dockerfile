@@ -5,6 +5,8 @@ WORKDIR /code
 COPY requirements-prod.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
+COPY alembic.ini /code/alembic.ini
+COPY ./migrations /code/migrations
 COPY ./app /code/app
 
 EXPOSE 5000
