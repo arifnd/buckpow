@@ -78,6 +78,7 @@
 var editingSessionId = null;
 var deviceOpts = [];
 var sessionProjectOpts = [];
+var allDeviceOpts = [];
 var _initialized = false;
 
 function statusBadge(status) {
@@ -159,11 +160,18 @@ async function populateSessionProjectSelect(selectedId) {
 async function populateDeviceSelect(selectedId) {
   const sel = document.getElementById('field-session-device');
   sel.innerHTML = '<option value="">Select device</option>';
-  if (deviceOpts.length === 0) {
-    const res = await fetch('/api/v1/devices?page=0');
-    deviceOpts = await res.json();
+  if (allDeviceOpts.length === 0) {
+    const [devRes, sessRes] = await Promise.all([
+      fetch('/api/v1/devices?page=0'),
+      fetch('/api/v1/sessions?page=0'),
+    ]);
+    allDeviceOpts = await devRes.json();
+    var sessions = await sessRes.json();
+    var busyDeviceIds = new Set(sessions.filter(s => s.status === 'running').map(s => s.device_id));
+    deviceOpts = allDeviceOpts.filter(d => !busyDeviceIds.has(d.id));
   }
-  deviceOpts.forEach(d => {
+  var list = selectedId ? allDeviceOpts : deviceOpts;
+  list.forEach(d => {
     const opt = document.createElement('option');
     opt.value = d.id;
     opt.textContent = d.alias || d.device_id;
@@ -214,6 +222,8 @@ function initSessions() {
   loadSessions();
   document.getElementById('create-session-btn').addEventListener('click', async () => {
     editingSessionId = null;
+    allDeviceOpts = [];
+    deviceOpts = [];
     document.getElementById('session-modal-title').textContent = 'Create Session';
     document.getElementById('session-form').reset();
     document.getElementById('session-id').value = '';

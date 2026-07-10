@@ -58,8 +58,9 @@ def sessions():
 @login_required
 def sessions_new():
     from app.services.device_service import DeviceService
+    from app.services.session_service import SessionService
     from app.services.project_service import ProjectService
-    devices = DeviceService.get_all()
+    devices = [d for d in DeviceService.get_all() if not SessionService.get_active_session(d.id)]
     projects = ProjectService.get_all()
     return render_template('sessions/form.html', active_page='sessions', session=None, devices=devices, projects=projects)
 
