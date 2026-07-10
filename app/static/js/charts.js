@@ -25,9 +25,11 @@ const CHART_OPTS = {
   },
 };
 
-function createChart(canvasId, label, colorKey) {
+function createChart(canvasId, label, colorKey, beginAtZero = true) {
   const ctx = document.getElementById(canvasId).getContext('2d');
   const c = CHART_COLORS[colorKey];
+  const opts = JSON.parse(JSON.stringify(CHART_OPTS));
+  opts.scales.y.beginAtZero = beginAtZero;
   return new Chart(ctx, {
     type: 'line',
     data: {
@@ -47,6 +49,6 @@ function createChart(canvasId, label, colorKey) {
         hoverBackgroundColor: c.bg,
       }],
     },
-    options: CHART_OPTS,
+    options: opts,
   });
 }

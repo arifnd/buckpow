@@ -9,7 +9,7 @@ function initCharts() {
   voltageChart = createChart('voltageChart', 'Voltage (V)', 'voltage');
   currentChart = createChart('currentChart', 'Current (A)', 'current');
   powerChart = createChart('powerChart', 'Power (W)', 'power');
-  energyChart = createChart('energyChart', 'Energy (Wh)', 'energy');
+  energyChart = createChart('energyChart', 'Energy (Wh)', 'energy', false);
 }
 
 function formatTime(isoString) {
@@ -170,13 +170,8 @@ function updateCharts(chartData) {
   powerChart.data.datasets[0].data = slice(chartData.power);
   powerChart.update();
 
-  var energyData = slice(chartData.energy);
-  if (energyData.length > 0) {
-    var base = energyData[0];
-    energyData = energyData.map(function(v) { return v - base; });
-  }
   energyChart.data.labels = labels;
-  energyChart.data.datasets[0].data = energyData;
+  energyChart.data.datasets[0].data = slice(chartData.energy);
   energyChart.update();
 }
 
