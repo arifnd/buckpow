@@ -8,7 +8,7 @@
 
 <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6" id="summary-cards">
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full transition-all duration-200">
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-gray-500 dark:text-gray-400" icon="heroicons-outline:cpu-chip"></iconify-icon>
         <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Devices</small>
@@ -18,7 +18,7 @@
     </div>
   </div>
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full transition-all duration-200">
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-gray-500 dark:text-gray-400" icon="heroicons-outline:briefcase"></iconify-icon>
         <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Projects</small>
@@ -28,7 +28,7 @@
     </div>
   </div>
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full transition-all duration-200">
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-gray-500 dark:text-gray-400" icon="heroicons-outline:fire"></iconify-icon>
         <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Active Sessions</small>
@@ -38,7 +38,7 @@
     </div>
   </div>
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full transition-all duration-200">
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-green-500" icon="heroicons-outline:bolt"></iconify-icon>
         <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Current Draw</small>
@@ -48,7 +48,7 @@
     </div>
   </div>
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full transition-all duration-200">
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-yellow-600" icon="heroicons-outline:bolt"></iconify-icon>
         <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Current Power</small>
@@ -58,7 +58,7 @@
     </div>
   </div>
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full transition-all duration-200">
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
       <div class="flex items-center gap-2 mb-2">
         <iconify-icon class="w-4 h-4 text-purple-400" icon="heroicons-outline:chart-pie"></iconify-icon>
         <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Today Energy</small>
@@ -81,16 +81,16 @@
     <span class="text-sm text-gray-500 dark:text-gray-400">Time range:</span>
     <div class="flex rounded overflow-hidden border border-gray-200 dark:border-gray-800" id="time-range-group">
       <button
-        class="px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-300 bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        class="px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-300 bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800"
         data-range="1h">1h</button>
       <button
-        class="px-3 py-1 text-sm font-medium text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border-l border-gray-200 dark:border-gray-800"
+        class="px-3 py-1 text-sm font-medium text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-gray-200 dark:border-gray-800"
         data-range="24h">24h</button>
       <button
-        class="px-3 py-1 text-sm font-medium text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border-l border-gray-200 dark:border-gray-800"
+        class="px-3 py-1 text-sm font-medium text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-gray-200 dark:border-gray-800"
         data-range="7d">7d</button>
       <button
-        class="px-3 py-1 text-sm font-medium text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border-l border-gray-200 dark:border-gray-800"
+        class="px-3 py-1 text-sm font-medium text-gray-500 dark:text-gray-400 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 border-l border-gray-200 dark:border-gray-800"
         data-range="30d">30d</button>
     </div>
   </div>
