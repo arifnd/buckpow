@@ -8,6 +8,7 @@ import pytest
 # Must set DB path before any app imports
 _tmp = tempfile.mkdtemp()
 os.environ['DATABASE_URL'] = f'sqlite:///{os.path.join(_tmp, "test.db")}'
+os.environ['BCRYPT_ROUNDS'] = '4'
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
