@@ -2,7 +2,8 @@ from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -31,7 +32,7 @@ def _decode_user(token: str, db: Session) -> User | None:
         if user_id is None:
             return None
         return db.get(User, int(user_id))
-    except (JWTError, ValueError, TypeError):
+    except (InvalidTokenError, ValueError, TypeError):
         return None
 
 
