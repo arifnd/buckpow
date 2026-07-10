@@ -46,7 +46,7 @@ def reset_db():
             db.query(m).delete()
         db.commit()
         db.close()
-    except RuntimeError:
+    except Exception:
         pass
 
 

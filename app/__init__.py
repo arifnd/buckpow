@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
+from app.utils.rate_limiter import RateLimiterMiddleware, bearer_token_key
 
 APP_VERSION = '0.1.0'
 
@@ -54,6 +55,16 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title='BuckPow', version=APP_VERSION, lifespan=lifespan)
+
+app.add_middleware(
+    RateLimiterMiddleware,
+    limits=[
+        ('POST', '/api/v1/auth/login', 5, 60),
+        ('POST', '/api/v1/measurements', 60, 60, bearer_token_key),
+        ('GET', '/api/v1/measurements/export/csv', 10, 60),
+        ('GET', '/api/v1/measurements/export/xlsx', 10, 60),
+    ],
+)
 
 app.add_middleware(
     CORSMiddleware,
