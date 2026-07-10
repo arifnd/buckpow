@@ -1,6 +1,6 @@
 import pytest
 from app.utils.errors import (AppError, ValidationError, NotFoundError,
-                               AuthError, error_response)
+                               AuthError)
 from app.utils.validators import (validate_required, validate_float,
                                   validate_int, validate_string,
                                   validate_email, validate_uuid)
@@ -37,21 +37,6 @@ class TestAppError:
         e = AuthError('Unauthorized')
         assert e.status_code == 401
         assert e.code == 'AUTH_ERROR'
-
-    def test_error_response(self, app):
-        with app.app_context():
-            resp, code = error_response('Bad request', 400, 'BAD_REQUEST')
-            assert code == 400
-            data = resp.get_json()
-            assert data['error'] == 'Bad request'
-            assert data['code'] == 'BAD_REQUEST'
-
-    def test_error_response_no_code(self, app):
-        with app.app_context():
-            resp, code = error_response('Simple error')
-            assert code == 400
-            data = resp.get_json()
-            assert 'code' not in data
 
 
 class TestValidators:

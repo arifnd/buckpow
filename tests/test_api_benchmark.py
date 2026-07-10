@@ -2,7 +2,7 @@ class TestBenchmarkAPI:
     def test_compare_missing_sessions(self, client):
         resp = client.get('/api/v1/benchmark/compare')
         assert resp.status_code == 400
-        assert 'sessions' in resp.get_json()['error']
+        assert 'sessions' in resp.json()['error']
 
     def test_compare_fewer_than_two(self, client):
         resp = client.get('/api/v1/benchmark/compare?sessions=1')
@@ -13,42 +13,42 @@ class TestBenchmarkAPI:
         assert resp.status_code == 404
 
     def test_compare_valid(self, client, app):
-        with app.app_context():
-            from app import db
-            from app.services.device_service import DeviceService
-            from app.services.session_service import SessionService
-            from app.services.measurement_service import MeasurementService
-            db.session.expire_on_commit = False
-            d = DeviceService.create('esp32-bench')
-            s1 = SessionService.create(d.id, 'Bench 1')
-            s2 = SessionService.create(d.id, 'Bench 2')
-            SessionService.start(s1.id)
-            SessionService.start(s2.id)
-            MeasurementService.create('esp32-bench', bus_voltage=5.0,
-                                      shunt_voltage=80.0, current=200, power=1000)
-            MeasurementService.create('esp32-bench', bus_voltage=5.0,
-                                      shunt_voltage=80.0, current=200, power=1000)
-            s1_id, s2_id = s1.id, s2.id
+        from app.database import SessionLocal
+        from app.services.device_service import DeviceService
+        from app.services.session_service import SessionService
+        from app.services.measurement_service import MeasurementService
+        db = SessionLocal()
+        d = DeviceService.create(db, 'esp32-bench')
+        s1 = SessionService.create(db, d.id, 'Bench 1')
+        s2 = SessionService.create(db, d.id, 'Bench 2')
+        SessionService.start(db, s1.id)
+        SessionService.start(db, s2.id)
+        MeasurementService.create(db, 'esp32-bench', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        MeasurementService.create(db, 'esp32-bench', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        s1_id, s2_id = s1.id, s2.id
+        db.close()
         resp = client.get(f'/api/v1/benchmark/compare?sessions={s1_id},{s2_id}')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert len(data['sessions']) == 2
 
     def test_compare_non_numeric_skipped(self, client, app):
-        with app.app_context():
-            from app import db
-            from app.services.device_service import DeviceService
-            from app.services.session_service import SessionService
-            from app.services.measurement_service import MeasurementService
-            db.session.expire_on_commit = False
-            d = DeviceService.create('esp32-bench2')
-            s1 = SessionService.create(d.id, 'Bench A')
-            s2 = SessionService.create(d.id, 'Bench B')
-            SessionService.start(s1.id)
-            SessionService.start(s2.id)
-            MeasurementService.create('esp32-bench2', bus_voltage=5.0,
-                                      shunt_voltage=80.0, current=200, power=1000)
-            s1_id, s2_id = s1.id, s2.id
+        from app.database import SessionLocal
+        from app.services.device_service import DeviceService
+        from app.services.session_service import SessionService
+        from app.services.measurement_service import MeasurementService
+        db = SessionLocal()
+        d = DeviceService.create(db, 'esp32-bench2')
+        s1 = SessionService.create(db, d.id, 'Bench A')
+        s2 = SessionService.create(db, d.id, 'Bench B')
+        SessionService.start(db, s1.id)
+        SessionService.start(db, s2.id)
+        MeasurementService.create(db, 'esp32-bench2', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        s1_id, s2_id = s1.id, s2.id
+        db.close()
         resp = client.get(f'/api/v1/benchmark/compare?sessions=abc,{s1_id},{s2_id}')
         assert resp.status_code == 200
-        assert len(resp.get_json()['sessions']) == 2
+        assert len(resp.json()['sessions']) == 2

@@ -1,57 +1,63 @@
-from flask import Blueprint, request, jsonify
+from fastapi import APIRouter, Depends, Query, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.database import get_db
 from app.services.alert_service import AlertService
-from app.utils.errors import NotFoundError, ValidationError, error_response
-from app.utils.validators import validate_required
 
-alerts_bp = Blueprint('api_alerts', __name__)
+router = APIRouter()
 
 
-@alerts_bp.route('/alerts', methods=['GET'])
-def list_alerts():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
-    device_id = request.args.get('device_id', type=int)
-    level = request.args.get('level')
-    resolved = request.args.get('resolved')
+class AlertCreate(BaseModel):
+    device_id: int
+    level: str = 'warning'
+    message: str
+
+
+@router.get('/alerts')
+def list_alerts(
+    page: int = Query(1),
+    per_page: int = Query(10),
+    device_id: int | None = Query(None),
+    level: str | None = Query(None),
+    resolved: str | None = Query(None),
+    db: Session = Depends(get_db),
+):
+    resolved_bool = None
     if resolved is not None:
-        resolved = resolved.lower() in ('true', '1')
+        resolved_bool = resolved.lower() in ('true', '1')
     pagination = AlertService.get_paginated(
-        page=page, per_page=per_page,
-        device_id=device_id, level=level, resolved=resolved,
+        db, page=page, per_page=per_page,
+        device_id=device_id, level=level, resolved=resolved_bool,
     )
-    return jsonify({
+    return {
         'alerts': [a.to_dict() for a in pagination.items],
         'page': pagination.page,
         'pages': pagination.pages,
         'total': pagination.total,
         'per_page': pagination.per_page,
-        'unresolved_count': AlertService.get_unresolved_count(),
-    })
+        'unresolved_count': AlertService.get_unresolved_count(db),
+    }
 
 
-@alerts_bp.route('/alerts', methods=['POST'])
-def create_alert():
-    body = request.get_json()
-    missing = validate_required(body, ['device_id', 'message'])
-    if missing:
-        return error_response(f'{missing} is required', 400)
-    device_id = body['device_id']
-    level = body.get('level', 'warning')
-    message = body['message']
-    alert = AlertService.create(device_id, level, message)
-    return jsonify(alert.to_dict()), 201
+@router.post('/alerts', status_code=201)
+def create_alert(body: AlertCreate, db: Session = Depends(get_db)):
+    alert = AlertService.create(db, body.device_id, body.level, body.message)
+    return alert.to_dict()
 
 
-@alerts_bp.route('/alerts/<int:alert_id>/resolve', methods=['PATCH'])
-def resolve_alert(alert_id):
-    alert = AlertService.resolve(alert_id)
+@router.patch('/alerts/{alert_id}/resolve')
+def resolve_alert(alert_id: int, db: Session = Depends(get_db)):
+    alert = AlertService.resolve(db, alert_id)
     if not alert:
-        raise NotFoundError('Alert not found')
-    return jsonify(alert.to_dict())
+        raise HTTPException(status_code=404, detail='Alert not found')
+    return alert.to_dict()
 
 
-@alerts_bp.route('/alerts/resolve-all', methods=['POST'])
-def resolve_all():
-    device_id = request.args.get('device_id', type=int)
-    AlertService.resolve_all(device_id=device_id)
-    return jsonify({'status': 'ok'})
+@router.post('/alerts/resolve-all')
+def resolve_all(
+    device_id: int | None = Query(None),
+    db: Session = Depends(get_db),
+):
+    AlertService.resolve_all(db, device_id=device_id)
+    return {'status': 'ok'}

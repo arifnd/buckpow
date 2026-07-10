@@ -1,89 +1,102 @@
-from flask import Blueprint, request, jsonify
+from fastapi import APIRouter, Depends, Query, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.database import get_db
 from app.services.session_service import SessionService
-from app.utils.errors import NotFoundError, error_response
-from app.utils.validators import validate_required
 
-sessions_bp = Blueprint('api_sessions', __name__)
+router = APIRouter()
 
 
-@sessions_bp.route('/sessions', methods=['GET'])
-def list_sessions():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
+class SessionCreate(BaseModel):
+    device_id: int
+    name: str
+    target_device: str = ''
+    description: str = ''
+    project_id: int | None = None
+
+
+class SessionUpdate(BaseModel):
+    name: str | None = None
+    target_device: str | None = None
+    description: str | None = None
+    project_id: int | None = None
+
+
+@router.get('/sessions')
+def list_sessions(
+    page: int = Query(1),
+    per_page: int = Query(10),
+    db: Session = Depends(get_db),
+):
     if page == 0:
-        sessions = SessionService.get_all()
-        return jsonify([s.to_dict() for s in sessions])
-    pagination = SessionService.get_paginated(page=page, per_page=per_page)
-    return jsonify({
+        sessions = SessionService.get_all(db)
+        return [s.to_dict() for s in sessions]
+    pagination = SessionService.get_paginated(db, page=page, per_page=per_page)
+    return {
         'sessions': [s.to_dict() for s in pagination.items],
         'page': pagination.page,
         'pages': pagination.pages,
         'total': pagination.total,
         'per_page': pagination.per_page,
-    })
+    }
 
 
-@sessions_bp.route('/sessions', methods=['POST'])
-def create_session():
-    body = request.get_json()
-    missing = validate_required(body, ['name', 'device_id'])
-    if missing:
-        return error_response(f'{missing} is required', 400)
-
+@router.post('/sessions', status_code=201)
+def create_session(body: SessionCreate, db: Session = Depends(get_db)):
+    if not body.name or not body.device_id:
+        raise HTTPException(status_code=400, detail='name and device_id are required')
     session = SessionService.create(
-        device_id=body['device_id'],
-        name=body['name'],
-        target_device=body.get('target_device', ''),
-        description=body.get('description', ''),
-        project_id=body.get('project_id'),
+        db,
+        device_id=body.device_id,
+        name=body.name,
+        target_device=body.target_device,
+        description=body.description,
+        project_id=body.project_id,
     )
-    return jsonify(session.to_dict()), 201
+    return session.to_dict()
 
 
-@sessions_bp.route('/sessions/<int:session_id>', methods=['GET'])
-def get_session(session_id):
-    session = SessionService.get_by_id(session_id)
+@router.get('/sessions/{session_id}')
+def get_session(session_id: int, db: Session = Depends(get_db)):
+    session = SessionService.get_by_id(db, session_id)
     if not session:
-        raise NotFoundError('Session not found')
-    return jsonify(session.to_dict())
+        raise HTTPException(status_code=404, detail='Session not found')
+    return session.to_dict()
 
 
-@sessions_bp.route('/sessions/<int:session_id>', methods=['PUT'])
-def update_session(session_id):
-    body = request.get_json()
-    if not body:
-        return error_response('No JSON payload', 400)
-
+@router.put('/sessions/{session_id}')
+def update_session(session_id: int, body: SessionUpdate, db: Session = Depends(get_db)):
     session = SessionService.update(
-        session_id,
-        name=body.get('name'),
-        target_device=body.get('target_device'),
-        description=body.get('description'),
-        project_id=body.get('project_id'),
+        db, session_id,
+        name=body.name,
+        target_device=body.target_device,
+        description=body.description,
+        project_id=body.project_id,
     )
     if not session:
-        raise NotFoundError('Session not found')
-    return jsonify(session.to_dict())
+        raise HTTPException(status_code=404, detail='Session not found')
+    return session.to_dict()
 
 
-@sessions_bp.route('/sessions/<int:session_id>', methods=['DELETE'])
-def delete_session(session_id):
-    if SessionService.delete(session_id):
-        return jsonify({'status': 'deleted'}), 200
-    raise NotFoundError('Session not found')
+@router.delete('/sessions/{session_id}')
+def delete_session(session_id: int, db: Session = Depends(get_db)):
+    if SessionService.delete(db, session_id):
+        return {'status': 'deleted'}
+    raise HTTPException(status_code=404, detail='Session not found')
 
 
-@sessions_bp.route('/sessions/<int:session_id>/start', methods=['POST'])
-def start_session(session_id):
-    session, error = SessionService.start(session_id)
+@router.post('/sessions/{session_id}/start')
+def start_session(session_id: int, db: Session = Depends(get_db)):
+    session, error = SessionService.start(db, session_id)
     if error:
-        return jsonify({'error': error}), 400
-    return jsonify(session.to_dict())
+        raise HTTPException(status_code=400, detail=error)
+    return session.to_dict()
 
 
-@sessions_bp.route('/sessions/<int:session_id>/stop', methods=['POST'])
-def stop_session(session_id):
-    session, error = SessionService.stop(session_id)
+@router.post('/sessions/{session_id}/stop')
+def stop_session(session_id: int, db: Session = Depends(get_db)):
+    session, error = SessionService.stop(db, session_id)
     if error:
-        return jsonify({'error': error}), 400
-    return jsonify(session.to_dict())
+        raise HTTPException(status_code=400, detail=error)
+    return session.to_dict()

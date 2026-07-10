@@ -1,28 +1,34 @@
-from app import db
+from datetime import datetime, timezone
+
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+
+from app.database import Base
 
 
-class Session(db.Model):
+class Session(Base):
     __tablename__ = 'sessions'
 
-    id = db.Column(db.Integer, primary_key=True)
-    device_id = db.Column(db.Integer, db.ForeignKey('devices.id'), nullable=False)
-    name = db.Column(db.String(256), nullable=False)
-    target_device = db.Column(db.String(64), default='')
-    description = db.Column(db.Text, default='')
-    status = db.Column(db.String(16), default='draft')
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
-    started_at = db.Column(db.DateTime, nullable=True)
-    ended_at = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+    id = Column(Integer, primary_key=True)
+    device_id = Column(Integer, ForeignKey('devices.id'), nullable=False)
+    name = Column(String(256), nullable=False)
+    target_device = Column(String(64), default='')
+    description = Column(Text, default='')
+    status = Column(String(16), default='draft')
+    project_id = Column(Integer, ForeignKey('projects.id'), nullable=True)
+    started_at = Column(DateTime, nullable=True)
+    ended_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
-    measurements = db.relationship('Measurement', backref='session', lazy='dynamic')
+    device_ref = relationship('Device', back_populates='sessions')
+    measurements = relationship('Measurement', back_populates='session_ref', lazy='dynamic')
 
     def to_dict(self):
         return {
             'id': self.id,
             'device_id': self.device_id,
-            'device_name': self.device.alias or self.device.device_id if self.device else None,
+            'device_name': self.device_ref.alias or self.device_ref.device_id if self.device_ref else None,
             'name': self.name,
             'target_device': self.target_device,
             'description': self.description,

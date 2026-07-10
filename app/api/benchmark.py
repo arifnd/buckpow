@@ -1,31 +1,31 @@
-from flask import Blueprint, request, jsonify
+from fastapi import APIRouter, Depends, Query, HTTPException
+from sqlalchemy.orm import Session
+
+from app.database import get_db
 from app.services.measurement_service import MeasurementService
-from app.utils.errors import error_response
 
-benchmark_bp = Blueprint('api_benchmark', __name__)
+router = APIRouter()
 
 
-@benchmark_bp.route('/benchmark/compare', methods=['GET'])
-def compare():
-    sessions_param = request.args.get('sessions', '')
-    if not sessions_param:
-        return error_response('sessions parameter is required (comma-separated IDs)', 400)
-
-    session_ids = [s.strip() for s in sessions_param.split(',') if s.strip()]
+@router.get('/benchmark/compare')
+def compare(
+    sessions: str = Query(''),
+    db: Session = Depends(get_db),
+):
+    if not sessions:
+        raise HTTPException(status_code=400, detail='sessions parameter is required (comma-separated IDs)')
+    session_ids = [s.strip() for s in sessions.split(',') if s.strip()]
     if len(session_ids) < 2:
-        return error_response('At least two session IDs are required', 400)
-
+        raise HTTPException(status_code=400, detail='At least two session IDs are required')
     results = []
     for sid in session_ids:
         try:
             sid_int = int(sid)
         except ValueError:
             continue
-        stats = MeasurementService.get_session_stats(sid_int)
+        stats = MeasurementService.get_session_stats(db, sid_int)
         if stats:
             results.append(stats)
-
     if len(results) < 2:
-        return error_response('Could not find at least two valid sessions', 404)
-
-    return jsonify({'sessions': results})
+        raise HTTPException(status_code=404, detail='Could not find at least two valid sessions')
+    return {'sessions': results}

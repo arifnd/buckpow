@@ -1,19 +1,22 @@
 from datetime import datetime, timezone
 
-from app import db
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+
+from app.database import Base
 
 
-class Alert(db.Model):
+class Alert(Base):
     __tablename__ = 'alerts'
 
-    id = db.Column(db.Integer, primary_key=True)
-    device_id = db.Column(db.Integer, db.ForeignKey('devices.id'), nullable=False, index=True)
-    level = db.Column(db.String(16), nullable=False, default='warning')
-    message = db.Column(db.String(256), nullable=False)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    resolved_at = db.Column(db.DateTime, nullable=True)
+    id = Column(Integer, primary_key=True)
+    device_id = Column(Integer, ForeignKey('devices.id'), nullable=False, index=True)
+    level = Column(String(16), nullable=False, default='warning')
+    message = Column(String(256), nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    resolved_at = Column(DateTime, nullable=True)
 
-    device_rel = db.relationship('Device', backref='alerts', lazy='select')
+    device_rel = relationship('Device', backref='alerts', lazy='select')
 
     def to_dict(self):
         return {

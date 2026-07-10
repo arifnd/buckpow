@@ -1,30 +1,30 @@
 # BuckPow
 
-Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives power readings from ESP32/ESP8266 + INA219 via HTTP POST. Serves a Tailwind CSS + HTMX dashboard with Chart.js real-time charts and dark theme.
+Power monitoring dashboard built with FastAPI + SQLAlchemy + SQLite. Receives power readings from ESP32/ESP8266 + INA219 via HTTP POST. Serves a Tailwind CSS + HTMX dashboard with Chart.js real-time charts and dark theme.
 
 ## Repository structure
 
 | Path | Purpose |
 |---|---|
-| `run.py` | Flask entrypoint |
-| `app/` | Python package: config, models, services, API, dashboard |
-| `app/config.py` | Config classes (Config, DevConfig) |
+| `app/main.py` | FastAPI entrypoint (`fastapi run app/main.py`) |
+| `app/__init__.py` | FastAPI app factory, lifespan, exception handlers, router mounting |
+| `app/config.py` | Settings via `pydantic-settings`-style env vars |
+| `app/database.py` | SQLAlchemy engine, SessionLocal, Base, `get_db` dependency |
+| `app/auth.py` | JWT creation/verification, `get_current_user`, `get_api_key_device` deps |
 | `app/models/` | SQLAlchemy models (User, Device, Session, Measurement, Alert, Project) |
 | `app/services/` | Business logic layer (User, Device, Session, Measurement, Alert, Project, Dashboard) |
-| `app/api/` | REST API v1 blueprints (`/api/v1/*`) |
-| `app/api/__init__.py` | Centralized blueprint registration |
-| `app/api/auth.py` | Login/logout/profile |
-| `app/api/health.py` | Health check |
-| `app/dashboard/` | Server-rendered page routes |
+| `app/api/` | FastAPI APIRouters (`/api/v1/*`) |
+| `app/dashboard/` | Server-rendered page routes (Jinja2) |
 | `app/templates/` | Jinja2 templates (Tailwind CSS, HTMX) |
 | `app/static/` | CSS, JS (Chart.js, dashboard, theme) |
-| `app/utils/` | Utility functions (calculations, errors, validators) |
+| `app/utils/` | Utility functions (calculations, errors, validators, hash) |
 | `instance/buckpow.db` | SQLite database (auto-created) |
 | `migrations/` | Alembic migration files (Flask-Migrate) |
 | `scripts/send_dummy.py` | Dummy data generator |
 | `firmware/` | Arduino sketches for ESP32/ESP8266 + INA219 |
-| `tests/` | Pytest suite (328 tests) |
+| `tests/` | Pytest suite (335 tests) |
 | `.env` | Config via env vars |
+| `Dockerfile` | `CMD ["fastapi", "run", "app/main.py", "--port", "5000", "--proxy-headers"]` |
 | `docker-compose.yml` | PostgreSQL + Nginx production stack |
 
 ## Quick start
@@ -32,15 +32,10 @@ Power monitoring dashboard built with Flask + SQLAlchemy + SQLite. Receives powe
 ```bash
 source venv/bin/activate
 pip install -r requirements.txt
-flask db upgrade           # create/update database schema
-python run.py              # start on port 5001 (see .env)
+fastapi run app/main.py
 ```
 
-**Or** (auto-creates tables on first run):
-
-```bash
-python run.py              # db.create_all() runs on startup
-```
+Tables auto-create on first run. Default admin: `admin@example.com` / `password`.
 
 ## API endpoints
 
@@ -115,8 +110,8 @@ curl -X POST http://localhost:5001/api/v1/measurements \
 ## Key facts
 
 - **Models** — User, Device (with API key & thresholds), Session (with energy), Measurement (with energy), Alert (levels: info/warning/critical), Project
-- **Authentication** — `flask_login` for dashboard, Bearer token for device API
-- **Service layer** — business logic separated from HTTP handlers (7 services)
+- **Authentication** — JWT bearer token for API, JWT cookie-based for dashboard, Bearer token for device API
+- **Service layer** — business logic separated from HTTP handlers (7 services), all accept `db: Session`
 - **HTMX navigation** — `hx-boost="true"` on `<body>` for SPA-like page transitions with native `<script>` re-evaluation
 - **Tailwind CSS** — Utility-first styling with dark theme via CSS variables
 - **Flowbite Datepicker** — Used on measurements filter page for date range selection
@@ -130,6 +125,7 @@ curl -X POST http://localhost:5001/api/v1/measurements \
 - **Docker** — PostgreSQL + Nginx production stack via docker-compose
 - **Migration ready** — Flask-Migrate / Alembic configured for future PostgreSQL
 - **Virtual env** at `venv/` — activate before Python commands
+- **Passwords** — bcrypt via passlib; existing scrypt hashes migrated automatically
 
 ## Tests
 

@@ -1,6 +1,3 @@
-import json
-
-
 class TestAPI:
     def test_post_measurement_success(self, client, device_auth_header):
         resp = client.post('/api/v1/measurements', json={
@@ -11,18 +8,17 @@ class TestAPI:
             'power': 1234,
         }, headers=device_auth_header)
         assert resp.status_code == 201
-        data = resp.get_json()
+        data = resp.json()
         assert data['status'] == 'success'
 
     def test_post_measurement_missing_fields(self, client, device_auth_header):
         resp = client.post('/api/v1/measurements', json={'device_id': 'esp32-auth'},
                            headers=device_auth_header)
-        assert resp.status_code == 400
+        assert resp.status_code == 422
 
     def test_post_measurement_no_json(self, client, device_auth_header):
-        resp = client.post('/api/v1/measurements', data=b'{}', content_type='application/json',
-                           headers=device_auth_header)
-        assert resp.status_code == 400
+        resp = client.post('/api/v1/measurements', content=b'{}', headers=device_auth_header)
+        assert resp.status_code == 422
 
     def test_get_measurements_paginated(self, client, device_auth_header):
         client.post('/api/v1/measurements', json={
@@ -31,21 +27,21 @@ class TestAPI:
         }, headers=device_auth_header)
         resp = client.get('/api/v1/measurements?per_page=10')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert len(data['measurements']) >= 1
         assert data['total'] >= 1
 
     def test_get_dashboard(self, client):
         resp = client.get('/api/v1/dashboard')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert 'devices' in data
         assert 'stats' in data
 
     def test_get_chart_data(self, client):
         resp = client.get('/api/v1/chart?limit=10')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert 'labels' in data
         assert 'voltage' in data
         assert 'current' in data
@@ -58,17 +54,17 @@ class TestAPI:
             'alias': 'CRUD Device',
         })
         assert resp.status_code == 201
-        d = resp.get_json()
+        d = resp.json()
         assert d['device_id'] == 'esp32-crud'
 
         resp = client.get('/api/v1/devices')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert any(dev['device_id'] == 'esp32-crud' for dev in data['devices'])
 
         resp = client.put(f'/api/v1/devices/{d["id"]}', json={'alias': 'Updated Alias'})
         assert resp.status_code == 200
-        assert resp.get_json()['alias'] == 'Updated Alias'
+        assert resp.json()['alias'] == 'Updated Alias'
 
         resp = client.delete(f'/api/v1/devices/{d["id"]}')
         assert resp.status_code == 200
@@ -77,29 +73,29 @@ class TestAPI:
         d = client.post('/api/v1/devices', json={
             'device_id': 'esp32-session',
             'alias': 'Session Device',
-        }).get_json()
+        }).json()
         resp = client.post('/api/v1/sessions', json={
             'device_id': d['id'],
             'name': 'Test Session',
             'target_device': 'esp32-session',
         })
         assert resp.status_code == 201
-        s = resp.get_json()
+        s = resp.json()
         assert s['name'] == 'Test Session'
         assert s['status'] == 'draft'
 
         resp = client.post(f'/api/v1/sessions/{s["id"]}/start')
         assert resp.status_code == 200
-        assert resp.get_json()['status'] == 'running'
+        assert resp.json()['status'] == 'running'
 
         resp = client.post(f'/api/v1/sessions/{s["id"]}/stop')
         assert resp.status_code == 200
-        assert resp.get_json()['status'] == 'finished'
+        assert resp.json()['status'] == 'finished'
 
     def test_dashboard_page(self, client):
         resp = client.get('/')
         assert resp.status_code == 200
-        assert b'BuckPow' in resp.data
+        assert b'BuckPow' in resp.content
 
     def test_devices_page(self, client):
         resp = client.get('/devices')
@@ -120,10 +116,10 @@ class TestAPI:
             'device_id': 'esp32-single',
             'alias': 'Single Device',
         })
-        d = resp.get_json()
+        d = resp.json()
         resp = client.get(f'/api/v1/devices/{d["id"]}')
         assert resp.status_code == 200
-        assert resp.get_json()['device_id'] == 'esp32-single'
+        assert resp.json()['device_id'] == 'esp32-single'
 
     def test_device_get_not_found(self, client):
         resp = client.get('/api/v1/devices/99999')
@@ -139,19 +135,19 @@ class TestAPI:
 
     def test_device_create_missing_device_id(self, client):
         resp = client.post('/api/v1/devices', json={'alias': 'No ID'})
-        assert resp.status_code == 400
-        assert 'device_id is required' in resp.get_json()['error']
+        assert resp.status_code == 422
+        assert 'device_id' in str(resp.json()['detail'])
 
     def test_device_create_no_json(self, client):
-        resp = client.post('/api/v1/devices', data=b'{}', content_type='application/json')
-        assert resp.status_code == 400
+        resp = client.post('/api/v1/devices', content=b'{}')
+        assert resp.status_code == 422
 
     def test_device_pagination(self, client):
         for i in range(15):
             client.post('/api/v1/devices', json={'device_id': f'esp32-page-{i}'})
         resp = client.get('/api/v1/devices?page=1&per_page=5')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert len(data['devices']) == 5
         assert data['total'] == 15
         assert data['pages'] == 3
@@ -162,21 +158,21 @@ class TestAPI:
             client.post('/api/v1/devices', json={'device_id': f'esp32-all-{i}'})
         resp = client.get('/api/v1/devices?page=0')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert isinstance(data, list)
         assert len(data) == 3
 
     # ── Session API edge cases ──
 
     def test_session_get_single(self, client):
-        d = client.post('/api/v1/devices', json={'device_id': 'esp32-single-sess'}).get_json()
+        d = client.post('/api/v1/devices', json={'device_id': 'esp32-single-sess'}).json()
         resp = client.post('/api/v1/sessions', json={
             'device_id': d['id'], 'name': 'Single Session',
         })
-        s = resp.get_json()
+        s = resp.json()
         resp = client.get(f'/api/v1/sessions/{s["id"]}')
         assert resp.status_code == 200
-        assert resp.get_json()['name'] == 'Single Session'
+        assert resp.json()['name'] == 'Single Session'
 
     def test_session_get_not_found(self, client):
         resp = client.get('/api/v1/sessions/99999')
@@ -191,18 +187,18 @@ class TestAPI:
         assert resp.status_code == 404
 
     def test_session_create_missing_name(self, client):
-        d = client.post('/api/v1/devices', json={'device_id': 'esp32-missing-name'}).get_json()
+        d = client.post('/api/v1/devices', json={'device_id': 'esp32-missing-name'}).json()
         resp = client.post('/api/v1/sessions', json={'device_id': d['id']})
-        assert resp.status_code == 400
-        assert 'name' in resp.get_json()['error']
+        assert resp.status_code == 422
+        assert 'name' in str(resp.json()['detail'])
 
     def test_session_create_missing_device_id(self, client):
         resp = client.post('/api/v1/sessions', json={'name': 'No Device'})
-        assert resp.status_code == 400
+        assert resp.status_code == 422
 
     def test_session_create_no_json(self, client):
-        resp = client.post('/api/v1/sessions', data=b'{}', content_type='application/json')
-        assert resp.status_code == 400
+        resp = client.post('/api/v1/sessions', content=b'{}')
+        assert resp.status_code == 422
 
     def test_session_start_nonexistent(self, client):
         resp = client.post('/api/v1/sessions/99999/start')
@@ -213,48 +209,48 @@ class TestAPI:
         assert resp.status_code == 400
 
     def test_session_stop_not_running(self, client):
-        d = client.post('/api/v1/devices', json={'device_id': 'esp32-stop'}).get_json()
+        d = client.post('/api/v1/devices', json={'device_id': 'esp32-stop'}).json()
         resp = client.post('/api/v1/sessions', json={
             'device_id': d['id'], 'name': 'Draft Session',
         })
-        s = resp.get_json()
+        s = resp.json()
         assert s['status'] == 'draft'
         resp = client.post(f'/api/v1/sessions/{s["id"]}/stop')
         assert resp.status_code == 400
 
     def test_session_start_already_running(self, client):
-        d = client.post('/api/v1/devices', json={'device_id': 'esp32-start'}).get_json()
+        d = client.post('/api/v1/devices', json={'device_id': 'esp32-start'}).json()
         resp = client.post('/api/v1/sessions', json={
             'device_id': d['id'], 'name': 'Session A',
         })
-        a = resp.get_json()
+        a = resp.json()
         resp = client.post(f'/api/v1/sessions/{a["id"]}/start')
         assert resp.status_code == 200
         resp = client.post(f'/api/v1/sessions/{a["id"]}/start')
         assert resp.status_code == 400
 
     def test_session_pagination(self, client):
-        d = client.post('/api/v1/devices', json={'device_id': 'esp32-sess-page'}).get_json()
+        d = client.post('/api/v1/devices', json={'device_id': 'esp32-sess-page'}).json()
         for i in range(15):
             client.post('/api/v1/sessions', json={
                 'device_id': d['id'], 'name': f'Session {i}',
             })
         resp = client.get('/api/v1/sessions?page=1&per_page=5')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert len(data['sessions']) == 5
         assert data['total'] == 15
         assert data['pages'] == 3
 
     def test_session_page_zero_returns_all(self, client):
-        d = client.post('/api/v1/devices', json={'device_id': 'esp32-sess-all'}).get_json()
+        d = client.post('/api/v1/devices', json={'device_id': 'esp32-sess-all'}).json()
         for i in range(3):
             client.post('/api/v1/sessions', json={
                 'device_id': d['id'], 'name': f'Sess {i}',
             })
         resp = client.get('/api/v1/sessions?page=0')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert isinstance(data, list)
         assert len(data) == 3
 
@@ -263,17 +259,19 @@ class TestAPI:
     def test_measurements_empty(self, client):
         resp = client.get('/api/v1/measurements')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert data['measurements'] == []
         assert data['total'] == 0
 
     def test_measurements_filter_by_device(self, client, app):
+        from app.database import SessionLocal
         from app.services.device_service import DeviceService
-        with app.app_context():
-            da = DeviceService.create('esp32-filt-a')
-            db_ = DeviceService.create('esp32-filt-b')
-            ka = da.api_key
-            kb = db_.api_key
+        db = SessionLocal()
+        da = DeviceService.create(db, 'esp32-filt-a')
+        db_ = DeviceService.create(db, 'esp32-filt-b')
+        ka = da.api_key
+        kb = db_.api_key
+        db.close()
         client.post('/api/v1/measurements', json={
             'device_id': 'esp32-filt-a', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
@@ -284,7 +282,7 @@ class TestAPI:
         }, headers={'Authorization': f'Bearer {kb}'})
         resp = client.get(f'/api/v1/measurements?device_id={db_.id}')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert len(data['measurements']) == 1
 
     def test_csv_export(self, client, device_auth_header):
@@ -294,29 +292,31 @@ class TestAPI:
         }, headers=device_auth_header)
         resp = client.get('/api/v1/measurements/export/csv')
         assert resp.status_code == 200
-        assert resp.content_type == 'text/csv; charset=utf-8'
-        assert b'Device' in resp.data
-        assert b'esp32-auth' in resp.data
+        assert 'text/csv' in resp.headers['content-type']
+        assert b'Device' in resp.content
+        assert b'esp32-auth' in resp.content
 
     def test_csv_export_empty(self, client):
         resp = client.get('/api/v1/measurements/export/csv')
         assert resp.status_code == 200
-        assert resp.content_type == 'text/csv; charset=utf-8'
-        lines = resp.data.decode().strip().split('\n')
+        assert 'text/csv' in resp.headers['content-type']
+        lines = resp.content.decode().strip().split('\n')
         assert len(lines) == 1
 
     def test_chart_data_with_filters(self, client, app):
+        from app.database import SessionLocal
         from app.services.device_service import DeviceService
-        with app.app_context():
-            d = DeviceService.create('esp32-chart')
-            key = d.api_key
+        db = SessionLocal()
+        d = DeviceService.create(db, 'esp32-chart')
+        key = d.api_key
+        db.close()
         client.post('/api/v1/measurements', json={
             'device_id': 'esp32-chart', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers={'Authorization': f'Bearer {key}'})
         resp = client.get(f'/api/v1/chart?limit=5&device_id={d.id}')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert len(data['labels']) == 1
 
     def test_get_measurements_with_date_range(self, client, device_auth_header):
@@ -326,7 +326,7 @@ class TestAPI:
         }, headers=device_auth_header)
         resp = client.get('/api/v1/measurements?start_date=2000-01-01&end_date=2099-12-31')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert len(data['measurements']) >= 1
 
     # ── XLSX export ──
@@ -338,7 +338,7 @@ class TestAPI:
         }, headers=device_auth_header)
         resp = client.get('/api/v1/measurements/export/xlsx')
         assert resp.status_code == 200
-        assert 'spreadsheetml' in resp.content_type or 'octet-stream' in resp.content_type
+        assert 'spreadsheetml' in resp.headers['content-type'] or 'octet-stream' in resp.headers['content-type']
 
     def test_xlsx_export_empty(self, client):
         resp = client.get('/api/v1/measurements/export/xlsx')
@@ -346,13 +346,13 @@ class TestAPI:
 
     # ── Measurement API auth ──
 
-    def test_post_measurement_no_auth(self, client):
-        resp = client.post('/api/v1/measurements', json={
+    def test_post_measurement_no_auth(self, unauth_client):
+        resp = unauth_client.post('/api/v1/measurements', json={
             'device_id': 'esp32-auth', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         })
         assert resp.status_code == 401
-        assert 'Authorization' in resp.get_json()['error']
+        assert 'Authorization' in resp.json()['error']
 
     def test_post_measurement_malformed_auth(self, client):
         resp = client.post('/api/v1/measurements', json={
@@ -374,16 +374,17 @@ class TestAPI:
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=device_auth_header)
         assert resp.status_code == 403
-        assert b'does not match' in resp.data
+        assert b'does not match' in resp.content
 
     def test_post_measurement_disabled_device(self, client, app):
+        from app.database import SessionLocal
         from app.services.device_service import DeviceService
-        with app.app_context():
-            d = DeviceService.create('esp32-disabled')
-            d.enabled = False
-            from app import db
-            db.session.commit()
-            key = d.api_key
+        db = SessionLocal()
+        d = DeviceService.create(db, 'esp32-disabled')
+        d.enabled = False
+        db.commit()
+        key = d.api_key
+        db.close()
         resp = client.post('/api/v1/measurements', json={
             'device_id': 'esp32-disabled', 'bus_voltage': 5.0,
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
@@ -399,7 +400,7 @@ class TestAPI:
         }, headers=device_auth_header)
         resp = client.get('/api/v1/chart?granularity=s')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert 'labels' in data
 
     def test_chart_granularity_day(self, client, device_auth_header):
@@ -433,16 +434,16 @@ class TestAPI:
     def test_chart_invalid_granularity(self, client):
         resp = client.get('/api/v1/chart?granularity=x')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert 'voltage' in data
 
     # ── Device API extras ──
 
     def test_device_get_key(self, client):
-        created = client.post('/api/v1/devices', json={'device_id': 'esp32-getkey'}).get_json()
+        created = client.post('/api/v1/devices', json={'device_id': 'esp32-getkey'}).json()
         resp = client.get(f'/api/v1/devices/{created["id"]}/key')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert 'api_key' in data
         assert len(data['api_key']) == 64
 
@@ -451,22 +452,22 @@ class TestAPI:
         assert resp.status_code == 404
 
     def test_device_toggle(self, client):
-        created = client.post('/api/v1/devices', json={'device_id': 'esp32-toggle'}).get_json()
+        created = client.post('/api/v1/devices', json={'device_id': 'esp32-toggle'}).json()
         assert created['enabled'] is True
         resp = client.patch(f'/api/v1/devices/{created["id"]}/toggle')
         assert resp.status_code == 200
-        assert resp.get_json()['enabled'] is False
+        assert resp.json()['enabled'] is False
 
     def test_device_toggle_not_found(self, client):
         resp = client.patch('/api/v1/devices/99999/toggle')
         assert resp.status_code == 404
 
     def test_device_regenerate_key(self, client):
-        created = client.post('/api/v1/devices', json={'device_id': 'esp32-regkey'}).get_json()
+        created = client.post('/api/v1/devices', json={'device_id': 'esp32-regkey'}).json()
         old_key = created['api_key']
         resp = client.post(f'/api/v1/devices/{created["id"]}/regenerate-key')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert data['api_key'] != old_key
 
     def test_device_regenerate_key_not_found(self, client):
@@ -474,8 +475,8 @@ class TestAPI:
         assert resp.status_code == 404
 
     def test_device_update_no_json(self, client):
-        resp = client.put('/api/v1/devices/1', data=b'{}', content_type='application/json')
-        assert resp.status_code == 400
+        resp = client.put('/api/v1/devices/1', content=b'{}')
+        assert resp.status_code == 422
 
     def test_device_create_with_all_fields(self, client, sample_project):
         resp = client.post('/api/v1/devices', json={
@@ -490,20 +491,20 @@ class TestAPI:
             'low_voltage_threshold': 4.0,
         })
         assert resp.status_code == 201
-        data = resp.get_json()
+        data = resp.json()
         assert data['device_id'] == 'esp32-full'
         assert data['sampling_interval'] == 5
         assert data['firmware_version'] == 'v2.0'
 
     def test_device_update_with_thresholds(self, client):
-        created = client.post('/api/v1/devices', json={'device_id': 'esp32-upd-thresh'}).get_json()
+        created = client.post('/api/v1/devices', json={'device_id': 'esp32-upd-thresh'}).json()
         resp = client.put(f'/api/v1/devices/{created["id"]}', json={
             'high_current_threshold': 0.8,
             'high_power_threshold': 5.0,
             'firmware_version': 'v3.0',
         })
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert data['firmware_version'] == 'v3.0'
 
     # ── Dashboard API extras ──
@@ -511,7 +512,7 @@ class TestAPI:
     def test_dashboard_summary(self, client):
         resp = client.get('/api/v1/dashboard/summary')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert 'online_devices' in data
         assert 'offline_devices' in data
         assert 'active_sessions' in data
@@ -519,7 +520,7 @@ class TestAPI:
     def test_dashboard_statistics(self, client):
         resp = client.get('/api/v1/dashboard/statistics')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert 'voltage' in data
         assert 'current' in data
         assert 'power' in data
@@ -532,20 +533,21 @@ class TestAPI:
     def test_dashboard_no_measurements(self, client):
         resp = client.get('/api/v1/dashboard')
         assert resp.status_code == 200
-        data = resp.get_json()
+        data = resp.json()
         assert data['stats']['energy']['total'] == 0
 
 
 class TestFirmwareCompatibility:
 
     def _create_device(self, app):
+        from app.database import SessionLocal
         from app.services.device_service import DeviceService
-        from app import db
-        with app.app_context():
-            d = DeviceService.create('esp32-fw')
-            key = d.api_key
-            d.firmware_version = ''
-            db.session.commit()
+        db = SessionLocal()
+        d = DeviceService.create(db, 'esp32-fw')
+        key = d.api_key
+        d.firmware_version = ''
+        db.commit()
+        db.close()
         return key
 
     def _auth_header(self, key):
@@ -558,11 +560,13 @@ class TestFirmwareCompatibility:
             'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=self._auth_header(key))
         assert resp.status_code == 201
-        assert resp.headers.get('X-Firmware-Outdated') is None
-        with app.app_context():
-            from app.models import Device
-            d = Device.query.filter_by(device_id='esp32-fw').first()
-            assert d.firmware_version == '1.0.0'
+        assert resp.headers.get('x-firmware-outdated') is None
+        from app.database import SessionLocal
+        from app.models import Device
+        db = SessionLocal()
+        d = db.query(Device).filter_by(device_id='esp32-fw').first()
+        assert d.firmware_version == '1.0.0'
+        db.close()
 
     def test_outdated_firmware(self, client, app):
         key = self._create_device(app)
@@ -571,11 +575,13 @@ class TestFirmwareCompatibility:
             'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=self._auth_header(key))
         assert resp.status_code == 201
-        assert resp.headers.get('X-Firmware-Outdated') == 'true'
-        with app.app_context():
-            from app.models import Device
-            d = Device.query.filter_by(device_id='esp32-fw').first()
-            assert d.firmware_version == '0.9.0'
+        assert resp.headers.get('x-firmware-outdated') == 'true'
+        from app.database import SessionLocal
+        from app.models import Device
+        db = SessionLocal()
+        d = db.query(Device).filter_by(device_id='esp32-fw').first()
+        assert d.firmware_version == '0.9.0'
+        db.close()
 
     def test_no_firmware_sets_unknown(self, client, app):
         key = self._create_device(app)
@@ -584,10 +590,12 @@ class TestFirmwareCompatibility:
             'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=self._auth_header(key))
         assert resp.status_code == 201
-        with app.app_context():
-            from app.models import Device
-            d = Device.query.filter_by(device_id='esp32-fw').first()
-            assert d.firmware_version == 'unknown'
+        from app.database import SessionLocal
+        from app.models import Device
+        db = SessionLocal()
+        d = db.query(Device).filter_by(device_id='esp32-fw').first()
+        assert d.firmware_version == 'unknown'
+        db.close()
 
     def test_firmware_upgrade(self, client, app):
         key = self._create_device(app)
@@ -600,8 +608,10 @@ class TestFirmwareCompatibility:
             'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers=self._auth_header(key))
         assert resp.status_code == 201
-        assert resp.headers.get('X-Firmware-Outdated') is None
-        with app.app_context():
-            from app.models import Device
-            d = Device.query.filter_by(device_id='esp32-fw').first()
-            assert d.firmware_version == '1.0.0'
+        assert resp.headers.get('x-firmware-outdated') is None
+        from app.database import SessionLocal
+        from app.models import Device
+        db = SessionLocal()
+        d = db.query(Device).filter_by(device_id='esp32-fw').first()
+        assert d.firmware_version == '1.0.0'
+        db.close()

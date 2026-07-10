@@ -1,33 +1,36 @@
 from datetime import datetime, timezone, timedelta
 
-from app import db
+from sqlalchemy import Column, Integer, String, Text, Boolean, Float, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+
+from app.database import Base
 
 
 ONLINE_TIMEOUT = 30
 
 
-class Device(db.Model):
+class Device(Base):
     __tablename__ = 'devices'
 
-    id = db.Column(db.Integer, primary_key=True)
-    device_id = db.Column(db.String(64), unique=True, nullable=False, index=True)
-    alias = db.Column(db.String(128), default='')
-    description = db.Column(db.Text, default='')
-    sampling_interval = db.Column(db.Integer, default=1)
-    last_seen = db.Column(db.DateTime, nullable=True)
-    status = db.Column(db.String(16), default='offline')
-    enabled = db.Column(db.Boolean, default=True)
-    firmware_version = db.Column(db.String(64), default='')
-    api_key = db.Column(db.String(64), unique=True, nullable=True, index=True)
-    project_id = db.Column(db.Integer, db.ForeignKey('projects.id'), nullable=True)
-    high_current_threshold = db.Column(db.Float, nullable=True)
-    high_power_threshold = db.Column(db.Float, nullable=True)
-    low_voltage_threshold = db.Column(db.Float, nullable=True)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+    id = Column(Integer, primary_key=True)
+    device_id = Column(String(64), unique=True, nullable=False, index=True)
+    alias = Column(String(128), default='')
+    description = Column(Text, default='')
+    sampling_interval = Column(Integer, default=1)
+    last_seen = Column(DateTime, nullable=True)
+    status = Column(String(16), default='offline')
+    enabled = Column(Boolean, default=True)
+    firmware_version = Column(String(64), default='')
+    api_key = Column(String(64), unique=True, nullable=True, index=True)
+    project_id = Column(Integer, ForeignKey('projects.id'), nullable=True)
+    high_current_threshold = Column(Float, nullable=True)
+    high_power_threshold = Column(Float, nullable=True)
+    low_voltage_threshold = Column(Float, nullable=True)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
-    sessions = db.relationship('Session', backref='device', lazy='dynamic')
-    measurements = db.relationship('Measurement', backref='device', lazy='dynamic')
+    sessions = relationship('Session', back_populates='device_ref', lazy='dynamic')
+    measurements = relationship('Measurement', back_populates='device_ref', lazy='dynamic')
 
     def _compute_status(self):
         if not self.last_seen:

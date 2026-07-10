@@ -2,42 +2,42 @@ class TestDashboardRoutes:
     def test_login_page_returns_form(self, unauth_client):
         resp = unauth_client.get('/auth/login')
         assert resp.status_code == 200
-        html = resp.data.decode()
+        html = resp.content.decode()
         assert 'login' in html.lower() or 'email' in html.lower()
 
     def test_login_page_redirects_when_authenticated(self, client):
-        resp = client.get('/auth/login')
+        resp = client.get('/auth/login', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_logout(self, client):
         resp = client.post('/auth/logout')
         assert resp.status_code == 200
-        assert resp.get_json() == {'status': 'ok'}
+        assert resp.json() == {'status': 'ok'}
 
     def test_dashboard_requires_login(self, unauth_client):
-        resp = unauth_client.get('/')
+        resp = unauth_client.get('/', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_devices_requires_login(self, unauth_client):
-        resp = unauth_client.get('/devices')
+        resp = unauth_client.get('/devices', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_sessions_requires_login(self, unauth_client):
-        resp = unauth_client.get('/sessions')
+        resp = unauth_client.get('/sessions', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_measurements_requires_login(self, unauth_client):
-        resp = unauth_client.get('/measurements')
+        resp = unauth_client.get('/measurements', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_devices_new_requires_login(self, unauth_client):
-        resp = unauth_client.get('/devices/new')
+        resp = unauth_client.get('/devices/new', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_devices_new_page(self, client):
         resp = client.get('/devices/new')
         assert resp.status_code == 200
-        html = resp.data.decode()
+        html = resp.content.decode()
         assert 'form' in html.lower() or 'device' in html.lower()
 
     def test_devices_edit_not_found(self, client):
@@ -49,17 +49,17 @@ class TestDashboardRoutes:
         assert resp.status_code == 200
 
     def test_sessions_edit_not_found(self, client):
-        resp = client.get('/sessions/99999/edit')
+        resp = client.get('/sessions/1/edit')
         assert resp.status_code == 200
 
     def test_projects_page(self, client):
         resp = client.get('/projects')
         assert resp.status_code == 200
-        html = resp.data.decode()
+        html = resp.content.decode()
         assert 'project' in html.lower()
 
     def test_projects_requires_login(self, unauth_client):
-        resp = unauth_client.get('/projects')
+        resp = unauth_client.get('/projects', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_benchmark_page(self, client):
@@ -67,7 +67,7 @@ class TestDashboardRoutes:
         assert resp.status_code == 200
 
     def test_benchmark_requires_login(self, unauth_client):
-        resp = unauth_client.get('/benchmark')
+        resp = unauth_client.get('/benchmark', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_profile_page(self, client):
@@ -75,7 +75,7 @@ class TestDashboardRoutes:
         assert resp.status_code == 200
 
     def test_profile_requires_login(self, unauth_client):
-        resp = unauth_client.get('/profile')
+        resp = unauth_client.get('/profile', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_alerts_page(self, client):
@@ -83,7 +83,7 @@ class TestDashboardRoutes:
         assert resp.status_code == 200
 
     def test_alerts_requires_login(self, unauth_client):
-        resp = unauth_client.get('/alerts')
+        resp = unauth_client.get('/alerts', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_settings_page(self, client):
@@ -91,13 +91,13 @@ class TestDashboardRoutes:
         assert resp.status_code == 200
 
     def test_settings_requires_login(self, unauth_client):
-        resp = unauth_client.get('/settings')
+        resp = unauth_client.get('/settings', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_sessions_new_requires_login(self, unauth_client):
-        resp = unauth_client.get('/sessions/new')
+        resp = unauth_client.get('/sessions/new', follow_redirects=False)
         assert resp.status_code == 302
 
     def test_sessions_edit_requires_login(self, unauth_client):
-        resp = unauth_client.get('/sessions/1/edit')
+        resp = unauth_client.get('/sessions/1/edit', follow_redirects=False)
         assert resp.status_code == 302

@@ -1,23 +1,22 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import func
+from sqlalchemy.orm import Session
 
-from app import db
 from app.models import Device, Session, Project, Measurement
 
 
 class DashboardService:
 
     @staticmethod
-    def get_summary():
-        devices = Device.query.all()
+    def get_summary(db: Session):
+        devices = db.query(Device).all()
         online = sum(1 for d in devices if d._compute_status() == 'online')
         offline = len(devices) - online
-        total_projects = Project.query.count()
-        active_sessions = Session.query.filter_by(status='running').count()
+        total_projects = db.query(Project).count()
+        active_sessions = db.query(Session).filter_by(status='running').count()
 
         today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        today_ms = Measurement.query.filter(
+        today_ms = db.query(Measurement).filter(
             Measurement.created_at >= today_start
         ).order_by(Measurement.created_at.asc()).all()
 
@@ -29,7 +28,7 @@ class DashboardService:
                     seen_sessions[m.session_id] = m.energy
             today_energy = sum(seen_sessions.values()) if seen_sessions else 0.0
 
-        latest = Measurement.query.order_by(Measurement.created_at.desc()).first()
+        latest = db.query(Measurement).order_by(Measurement.created_at.desc()).first()
         current_power = round(latest.power, 3) if latest else 0.0
 
         return {
@@ -42,8 +41,8 @@ class DashboardService:
         }
 
     @staticmethod
-    def get_statistics(device_id=None, session_id=None, start_date=None, end_date=None):
-        q = Measurement.query
+    def get_statistics(db: Session, device_id=None, session_id=None, start_date=None, end_date=None):
+        q = db.query(Measurement)
         if device_id:
             q = q.filter_by(device_id=device_id)
         if session_id:
@@ -85,16 +84,16 @@ class DashboardService:
                 'peak': round(max(powers), 3),
             },
             'energy': DashboardService._get_energy_breakdown(
-                device_id=device_id, session_id=session_id,
+                db, device_id=device_id, session_id=session_id,
                 start_date=start_date, end_date=end_date
             ),
         }
         return stats
 
     @staticmethod
-    def _get_energy_breakdown(device_id=None, session_id=None,
+    def _get_energy_breakdown(db: Session, device_id=None, session_id=None,
                               start_date=None, end_date=None):
-        q = Measurement.query
+        q = db.query(Measurement)
         if device_id:
             q = q.filter_by(device_id=device_id)
         if session_id:

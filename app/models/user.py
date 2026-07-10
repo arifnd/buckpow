@@ -1,24 +1,28 @@
-from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timezone
 
-from app import db
+from sqlalchemy import Column, Integer, String, DateTime, JSON
+
+from app.database import Base
+from app.utils.hash import hash_password, verify_password
 
 
-class User(UserMixin, db.Model):
+class User(Base):
     __tablename__ = 'users'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128), nullable=False)
-    email = db.Column(db.String(256), unique=True, nullable=False, index=True)
-    password = db.Column(db.String(256), nullable=False)
-    settings = db.Column(db.JSON, nullable=False, default={})
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
+    is_authenticated = True
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(128), nullable=False)
+    email = Column(String(256), unique=True, nullable=False, index=True)
+    password = Column(String(256), nullable=False)
+    settings = Column(JSON, nullable=False, default={})
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
 
     def set_password(self, password):
-        self.password = generate_password_hash(password)
+        self.password = hash_password(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password, password)
+        return verify_password(password, self.password)
 
     def to_dict(self):
         return {

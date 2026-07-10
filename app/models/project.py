@@ -1,19 +1,24 @@
-from app import db
+from datetime import datetime, timezone
+
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+
+from app.database import Base
 
 
-class Project(db.Model):
+class Project(Base):
     __tablename__ = 'projects'
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(256), nullable=False)
-    description = db.Column(db.Text, default='')
-    owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    created_at = db.Column(db.DateTime, server_default=db.func.now())
-    updated_at = db.Column(db.DateTime, server_default=db.func.now(), onupdate=db.func.now())
+    id = Column(Integer, primary_key=True)
+    name = Column(String(256), nullable=False)
+    description = Column(Text, default='')
+    owner_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
-    owner = db.relationship('User', backref='projects', lazy='select')
-    devices = db.relationship('Device', backref='project', lazy='dynamic')
-    sessions = db.relationship('Session', backref='project', lazy='dynamic')
+    owner = relationship('User', backref='projects', lazy='select')
+    devices = relationship('Device', backref='project', lazy='dynamic')
+    sessions = relationship('Session', backref='project', lazy='dynamic')
 
     def to_dict(self):
         return {

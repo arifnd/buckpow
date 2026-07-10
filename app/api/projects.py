@@ -1,75 +1,95 @@
-from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
+from fastapi import APIRouter, Depends, Query, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.auth import require_user
+from app.models import User
 from app.services.project_service import ProjectService
-from app.utils.errors import NotFoundError, ValidationError, error_response
-from app.utils.validators import validate_required
 
-projects_bp = Blueprint('api_projects', __name__)
+router = APIRouter()
 
 
-@projects_bp.route('/projects', methods=['GET'])
-@login_required
-def list_projects():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
+class ProjectCreate(BaseModel):
+    name: str
+    description: str = ''
+
+
+class ProjectUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+
+
+@router.get('/projects')
+def list_projects(
+    page: int = Query(1),
+    per_page: int = Query(10),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
     if page == 0:
-        projects = ProjectService.get_all()
-        return jsonify([p.to_dict() for p in projects])
-    pagination = ProjectService.get_paginated(page=page, per_page=per_page)
-    return jsonify({
+        projects = ProjectService.get_all(db)
+        return [p.to_dict() for p in projects]
+    pagination = ProjectService.get_paginated(db, page=page, per_page=per_page)
+    return {
         'projects': [p.to_dict() for p in pagination.items],
         'page': pagination.page,
         'pages': pagination.pages,
         'total': pagination.total,
         'per_page': pagination.per_page,
-    })
+    }
 
 
-@projects_bp.route('/projects', methods=['POST'])
-@login_required
-def create_project():
-    body = request.get_json()
-    missing = validate_required(body, ['name'])
-    if missing:
-        return error_response('name is required', 400)
-
+@router.post('/projects', status_code=201)
+def create_project(
+    body: ProjectCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
     project = ProjectService.create(
-        name=body['name'],
-        description=body.get('description', ''),
+        db,
+        name=body.name,
+        description=body.description,
         owner_id=current_user.id,
     )
-    return jsonify(project.to_dict()), 201
+    return project.to_dict()
 
 
-@projects_bp.route('/projects/<int:project_id>', methods=['GET'])
-@login_required
-def get_project(project_id):
-    project = ProjectService.get_by_id(project_id)
+@router.get('/projects/{project_id}')
+def get_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    project = ProjectService.get_by_id(db, project_id)
     if not project:
-        raise NotFoundError('Project not found')
-    return jsonify(project.to_dict())
+        raise HTTPException(status_code=404, detail='Project not found')
+    return project.to_dict()
 
 
-@projects_bp.route('/projects/<int:project_id>', methods=['PUT'])
-@login_required
-def update_project(project_id):
-    body = request.get_json()
-    if not body:
-        return error_response('No JSON payload', 400)
-
+@router.put('/projects/{project_id}')
+def update_project(
+    project_id: int,
+    body: ProjectUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
     project = ProjectService.update(
-        project_id,
-        name=body.get('name'),
-        description=body.get('description'),
+        db, project_id,
+        name=body.name,
+        description=body.description,
     )
     if not project:
-        raise NotFoundError('Project not found')
-    return jsonify(project.to_dict())
+        raise HTTPException(status_code=404, detail='Project not found')
+    return project.to_dict()
 
 
-@projects_bp.route('/projects/<int:project_id>', methods=['DELETE'])
-@login_required
-def delete_project(project_id):
-    if ProjectService.delete(project_id):
-        return jsonify({'status': 'deleted'}), 200
-    raise NotFoundError('Project not found')
+@router.delete('/projects/{project_id}')
+def delete_project(
+    project_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
+    if ProjectService.delete(db, project_id):
+        return {'status': 'deleted'}
+    raise HTTPException(status_code=404, detail='Project not found')

@@ -1,36 +1,41 @@
 from datetime import datetime, timezone
 
-from app import db
+from sqlalchemy.orm import Session
+
 from app.models import Session
 
 
 class SessionService:
 
     @staticmethod
-    def get_all():
-        return Session.query.order_by(Session.created_at.desc()).all()
+    def get_all(db: Session):
+        return db.query(Session).order_by(Session.created_at.desc()).all()
 
     @staticmethod
-    def get_paginated(page=1, per_page=10):
-        q = Session.query.order_by(Session.created_at.desc())
-        return q.paginate(page=page, per_page=per_page, error_out=False)
+    def get_paginated(db: Session, page=1, per_page=10):
+        q = db.query(Session).order_by(Session.created_at.desc())
+        offset = (page - 1) * per_page
+        total = q.count()
+        items = q.offset(offset).limit(per_page).all()
+        pages = (total + per_page - 1) // per_page if total > 0 else 1
+        return type('Pagination', (), {'items': items, 'page': page, 'pages': pages, 'total': total, 'per_page': per_page})()
 
     @staticmethod
-    def get_by_id(session_id):
-        return db.session.get(Session, session_id)
+    def get_by_id(db: Session, session_id):
+        return db.get(Session, session_id)
 
     @staticmethod
-    def get_active_session(device_id):
-        return Session.query.filter_by(
+    def get_active_session(db: Session, device_id):
+        return db.query(Session).filter_by(
             device_id=device_id, status='running'
         ).first()
 
     @staticmethod
-    def get_any_active_session():
-        return Session.query.filter_by(status='running').first()
+    def get_any_active_session(db: Session):
+        return db.query(Session).filter_by(status='running').first()
 
     @staticmethod
-    def create(device_id, name, target_device='', description='', project_id=None):
+    def create(db: Session, device_id, name, target_device='', description='', project_id=None):
         session = Session(
             device_id=device_id,
             name=name,
@@ -39,43 +44,43 @@ class SessionService:
             status='draft',
             project_id=project_id,
         )
-        db.session.add(session)
-        db.session.commit()
+        db.add(session)
+        db.commit()
         return session
 
     @staticmethod
-    def update(session_id, **kwargs):
-        session = db.session.get(Session, session_id)
+    def update(db: Session, session_id, **kwargs):
+        session = db.get(Session, session_id)
         if not session:
             return None
         for key, value in kwargs.items():
             if hasattr(session, key):
                 setattr(session, key, value)
-        db.session.commit()
+        db.commit()
         return session
 
     @staticmethod
-    def delete(session_id):
-        session = db.session.get(Session, session_id)
+    def delete(db: Session, session_id):
+        session = db.get(Session, session_id)
         if not session:
             return False
-        db.session.delete(session)
-        db.session.commit()
+        db.delete(session)
+        db.commit()
         return True
 
     @staticmethod
-    def start(session_id):
-        session = db.session.get(Session, session_id)
+    def start(db: Session, session_id):
+        session = db.get(Session, session_id)
         if not session:
             return None, 'Session not found'
         if session.status == 'running':
             return None, 'Session is already running'
 
-        device_running = SessionService.get_active_session(session.device_id)
+        device_running = SessionService.get_active_session(db, session.device_id)
         if device_running and device_running.id != session.id:
             return None, 'A session is already running for this device'
 
-        running = SessionService.get_any_active_session()
+        running = SessionService.get_any_active_session(db)
         if running and running.id != session.id:
             running.status = 'finished'
             running.ended_at = datetime.now(timezone.utc)
@@ -83,21 +88,21 @@ class SessionService:
         session.status = 'running'
         session.started_at = datetime.now(timezone.utc)
         session.ended_at = None
-        db.session.commit()
+        db.commit()
         return session, None
 
     @staticmethod
-    def stop(session_id):
-        session = db.session.get(Session, session_id)
+    def stop(db: Session, session_id):
+        session = db.get(Session, session_id)
         if not session:
             return None, 'Session not found'
         if session.status != 'running':
             return None, 'Session is not running'
         session.status = 'finished'
         session.ended_at = datetime.now(timezone.utc)
-        db.session.commit()
+        db.commit()
         return session, None
 
     @staticmethod
-    def get_for_device(device_id):
-        return Session.query.filter_by(device_id=device_id).order_by(Session.created_at.desc()).all()
+    def get_for_device(db: Session, device_id):
+        return db.query(Session).filter_by(device_id=device_id).order_by(Session.created_at.desc()).all()

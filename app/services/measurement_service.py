@@ -1,7 +1,9 @@
 from datetime import datetime, timezone
 
-from app import db
-from app.models import Measurement, Session
+from sqlalchemy.orm import Session as DBSession
+
+from app.models import Measurement
+from app.models.session import Session as SessionModel
 from app.utils.calculations import calc_load_voltage, calc_energy_increment
 from app.services.device_service import DeviceService
 from app.services.session_service import SessionService
@@ -11,18 +13,18 @@ from app.services.alert_service import AlertService
 class MeasurementService:
 
     @staticmethod
-    def create(device_id_str, bus_voltage, shunt_voltage=0.0, current=0.0, power=0.0):
-        device = DeviceService.get_or_create(device_id_str)
-        DeviceService.touch(device_id_str)
+    def create(db: DBSession, device_id_str, bus_voltage, shunt_voltage=0.0, current=0.0, power=0.0):
+        device = DeviceService.get_or_create(db, device_id_str)
+        DeviceService.touch(db, device_id_str)
 
         load_voltage = calc_load_voltage(bus_voltage, shunt_voltage)
         power_w = power / 1000.0
         current_a = current / 1000.0
 
-        session = SessionService.get_active_session(device.id)
+        session = SessionService.get_active_session(db, device.id)
         session_id = session.id if session else None
 
-        last = Measurement.query.filter_by(device_id=device.id).order_by(
+        last = db.query(Measurement).filter_by(device_id=device.id).order_by(
             Measurement.created_at.desc()
         ).first()
 
@@ -45,24 +47,24 @@ class MeasurementService:
             power=power_w,
             energy=energy,
         )
-        db.session.add(measurement)
-        db.session.commit()
+        db.add(measurement)
+        db.commit()
 
-        AlertService.generate_alerts(device, bus_voltage, current_a, power_w)
+        AlertService.generate_alerts(db, device, bus_voltage, current_a, power_w)
 
         return measurement
 
     @staticmethod
-    def get_recent(limit=50, device_id=None):
-        q = Measurement.query
+    def get_recent(db: DBSession, limit=50, device_id=None):
+        q = db.query(Measurement)
         if device_id:
             q = q.filter_by(device_id=device_id)
         return q.order_by(Measurement.created_at.desc()).limit(limit).all()
 
     @staticmethod
-    def get_chart_data(limit=500, device_id=None, session_id=None, granularity=None,
+    def get_chart_data(db: DBSession, limit=500, device_id=None, session_id=None, granularity=None,
                        start_date=None, end_date=None):
-        q = Measurement.query
+        q = db.query(Measurement)
         if device_id:
             q = q.filter_by(device_id=device_id)
         if session_id:
@@ -128,8 +130,8 @@ class MeasurementService:
         }
 
     @staticmethod
-    def get_stats(device_id=None):
-        q = Measurement.query
+    def get_stats(db: DBSession, device_id=None):
+        q = db.query(Measurement)
         if device_id:
             q = q.filter_by(device_id=device_id)
 
@@ -170,12 +172,12 @@ class MeasurementService:
         }
 
     @staticmethod
-    def get_session_stats(session_id):
-        session = db.session.get(Session, session_id)
+    def get_session_stats(db: DBSession, session_id):
+        session = db.get(SessionModel, session_id)
         if not session:
             return None
 
-        measurements = Measurement.query.filter_by(session_id=session_id).order_by(
+        measurements = db.query(Measurement).filter_by(session_id=session_id).order_by(
             Measurement.created_at.asc()
         ).all()
 
@@ -183,7 +185,7 @@ class MeasurementService:
             return {
                 'session_id': session.id,
                 'session_name': session.name,
-                'device_name': session.device.alias or session.device.device_id if session.device else None,
+                'device_name': session.device_ref.alias or session.device_ref.device_id if session.device_ref else None,
                 'avg_power': 0,
                 'peak_power': 0,
                 'total_energy': 0,
@@ -225,7 +227,7 @@ class MeasurementService:
         return {
             'session_id': session.id,
             'session_name': session.name,
-            'device_name': session.device.alias or session.device.device_id if session.device else None,
+            'device_name': session.device_ref.alias or session.device_ref.device_id if session.device_ref else None,
             'avg_power': round(avg_power, 3),
             'peak_power': round(peak_power, 3),
             'total_energy': round(total_energy, 6),
@@ -244,8 +246,8 @@ class MeasurementService:
         }
 
     @staticmethod
-    def get_paginated(page=1, per_page=50, device_id=None, session_id=None, start_date=None, end_date=None):
-        q = Measurement.query
+    def get_paginated(db: DBSession, page=1, per_page=50, device_id=None, session_id=None, start_date=None, end_date=None):
+        q = db.query(Measurement)
         if device_id:
             q = q.filter_by(device_id=device_id)
         if session_id:
@@ -255,11 +257,15 @@ class MeasurementService:
         if end_date:
             q = q.filter(Measurement.created_at <= end_date)
         q = q.order_by(Measurement.created_at.desc())
-        return q.paginate(page=page, per_page=per_page, error_out=False)
+        offset = (page - 1) * per_page
+        total = q.count()
+        items = q.offset(offset).limit(per_page).all()
+        pages = (total + per_page - 1) // per_page if total > 0 else 1
+        return type('Pagination', (), {'items': items, 'page': page, 'pages': pages, 'total': total, 'per_page': per_page})()
 
     @staticmethod
-    def get_all_filtered(device_id=None, session_id=None, start_date=None, end_date=None):
-        q = Measurement.query
+    def get_all_filtered(db: DBSession, device_id=None, session_id=None, start_date=None, end_date=None):
+        q = db.query(Measurement)
         if device_id:
             q = q.filter_by(device_id=device_id)
         if session_id:

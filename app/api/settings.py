@@ -1,65 +1,78 @@
 from datetime import datetime, timezone
-from flask import Blueprint, request, jsonify, send_file
-from flask_login import login_required, current_user
-from app import db
-from app.utils.errors import error_response
+import os
 
-settings_bp = Blueprint('api_settings', __name__)
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.database import get_db, engine
+from app.auth import require_user
+from app.models import User
+
+router = APIRouter()
 
 
-@settings_bp.route('/settings', methods=['GET'])
-@login_required
-def get_settings():
-    return jsonify(current_user.settings or {})
+class SettingsUpdate(BaseModel):
+    high_power_threshold: float | str | None = None
+    high_current_threshold: float | str | None = None
+    low_voltage_threshold: float | str | None = None
+    brand: str | None = None
+    timestamp_format: str | None = None
+    timezone: str | None = None
+    device_watchdog_timeout: int | str | None = None
 
 
-@settings_bp.route('/settings', methods=['PUT'])
-@login_required
-def update_settings():
-    body = request.get_json()
-    if not body:
-        return error_response('No JSON payload', 400)
+ALLOWED = {'high_power_threshold', 'high_current_threshold', 'low_voltage_threshold',
+           'brand', 'timestamp_format', 'timezone', 'device_watchdog_timeout'}
 
-    allowed = {'high_power_threshold', 'high_current_threshold', 'low_voltage_threshold',
-               'brand', 'timestamp_format', 'timezone', 'device_watchdog_timeout'}
+
+@router.get('/settings')
+def get_settings(current_user: User = Depends(require_user)):
+    return current_user.settings or {}
+
+
+@router.put('/settings')
+def update_settings(
+    body: SettingsUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_user),
+):
     current = dict(current_user.settings or {})
-
-    for key, value in body.items():
-        if key in allowed:
+    data = body.model_dump(exclude_none=True)
+    for key, value in data.items():
+        if key in ALLOWED:
             if value == '' or value is None:
                 current.pop(key, None)
             else:
                 current[key] = value
-
     current_user.settings = current
-    db.session.commit()
-    return jsonify(current)
+    db.commit()
+    return current
 
 
-@settings_bp.route('/settings/backup', methods=['GET'])
-@login_required
-def backup_database():
-    from flask import current_app
-    import os
-
-    db_url = str(db.engine.url)
+@router.get('/settings/backup')
+def backup_database(current_user: User = Depends(require_user)):
+    db_url = str(engine.url)
     if db_url.startswith('sqlite:///'):
         db_path = db_url[10:]
     elif db_url.startswith('sqlite://'):
         db_path = db_url[9:]
     else:
-        return error_response('Backup only supported for SQLite', 400)
+        raise HTTPException(status_code=400, detail='Backup only supported for SQLite')
 
     if not os.path.isabs(db_path):
-        db_path = os.path.join(current_app.instance_path, db_path)
+        from app.config import settings as app_settings
+        db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'instance', db_path)
 
     if not os.path.exists(db_path):
-        return error_response('Database file not found', 404)
+        raise HTTPException(status_code=404, detail='Database file not found')
 
     ts = datetime.now(timezone.utc).strftime('%Y-%m-%d-%H%M%S')
-    return send_file(
-        db_path,
-        mimetype='application/octet-stream',
-        as_attachment=True,
-        download_name=f'buckpow-backup-{ts}.db',
+    with open(db_path, 'rb') as f:
+        content = f.read()
+    return Response(
+        content=content,
+        media_type='application/octet-stream',
+        headers={'Content-Disposition': f'attachment; filename=buckpow-backup-{ts}.db'},
     )

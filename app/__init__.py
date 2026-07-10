@@ -1,98 +1,115 @@
 import logging
 import sys
 
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_cors import CORS
-from flask_login import LoginManager
-from .config import DevConfig
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 
-db = SQLAlchemy()
-migrate = Migrate()
-login_manager = LoginManager()
-login_manager.login_view = 'dashboard.login'
-login_manager.login_message_category = 'info'
-
+from app.config import settings
+from app.database import engine, Base
 
 APP_VERSION = '0.1.0'
 
 
-def create_app(config_class=DevConfig):
-    flask_app = Flask(__name__)
-    flask_app.config.from_object(config_class)
-
-    db.init_app(flask_app)
-    migrate.init_app(flask_app, db)
-    CORS(flask_app)
-    login_manager.init_app(flask_app)
-
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
         stream=sys.stdout,
     )
-    flask_app.logger.setLevel(logging.INFO)
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
 
-    from .api import api_bp
-    from .dashboard import dashboard_bp
-    from .utils.errors import AppError
-
-    @flask_app.errorhandler(AppError)
-    def handle_app_error(e):
-        return jsonify({'error': e.message, 'code': e.code}), e.status_code
-
-    @flask_app.errorhandler(400)
-    def bad_request(e):
-        if request.path.startswith('/api/'):
-            return jsonify({'error': 'Bad request', 'code': 'BAD_REQUEST'}), 400
-        return e
-
-    @flask_app.errorhandler(404)
-    def not_found(e):
-        if request.path.startswith('/api/'):
-            return jsonify({'error': 'Not found', 'code': 'NOT_FOUND'}), 404
-        return e
-
-    @flask_app.errorhandler(405)
-    def method_not_allowed(e):
-        if request.path.startswith('/api/'):
-            return jsonify({'error': 'Method not allowed', 'code': 'METHOD_NOT_ALLOWED'}), 405
-        return e
-
-    @flask_app.errorhandler(500)
-    def internal_error(e):
-        flask_app.logger.error('Internal server error', exc_info=e)
-        if request.path.startswith('/api/'):
-            return jsonify({'error': 'Internal server error', 'code': 'INTERNAL_ERROR'}), 500
-        return e
-
-    flask_app.register_blueprint(api_bp, url_prefix='/api/v1')
-    flask_app.register_blueprint(dashboard_bp)
-
-    import app.models
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        from app.models import User
-        return db.session.get(User, int(user_id))
-
-    @flask_app.cli.command("init-db")
-    def init_db_command():
-        db.create_all()
-        from app.models import User
-        from app.services.user_service import UserService
-        if not User.query.first():
+    if 'sqlite' in settings.DATABASE_URL:
+        Base.metadata.create_all(bind=engine)
+        try:
+            from alembic.config import Config
+            from alembic import command
+            alembic_cfg = Config('alembic.ini')
+            command.stamp(alembic_cfg, 'head')
+        except Exception:
+            logger.warning("Could not stamp alembic revision (non-fatal)")
+    from app.models import User
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        if not db.query(User).first():
+            from app.services.user_service import UserService
             UserService.create(
+                db=db,
                 name='Admin',
                 email='admin@example.com',
                 password='password',
+                commit=True,
             )
-            print("Default admin user created (admin@example.com / password).")
-        print("Database tables created.")
+            logger.info("Default admin user created (admin@example.com / password).")
+        db.commit()
+    finally:
+        db.close()
 
-    @flask_app.context_processor
-    def inject_globals():
-        return dict(app_version=APP_VERSION)
+    yield
 
-    return flask_app
+
+app = FastAPI(title='BuckPow', version=APP_VERSION, lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+
+app.mount('/static', StaticFiles(directory='app/static'), name='static')
+
+from app.api import api_router
+from app.dashboard import dashboard_router
+
+app.include_router(api_router, prefix='/api/v1')
+app.include_router(dashboard_router)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    from app.utils.errors import AppError
+    if isinstance(exc, AppError):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={'error': exc.message, 'code': exc.code},
+        )
+    logging.getLogger(__name__).error('Internal server error', exc_info=exc)
+    return JSONResponse(
+        status_code=500,
+        content={'error': 'Internal server error', 'code': 'INTERNAL_ERROR'},
+    )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={'error': exc.detail, 'code': 'ERROR'},
+    )
+
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc: Exception):
+    if request.url.path.startswith('/api/'):
+        return JSONResponse(
+            status_code=404,
+            content={'error': 'Not found', 'code': 'NOT_FOUND'},
+        )
+    return JSONResponse(status_code=404, content={'detail': 'Not Found'})
+
+
+@app.exception_handler(405)
+async def method_not_allowed_handler(request: Request, exc: Exception):
+    if request.url.path.startswith('/api/'):
+        return JSONResponse(
+            status_code=405,
+            content={'error': 'Method not allowed', 'code': 'METHOD_NOT_ALLOWED'},
+        )
+    return JSONResponse(status_code=405, content={'detail': 'Method Not Allowed'})

@@ -1,3 +1,3 @@
-from .routes import dashboard_bp
+from .routes import dashboard_router
 
-__all__ = ['dashboard_bp']
+__all__ = ['dashboard_router']

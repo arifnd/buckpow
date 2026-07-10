@@ -1,60 +1,71 @@
-from flask import Blueprint, request, jsonify
-from flask_login import login_user, logout_user, login_required, current_user
+from fastapi import APIRouter, Depends, HTTPException, Response
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.auth import create_access_token, get_current_user, require_user
+from app.database import get_db
 from app.services.user_service import UserService
-from app.utils.errors import AuthError, ValidationError, error_response
-from app.utils.validators import validate_required
+from app.models import User
+from app.config import settings
 
-auth_bp = Blueprint('api_auth', __name__)
+router = APIRouter()
 
 
-@auth_bp.route('/auth/login', methods=['POST'])
-def login():
-    body = request.get_json()
-    if not body:
-        return error_response('No JSON payload', 400)
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
-    email = body.get('email', '').strip()
-    password = body.get('password', '')
 
+class ProfileUpdate(BaseModel):
+    name: str | None = None
+    email: str | None = None
+    password: str | None = None
+
+
+@router.post('/auth/login')
+def login(body: LoginRequest, response: Response, db: Session = Depends(get_db)):
+    email = body.email.strip()
+    password = body.password
     if not email or not password:
-        return error_response('Email and password are required', 400)
-
-    user = UserService.authenticate(email, password)
+        raise HTTPException(status_code=400, detail='Email and password are required')
+    user = UserService.authenticate(db, email, password)
     if not user:
-        return error_response('Invalid email or password', 401)
+        raise HTTPException(status_code=401, detail='Invalid email or password')
+    token = create_access_token(data={'sub': user.id})
+    response.set_cookie(
+        key='access_token',
+        value=token,
+        httponly=True,
+        samesite='lax',
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    return {'status': 'ok', 'user': user.to_dict(), 'token': token}
 
-    login_user(user)
-    return jsonify({'status': 'ok', 'user': user.to_dict()})
+
+@router.post('/auth/logout')
+def logout(response: Response):
+    response.delete_cookie(key='access_token')
+    return {'status': 'ok'}
 
 
-@auth_bp.route('/auth/logout', methods=['POST'])
-def logout():
-    logout_user()
-    return jsonify({'status': 'ok'})
-
-
-@auth_bp.route('/auth/profile', methods=['PUT'])
-@login_required
-def update_profile():
-    body = request.get_json()
-    if not body:
-        return error_response('No JSON payload', 400)
+@router.put('/auth/profile')
+def update_profile(body: ProfileUpdate, db: Session = Depends(get_db), current_user: User = Depends(require_user)):
     try:
         user = UserService.update(
-            current_user.id,
-            name=body.get('name'),
-            email=body.get('email'),
-            password=body.get('password') or None,
+            db, current_user.id,
+            name=body.name,
+            email=body.email,
+            password=body.password or None,
         )
         if not user:
-            return error_response('User not found', 404)
-        return jsonify({'status': 'ok', 'user': user.to_dict()})
+            raise HTTPException(status_code=404, detail='User not found')
+        return {'status': 'ok', 'user': user.to_dict()}
     except ValueError as e:
-        return error_response(str(e), 409)
+        raise HTTPException(status_code=409, detail=str(e))
 
 
-@auth_bp.route('/auth/me', methods=['GET'])
-def me():
-    if not current_user.is_authenticated:
-        return error_response('Not authenticated', 401)
-    return jsonify(current_user.to_dict())
+@router.get('/auth/me')
+def me(current_user: User | None = Depends(get_current_user)):
+    if not current_user:
+        raise HTTPException(status_code=401, detail='Not authenticated')
+    return current_user.to_dict()

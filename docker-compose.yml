@@ -21,12 +21,13 @@ services:
       db:
         condition: service_healthy
     environment:
-      FLASK_ENV: production
       DATABASE_URL: postgresql://buckpow:buckpow@db:5432/buckpow
       SECRET_KEY: ${SECRET_KEY?SECRET_KEY is required}
       DEVICE_ONLINE_TIMEOUT: "30"
       DEFAULT_SAMPLING_INTERVAL: "1"
       LOG_LEVEL: info
+    ports:
+      - "5000:5000"
 
   nginx:
     image: nginx:alpine

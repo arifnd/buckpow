@@ -1,105 +1,124 @@
-from flask import Blueprint, request, jsonify
-from app import db
+from fastapi import APIRouter, Depends, Query, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.database import get_db
 from app.models import Device
 from app.services.device_service import DeviceService
-from app.utils.errors import NotFoundError, ValidationError, error_response
-from app.utils.validators import validate_required
+
+router = APIRouter()
 
 
-devices_bp = Blueprint('api_devices', __name__)
+class DeviceCreate(BaseModel):
+    device_id: str
+    alias: str = ''
+    description: str = ''
+    sampling_interval: int | None = None
+    project_id: int | None = None
+    firmware_version: str = ''
+    high_current_threshold: float | None = None
+    high_power_threshold: float | None = None
+    low_voltage_threshold: float | None = None
 
 
-@devices_bp.route('/devices', methods=['GET'])
-def list_devices():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 10, type=int)
+class DeviceUpdate(BaseModel):
+    alias: str | None = None
+    description: str | None = None
+    sampling_interval: int | None = None
+    project_id: int | None = None
+    firmware_version: str | None = None
+    enabled: bool | None = None
+    high_current_threshold: float | None = None
+    high_power_threshold: float | None = None
+    low_voltage_threshold: float | None = None
+
+
+@router.get('/devices')
+def list_devices(
+    page: int = Query(1),
+    per_page: int = Query(10),
+    db: Session = Depends(get_db),
+):
     if page == 0:
-        devices = DeviceService.get_all()
-        return jsonify([d.to_dict() for d in devices])
-    pagination = DeviceService.get_paginated(page=page, per_page=per_page)
-    return jsonify({
+        devices = DeviceService.get_all(db)
+        return [d.to_dict() for d in devices]
+    pagination = DeviceService.get_paginated(db, page=page, per_page=per_page)
+    return {
         'devices': [d.to_dict() for d in pagination.items],
         'page': pagination.page,
         'pages': pagination.pages,
         'total': pagination.total,
         'per_page': pagination.per_page,
-    })
+    }
 
 
-@devices_bp.route('/devices', methods=['POST'])
-def create_device():
-    body = request.get_json()
-    missing = validate_required(body, ['device_id'])
-    if missing:
-        return error_response('device_id is required', 400)
-
+@router.post('/devices', status_code=201)
+def create_device(body: DeviceCreate, db: Session = Depends(get_db)):
     device = DeviceService.create(
-        device_id=body['device_id'],
-        alias=body.get('alias', ''),
-        description=body.get('description', ''),
-        sampling_interval=body.get('sampling_interval'),
-        project_id=body.get('project_id'),
-        firmware_version=body.get('firmware_version', ''),
-        high_current_threshold=body.get('high_current_threshold'),
-        high_power_threshold=body.get('high_power_threshold'),
-        low_voltage_threshold=body.get('low_voltage_threshold'),
+        db,
+        device_id=body.device_id,
+        alias=body.alias,
+        description=body.description,
+        sampling_interval=body.sampling_interval,
+        project_id=body.project_id,
+        firmware_version=body.firmware_version,
+        high_current_threshold=body.high_current_threshold,
+        high_power_threshold=body.high_power_threshold,
+        low_voltage_threshold=body.low_voltage_threshold,
     )
-    return jsonify(device.to_dict()), 201
+    return device.to_dict()
 
 
-@devices_bp.route('/devices/<int:device_id>', methods=['GET'])
-def get_device(device_id):
-    device = DeviceService.get_by_id(device_id)
+@router.get('/devices/{device_id}')
+def get_device(device_id: int, db: Session = Depends(get_db)):
+    device = DeviceService.get_by_id(db, device_id)
     if not device:
-        raise NotFoundError('Device not found')
-    return jsonify(device.to_dict())
+        raise HTTPException(status_code=404, detail='Device not found')
+    return device.to_dict()
 
 
-@devices_bp.route('/devices/<int:device_id>', methods=['PUT'])
-def update_device(device_id):
-    body = request.get_json()
-    if not body:
-        return error_response('No JSON payload', 400)
-
+@router.put('/devices/{device_id}')
+def update_device(device_id: int, body: DeviceUpdate, db: Session = Depends(get_db)):
     kwargs = {}
     for key in ('alias', 'description', 'sampling_interval', 'project_id', 'firmware_version',
                 'high_current_threshold', 'high_power_threshold', 'low_voltage_threshold'):
-        if key in body:
-            kwargs[key] = body[key]
-    if 'enabled' in body:
-        kwargs['enabled'] = body['enabled']
-    device = DeviceService.update(device_id, **kwargs)
+        val = getattr(body, key, None)
+        if val is not None:
+            kwargs[key] = val
+    if body.enabled is not None:
+        kwargs['enabled'] = body.enabled
+    device = DeviceService.update(db, device_id, **kwargs)
     if not device:
-        raise NotFoundError('Device not found')
-    return jsonify(device.to_dict())
+        raise HTTPException(status_code=404, detail='Device not found')
+    return device.to_dict()
 
 
-@devices_bp.route('/devices/<int:device_id>/key', methods=['GET'])
-def get_device_key(device_id):
-    device = db.session.get(Device, device_id)
+@router.get('/devices/{device_id}/key')
+def get_device_key(device_id: int, db: Session = Depends(get_db)):
+    device = db.get(Device, device_id)
     if not device or not device.api_key:
-        return error_response('Device not found or no API key', 404)
-    return jsonify({'api_key': device.api_key, 'id': device.id}), 200
+        raise HTTPException(status_code=404, detail='Device not found or no API key')
+    return {'api_key': device.api_key, 'id': device.id}
 
 
-@devices_bp.route('/devices/<int:device_id>/toggle', methods=['PATCH'])
-def toggle_device(device_id):
-    device = DeviceService.toggle_enabled(device_id)
+@router.patch('/devices/{device_id}/toggle')
+def toggle_device(device_id: int, db: Session = Depends(get_db)):
+    device = DeviceService.toggle_enabled(db, device_id)
     if not device:
-        raise NotFoundError('Device not found')
-    return jsonify(device.to_dict()), 200
+        raise HTTPException(status_code=404, detail='Device not found')
+    return device.to_dict()
 
 
-@devices_bp.route('/devices/<int:device_id>/regenerate-key', methods=['POST'])
-def regenerate_key(device_id):
-    device = DeviceService.regenerate_api_key(device_id)
+@router.post('/devices/{device_id}/regenerate-key')
+def regenerate_key(device_id: int, db: Session = Depends(get_db)):
+    device = DeviceService.regenerate_api_key(db, device_id)
     if not device:
-        raise NotFoundError('Device not found')
-    return jsonify({'api_key': device.api_key, 'id': device.id}), 200
+        raise HTTPException(status_code=404, detail='Device not found')
+    return {'api_key': device.api_key, 'id': device.id}
 
 
-@devices_bp.route('/devices/<int:device_id>', methods=['DELETE'])
-def delete_device(device_id):
-    if DeviceService.delete(device_id):
-        return jsonify({'status': 'deleted'}), 200
-    raise NotFoundError('Device not found')
+@router.delete('/devices/{device_id}')
+def delete_device(device_id: int, db: Session = Depends(get_db)):
+    if DeviceService.delete(db, device_id):
+        return {'status': 'deleted'}
+    raise HTTPException(status_code=404, detail='Device not found')

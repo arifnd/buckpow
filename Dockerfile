@@ -1,19 +1,12 @@
 FROM python:3.12-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends --no-install-suggests \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /code
 
-WORKDIR /app
+COPY requirements-prod.txt /code/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
-COPY requirements-prod.txt .
-RUN pip install --no-cache-dir -r requirements-prod.txt
-
-COPY . .
-
-RUN mkdir -p instance
-
-ENV GUNICORN_WORKERS=4
+COPY ./app /code/app
 
 EXPOSE 5000
 
-ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["fastapi", "run", "app/main.py", "--port", "5000", "--proxy-headers"]

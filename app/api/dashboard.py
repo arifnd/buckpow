@@ -1,41 +1,42 @@
-from flask import Blueprint, jsonify, request
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
+
+from app.database import get_db
 from app.services.measurement_service import MeasurementService
 from app.services.device_service import DeviceService
 from app.services.dashboard_service import DashboardService
 
-dashboard_bp = Blueprint('api_dashboard', __name__)
+router = APIRouter()
 
 
-@dashboard_bp.route('/dashboard', methods=['GET'])
-def dashboard_data():
-    measurements = MeasurementService.get_recent(limit=1)
-    stats = MeasurementService.get_stats()
-
-    devices = DeviceService.get_all()
+@router.get('/dashboard')
+def dashboard_data(db: Session = Depends(get_db)):
+    measurements = MeasurementService.get_recent(db, limit=1)
+    stats = MeasurementService.get_stats(db)
+    devices = DeviceService.get_all(db)
     devices_data = [d.to_dict() for d in devices]
-
     latest = measurements[0].to_dict() if measurements else None
-
-    return jsonify({
+    return {
         'latest': latest,
         'stats': stats,
         'devices': devices_data,
-    })
+    }
 
 
-@dashboard_bp.route('/dashboard/summary', methods=['GET'])
-def dashboard_summary():
-    return jsonify(DashboardService.get_summary())
+@router.get('/dashboard/summary')
+def dashboard_summary(db: Session = Depends(get_db)):
+    return DashboardService.get_summary(db)
 
 
-@dashboard_bp.route('/dashboard/statistics', methods=['GET'])
-def dashboard_statistics():
-    device_id = request.args.get('device_id', type=int)
-    session_id = request.args.get('session_id', type=int)
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-    data = DashboardService.get_statistics(
-        device_id=device_id, session_id=session_id,
-        start_date=start_date, end_date=end_date
+@router.get('/dashboard/statistics')
+def dashboard_statistics(
+    device_id: int | None = Query(None),
+    session_id: int | None = Query(None),
+    start_date: str | None = Query(None),
+    end_date: str | None = Query(None),
+    db: Session = Depends(get_db),
+):
+    return DashboardService.get_statistics(
+        db, device_id=device_id, session_id=session_id,
+        start_date=start_date, end_date=end_date,
     )
-    return jsonify(data)
