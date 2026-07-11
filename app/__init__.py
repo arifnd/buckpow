@@ -63,7 +63,14 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title='BuckPow', version=APP_VERSION, lifespan=lifespan)
+app = FastAPI(
+    title='BuckPow',
+    version=APP_VERSION,
+    lifespan=lifespan,
+    docs_url=None if settings.DISABLE_API_DOCS else '/docs',
+    redoc_url=None if settings.DISABLE_API_DOCS else '/redoc',
+    openapi_url=None if settings.DISABLE_API_DOCS else '/openapi.json',
+)
 
 app.add_middleware(
     RateLimiterMiddleware,

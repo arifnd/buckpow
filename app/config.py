@@ -26,6 +26,7 @@ class Settings:
 
     DEVICE_ONLINE_TIMEOUT: int = int(os.getenv('DEVICE_ONLINE_TIMEOUT', 30))
     DEFAULT_SAMPLING_INTERVAL: int = int(os.getenv('DEFAULT_SAMPLING_INTERVAL', 1))
+    DISABLE_API_DOCS: bool = os.getenv('DISABLE_API_DOCS', '').lower() in ('true', '1', 'yes')
 
     if not SECRET_KEY and os.getenv('APP_ENV', 'development') == 'production':
         raise RuntimeError('SECRET_KEY environment variable is required in production')
