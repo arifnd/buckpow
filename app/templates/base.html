@@ -53,14 +53,14 @@ function confirmDialog(msg, confirmLabel) {
 
 <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-56 -translate-x-full md:translate-x-0 transition-transform duration-200 bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 flex flex-col h-screen">
   <div class="flex items-center gap-2 h-12 px-3 border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
-    <iconify-icon class="w-8 h-8 text-blue-600 dark:text-blue-400 flex-shrink-0" icon="heroicons-outline:bolt"></iconify-icon>
+    <iconify-icon class="flex-shrink-0 inline-flex items-center justify-center text-blue-600 dark:text-blue-400" icon="heroicons-outline:bolt" width="32" height="32"></iconify-icon>
     <a class="text-lg font-bold text-gray-900 dark:text-white" href="/">{{ current_user.settings.get('brand', 'BuckPow') if current_user.is_authenticated else 'BuckPow' }}</a>
   </div>
   <nav class="flex-1 overflow-y-auto py-2">
     {% set nav_items = [
       ('/', 'dashboard', 'heroicons-outline:home', 'Dashboard'),
-      ('/devices', 'devices', 'heroicons-outline:server', 'Devices'),
-      ('/sessions', 'sessions', 'heroicons-outline:play-circle', 'Sessions'),
+      ('/devices', 'devices', 'heroicons-outline:cpu-chip', 'Devices'),
+      ('/sessions', 'sessions', 'heroicons-outline:clock', 'Sessions'),
       ('/projects', 'projects', 'heroicons-outline:folder-open', 'Projects'),
       ('/measurements', 'measurements', 'heroicons-outline:chart-pie', 'Measurements'),
       ('/benchmark', 'benchmark', 'heroicons-outline:scale', 'Benchmark'),
@@ -68,10 +68,10 @@ function confirmDialog(msg, confirmLabel) {
       ('/audit', 'audit', 'heroicons-outline:clipboard-list', 'Audit'),
     ] %}
     {% for href, page, icon, label in nav_items %}
-    <a href="{{ href }}" class="flex items-center gap-3 px-3 py-2.5 text-sm {% if active_page == page %}text-white bg-blue-600 dark:bg-blue-600{% else %}text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800{% endif %} transition-colors">
-      <iconify-icon class="w-5 h-5 flex-shrink-0" icon="{{ icon }}"></iconify-icon>
+    <a href="{{ href }}" class="flex items-center gap-2 px-3 py-2.5 text-sm {% if active_page == page %}text-white bg-blue-600 dark:bg-blue-600{% else %}text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800{% endif %} transition-colors">
+      <iconify-icon class="flex-shrink-0 inline-flex items-center justify-center" icon="{{ icon }}" width="20" height="20"></iconify-icon>
       <span>{{ label }}</span>
-      {% if page == 'alerts' %}<span id="alert-badge-side" class="ml-auto hidden inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-red-500 min-w-[18px]">0</span>{% endif %}
+      {% if page == 'alerts' %}<span id="alert-badge-side" class="ml-auto hidden inline-flex items-center justify-center w-5 h-5 rounded-full text-xs leading-none font-semibold text-white bg-red-500">0</span>{% endif %}
     </a>
     {% endfor %}
   </nav>
@@ -81,13 +81,13 @@ function confirmDialog(msg, confirmLabel) {
 <div class="flex-1 flex flex-col h-screen{% if current_user.is_authenticated %} md:ml-56{% endif %}">
   {% if current_user.is_authenticated %}
   <header class="h-12 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 shadow-sm flex items-center px-4 gap-3 flex-shrink-0">
-    <button class="md:hidden p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" onclick="toggleSidebar()">
-      <iconify-icon class="w-5 h-5" icon="heroicons-outline:bars-3"></iconify-icon>
+    <button class="md:hidden flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors" onclick="toggleSidebar()">
+      <iconify-icon icon="heroicons-outline:bars-3" width="20" height="20"></iconify-icon>
     </button>
     <div class="ml-auto flex items-center gap-2">
-      <a href="/alerts" class="relative p-1.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors md:hidden">
-        <iconify-icon class="w-5 h-5" icon="heroicons-outline:bell"></iconify-icon>
-        <span id="alert-badge-mobile" class="absolute -top-0.5 -right-0.5 hidden inline-flex items-center justify-center px-1 py-0.5 rounded-full text-xs font-medium text-white bg-red-500 min-w-[14px]">0</span>
+      <a href="/alerts" class="relative flex items-center justify-center w-8 h-8 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors md:hidden">
+        <iconify-icon icon="heroicons-outline:bell" width="20" height="20"></iconify-icon>
+        <span id="alert-badge-mobile" class="absolute -top-0.5 -right-0.5 hidden inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] leading-none font-semibold text-white bg-red-500">0</span>
       </a>
       <div class="relative" id="user-dropdown">
         <button id="user-menu-btn" class="flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -98,21 +98,21 @@ function confirmDialog(msg, confirmLabel) {
           <iconify-icon class="w-3 h-3" icon="heroicons-outline:chevron-down"></iconify-icon>
         </button>
         <div id="user-menu" class="hidden absolute right-0 top-full mt-1 w-40 z-50 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg py-1">
-          <a href="/profile" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:user"></iconify-icon><span>Profile</span></a>
-          <a href="/settings" class="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:cog-6-tooth"></iconify-icon><span>Settings</span></a>
+          <a href="/profile" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4 flex-shrink-0 inline-flex items-center justify-center" icon="heroicons-outline:user"></iconify-icon><span>Profile</span></a>
+          <a href="/settings" class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4 flex-shrink-0 inline-flex items-center justify-center" icon="heroicons-outline:cog-6-tooth"></iconify-icon><span>Settings</span></a>
           <div class="relative" id="theme-submenu">
             <button class="flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" id="theme-submenu-btn">
-              <span class="flex items-center gap-3"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:moon"></iconify-icon><span>Theme</span></span>
+              <span class="flex items-center gap-2"><iconify-icon class="w-4 h-4 flex-shrink-0 inline-flex items-center justify-center" icon="heroicons-outline:moon"></iconify-icon><span>Theme</span></span>
               <iconify-icon class="w-3 h-3" icon="heroicons-outline:chevron-right"></iconify-icon>
             </button>
             <div id="theme-submenu-panel" class="hidden absolute right-full top-0 mr-1 w-32 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-lg py-1 z-50">
-              <button class="theme-option flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="system"><span class="flex items-center gap-3"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:computer-desktop"></iconify-icon><span>System</span></span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
-              <button class="theme-option flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="light"><span class="flex items-center gap-3"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:sun"></iconify-icon><span>Light</span></span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
-              <button class="theme-option flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="dark"><span class="flex items-center gap-3"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:moon"></iconify-icon><span>Dark</span></span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden" icon="heroicons-outline:check"></iconify-icon></button>
+              <button class="theme-option flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="system"><span class="flex items-center gap-2"><iconify-icon class="w-4 h-4 flex-shrink-0 inline-flex items-center justify-center" icon="heroicons-outline:computer-desktop"></iconify-icon><span>System</span></span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden inline-flex items-center justify-center" icon="heroicons-outline:check"></iconify-icon></button>
+              <button class="theme-option flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="light"><span class="flex items-center gap-2"><iconify-icon class="w-4 h-4 flex-shrink-0 inline-flex items-center justify-center" icon="heroicons-outline:sun"></iconify-icon><span>Light</span></span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden inline-flex items-center justify-center" icon="heroicons-outline:check"></iconify-icon></button>
+              <button class="theme-option flex items-center justify-between w-full px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800" data-theme="dark"><span class="flex items-center gap-2"><iconify-icon class="w-4 h-4 flex-shrink-0 inline-flex items-center justify-center" icon="heroicons-outline:moon"></iconify-icon><span>Dark</span></span><iconify-icon class="theme-check w-4 h-4 text-blue-500 hidden inline-flex items-center justify-center" icon="heroicons-outline:check"></iconify-icon></button>
             </div>
           </div>
           <hr class="border-t border-gray-200 dark:border-gray-800 my-1">
-          <button id="logout-btn" class="flex items-center gap-3 w-full px-3 py-2 text-sm text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4 flex-shrink-0" icon="heroicons-outline:arrow-left-on-rectangle"></iconify-icon><span>Logout</span></button>
+          <button id="logout-btn" class="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-gray-100 dark:hover:bg-gray-800"><iconify-icon class="w-4 h-4 flex-shrink-0 inline-flex items-center justify-center" icon="heroicons-outline:arrow-left-on-rectangle"></iconify-icon><span>Logout</span></button>
         </div>
       </div>
     </div>
