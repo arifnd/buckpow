@@ -96,11 +96,15 @@ function renderPagination(p, total) {
 }
 
 function resolveAlert(id) {
-  fetch('/api/v1/alerts/' + id + '/resolve', { method: 'PATCH' }).then(function() { loadAlerts(); });
+  confirmDialog('Resolve this alert?', 'Resolve').then(function(ok) {
+    if (ok) fetch('/api/v1/alerts/' + id + '/resolve', { method: 'PATCH' }).then(function() { loadAlerts(); });
+  });
 }
 
 function resolveAllAlerts() {
-  fetch('/api/v1/alerts/resolve-all', { method: 'POST' }).then(function() { loadAlerts(); });
+  confirmDialog('Resolve all unresolved alerts?', 'Resolve All').then(function(ok) {
+    if (ok) fetch('/api/v1/alerts/resolve-all', { method: 'POST' }).then(function() { loadAlerts(); });
+  });
 }
 
 loadAlerts(1);
