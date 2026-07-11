@@ -108,9 +108,17 @@
       <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
         <div class="p-4 pb-0">
           <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Download a copy of the database.</p>
+          <div id="db-info" class="hidden mb-3 text-sm text-gray-600 dark:text-gray-400">
+            <span class="font-medium">Database:</span> <span id="db-type">—</span>
+            <span class="mx-1">·</span>
+            <span class="font-medium">Size:</span> <span id="db-size">—</span>
+          </div>
+          <div id="db-tool-warning" class="hidden mb-3 p-3 rounded bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 text-xs">
+            <span id="db-tool-warning-text"></span>
+          </div>
         </div>
         <div class="border-t border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center gap-3">
-          <a href="/api/v1/settings/backup" hx-boost="false"
+          <a id="backup-link" href="/api/v1/settings/backup" hx-boost="false"
              class="inline-flex items-center px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">
             Download Backup
           </a>
@@ -134,8 +142,35 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
     btn.classList.add('border-blue-600', 'text-blue-600', 'dark:text-blue-400', 'dark:border-blue-400');
     document.querySelectorAll('.tab-content').forEach(function(tc) { tc.classList.add('hidden'); });
     document.getElementById('tab-' + btn.getAttribute('data-tab')).classList.remove('hidden');
+    if (btn.getAttribute('data-tab') === 'backup') loadDbInfo();
   });
 });
+
+function formatBytes(bytes) {
+  if (bytes === null || bytes === undefined) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+function loadDbInfo() {
+  fetch('/api/v1/settings/db-info')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var infoEl = document.getElementById('db-info');
+      infoEl.classList.remove('hidden');
+      document.getElementById('db-type').textContent = data.type.charAt(0).toUpperCase() + data.type.slice(1);
+      document.getElementById('db-size').textContent = formatBytes(data.size);
+
+      var warningEl = document.getElementById('db-tool-warning');
+      if (data.backup_formats.sql_dump && !data.tool_available) {
+        warningEl.classList.remove('hidden');
+        var tool = data.type === 'postgresql' ? 'pg_dump' : 'mysqldump';
+        document.getElementById('db-tool-warning-text').textContent =
+          tool + ' is not installed on the server. SQL dump backup is unavailable.';
+      }
+    });
+}
 </script>
 <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 {% endblock %}
