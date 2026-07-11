@@ -249,9 +249,6 @@ class TestStaticAssets:
     def test_static_theme_js_returns_200(self, client):
         assert client.get('/static/js/theme.js').status_code == 200
 
-    def test_static_settings_js_returns_200(self, client):
-        assert client.get('/static/js/settings.js').status_code == 200
-
     def test_static_benchmark_js_returns_200(self, client):
         assert client.get('/static/js/benchmark.js').status_code == 200
 

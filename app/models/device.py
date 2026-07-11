@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, Text, Boolean, Float, DateTime, 
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.utils.dates import utc_iso
 
 
 ONLINE_TIMEOUT = 30
@@ -56,7 +57,7 @@ class Device(Base):
             'alias': self.alias,
             'description': self.description,
             'sampling_interval': self.sampling_interval,
-            'last_seen': self.last_seen.isoformat() + 'Z' if self.last_seen else None,
+            'last_seen': utc_iso(self.last_seen) if self.last_seen else None,
             'status': self._compute_status(),
             'api_key': self._masked_api_key(),
             'enabled': self.enabled,
@@ -66,8 +67,8 @@ class Device(Base):
             'high_current_threshold': self.high_current_threshold,
             'high_power_threshold': self.high_power_threshold,
             'low_voltage_threshold': self.low_voltage_threshold,
-            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
+            'created_at': utc_iso(self.created_at) if self.created_at else None,
+            'updated_at': utc_iso(self.updated_at) if self.updated_at else None,
         }
 
     def __repr__(self):

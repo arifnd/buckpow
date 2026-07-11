@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, DateTime, JSON
 
 from app.database import Base
+from app.utils.dates import utc_iso
 from app.utils.hash import hash_password, verify_password
 
 
@@ -29,7 +30,7 @@ class User(Base):
             'id': self.id,
             'name': self.name,
             'email': self.email,
-            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
+            'created_at': utc_iso(self.created_at) if self.created_at else None,
         }
 
     def __repr__(self):

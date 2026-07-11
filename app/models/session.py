@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.utils.dates import utc_iso
 
 
 class Session(Base):
@@ -35,10 +36,10 @@ class Session(Base):
             'status': self.status,
             'project_id': self.project_id,
             'project_name': self.project.name if self.project else None,
-            'started_at': self.started_at.isoformat() + 'Z' if self.started_at else None,
-            'ended_at': self.ended_at.isoformat() + 'Z' if self.ended_at else None,
-            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
+            'started_at': utc_iso(self.started_at) if self.started_at else None,
+            'ended_at': utc_iso(self.ended_at) if self.ended_at else None,
+            'created_at': utc_iso(self.created_at) if self.created_at else None,
+            'updated_at': utc_iso(self.updated_at) if self.updated_at else None,
         }
 
     def __repr__(self):

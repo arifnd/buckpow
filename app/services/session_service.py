@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models import Session
 
@@ -9,11 +9,11 @@ class SessionService:
 
     @staticmethod
     def get_all(db: Session):
-        return db.query(Session).order_by(Session.created_at.desc()).all()
+        return db.query(Session).options(selectinload(Session.device_ref), selectinload(Session.project)).order_by(Session.created_at.desc()).all()
 
     @staticmethod
     def get_paginated(db: Session, page=1, per_page=10):
-        q = db.query(Session).order_by(Session.created_at.desc())
+        q = db.query(Session).options(selectinload(Session.device_ref), selectinload(Session.project)).order_by(Session.created_at.desc())
         offset = (page - 1) * per_page
         total = q.count()
         items = q.offset(offset).limit(per_page).all()
@@ -89,6 +89,7 @@ class SessionService:
         session.started_at = datetime.now(timezone.utc)
         session.ended_at = None
         db.commit()
+        db.refresh(session)
         return session, None
 
     @staticmethod
@@ -101,6 +102,7 @@ class SessionService:
         session.status = 'finished'
         session.ended_at = datetime.now(timezone.utc)
         db.commit()
+        db.refresh(session)
         return session, None
 
     @staticmethod

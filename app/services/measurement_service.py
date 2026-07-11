@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session as DBSession
 from app.models import Measurement
 from app.models.session import Session as SessionModel
 from app.utils.calculations import calc_load_voltage, calc_energy_increment
+from app.utils.dates import utc_iso
 from app.services.device_service import DeviceService
 from app.services.session_service import SessionService
 from app.services.alert_service import AlertService
@@ -121,7 +122,7 @@ class MeasurementService:
         rows = q.order_by(Measurement.created_at.desc()).limit(limit).all()
         rows.reverse()
         return {
-            'labels': [r.created_at.isoformat() + 'Z' if r.created_at else '' for r in rows],
+            'labels': [utc_iso(r.created_at) if r.created_at else '' for r in rows],
             'voltage': [r.bus_voltage for r in rows],
             'load_voltage': [r.load_voltage for r in rows],
             'current': [r.current for r in rows],
@@ -193,8 +194,8 @@ class MeasurementService:
                 'voltage_stddev': 0,
                 'duration': 0,
                 'measurement_count': 0,
-                'started_at': session.started_at.isoformat() + 'Z' if session.started_at else None,
-                'ended_at': session.ended_at.isoformat() + 'Z' if session.ended_at else None,
+                'started_at': utc_iso(session.started_at) if session.started_at else None,
+                'ended_at': utc_iso(session.ended_at) if session.ended_at else None,
                 'chart_data': {'labels': [], 'power': [], 'voltage': [], 'current': []},
             }
 
@@ -235,10 +236,10 @@ class MeasurementService:
             'voltage_stddev': round(voltage_stddev, 6),
             'duration': round(duration, 1),
             'measurement_count': n,
-            'started_at': session.started_at.isoformat() + 'Z' if session.started_at else None,
-            'ended_at': session.ended_at.isoformat() + 'Z' if session.ended_at else None,
+            'started_at': utc_iso(session.started_at) if session.started_at else None,
+            'ended_at': utc_iso(session.ended_at) if session.ended_at else None,
             'chart_data': {
-                'labels': [m.created_at.isoformat() + 'Z' if m.created_at else '' for m in measurements],
+                'labels': [utc_iso(m.created_at) if m.created_at else '' for m in measurements],
                 'power': [m.power for m in measurements],
                 'voltage': [m.bus_voltage for m in measurements],
                 'current': [m.current for m in measurements],

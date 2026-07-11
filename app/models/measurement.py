@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, Float, DateTime, ForeignKey, Index
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.utils.dates import utc_iso
 
 
 class Measurement(Base):
@@ -41,7 +42,7 @@ class Measurement(Base):
             'current': self.current,
             'power': self.power,
             'energy': self.energy,
-            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
+            'created_at': utc_iso(self.created_at) if self.created_at else None,
         }
 
     def __repr__(self):

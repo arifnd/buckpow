@@ -1,6 +1,6 @@
 function formatTimestamp(isoString) {
   if (!isoString) return '';
-  var d = new Date(isoString.replace(/[+-]\d{2}:\d{2}Z$/, 'Z'));
+  var d = new Date(isoString);
   if (isNaN(d.getTime())) return '';
   var tFmt = window.__userTimestampFormat || '24h';
   var dFmt = window.__userDateFormat || 'YYYY-MM-DD';

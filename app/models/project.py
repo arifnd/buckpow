@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.utils.dates import utc_iso
 
 
 class Project(Base):
@@ -29,8 +30,8 @@ class Project(Base):
             'owner_name': self.owner.name if self.owner else None,
             'device_count': self.devices.count() if hasattr(self, 'devices') else 0,
             'session_count': self.sessions.count() if hasattr(self, 'sessions') else 0,
-            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() + 'Z' if self.updated_at else None,
+            'created_at': utc_iso(self.created_at) if self.created_at else None,
+            'updated_at': utc_iso(self.updated_at) if self.updated_at else None,
         }
 
     def __repr__(self):

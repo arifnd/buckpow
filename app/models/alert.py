@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.utils.dates import utc_iso
 
 
 class Alert(Base):
@@ -25,8 +26,8 @@ class Alert(Base):
             'device_name': self.device_rel.device_id if self.device_rel else None,
             'level': self.level,
             'message': self.message,
-            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None,
-            'resolved_at': self.resolved_at.isoformat() + 'Z' if self.resolved_at else None,
+            'created_at': utc_iso(self.created_at) if self.created_at else None,
+            'resolved_at': utc_iso(self.resolved_at) if self.resolved_at else None,
         }
 
     def __repr__(self):

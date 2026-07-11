@@ -1,7 +1,7 @@
 import secrets
 from datetime import datetime, timezone, timedelta
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models import Device
 from app.config import settings
@@ -11,11 +11,11 @@ class DeviceService:
 
     @staticmethod
     def get_all(db: Session):
-        return db.query(Device).order_by(Device.created_at.desc()).all()
+        return db.query(Device).options(selectinload(Device.project)).order_by(Device.created_at.desc()).all()
 
     @staticmethod
     def get_paginated(db: Session, page=1, per_page=10):
-        q = db.query(Device).order_by(Device.created_at.desc())
+        q = db.query(Device).options(selectinload(Device.project)).order_by(Device.created_at.desc())
         offset = (page - 1) * per_page
         total = q.count()
         items = q.offset(offset).limit(per_page).all()
