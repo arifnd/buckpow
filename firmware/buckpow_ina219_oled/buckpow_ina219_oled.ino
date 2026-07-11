@@ -52,10 +52,12 @@
 #if defined(ESP32)
   #include <WiFi.h>
   #include <HTTPClient.h>
+  #include <WiFiClientSecure.h>
 #elif defined(ESP8266)
   #include <ESP8266WiFi.h>
   #include <ESP8266HTTPClient.h>
   #include <WiFiClient.h>
+  #include <WiFiClientSecure.h>
 #endif
 
 #include <Wire.h>
@@ -76,6 +78,7 @@ const char* API_BASE   = "http://192.168.100.16:8000";
 const char* API_PATH   = "/api/v1/measurements";
 const char* DEVICE_ID  = "esp32-ina219-oled";
 const char* API_KEY    = "";
+const bool  USE_HTTPS  = false;  // set true for HTTPS
 
 // ── Timing ──
 const unsigned long INTERVAL_MS  = 5000;
@@ -99,6 +102,13 @@ unsigned long lastApiFail = 0;
 float energyWh       = 0.0;
 unsigned long startTime = 0;
 
+String maskKey(const char* key) {
+  int len = strlen(key);
+  if (len <= 8) return String(key);
+  String out = String(key).substring(0, 4) + "****" + String(key).substring(len - 4);
+  return out;
+}
+
 void updateDisplay(float voltage, float current, float power) {
   display.clearDisplay();
   display.setTextSize(1);
@@ -106,16 +116,16 @@ void updateDisplay(float voltage, float current, float power) {
   display.setCursor(0, 0);
 
   // Line 0: Voltage
-  char buf[22];
-  snprintf(buf, sizeof(buf), "V: %6.2f V", voltage);
+  char buf[24];
+  snprintf(buf, sizeof(buf), "V : %6.2f V", voltage);
   display.println(buf);
 
   // Line 1: Current
-  snprintf(buf, sizeof(buf), "I: %6.1f mA", current);
+  snprintf(buf, sizeof(buf), "I : %6.1f mA", current);
   display.println(buf);
 
   // Line 2: Power
-  snprintf(buf, sizeof(buf), "P: %6.0f mW", power);
+  snprintf(buf, sizeof(buf), "P : %6.0f mW", power);
   display.println(buf);
 
   // Line 3: Energy + Uptime
@@ -123,7 +133,7 @@ void updateDisplay(float voltage, float current, float power) {
   unsigned long hours   = elapsed / 3600;
   unsigned long minutes = (elapsed % 3600) / 60;
 
-  snprintf(buf, sizeof(buf), "E:%6.2fWh %02lu:%02lu", energyWh, hours, minutes);
+  snprintf(buf, sizeof(buf), "E :%5.2fWh %02lu:%02lu", energyWh, hours, minutes);
   display.println(buf);
 
   display.display();
@@ -181,15 +191,24 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
   String payload;
   serializeJson(doc, payload);
 
-  // Initialize HTTP client with a WiFi connection
-  WiFiClient client;
+  // Select client based on protocol
   HTTPClient http;
 
-  // Begin the HTTP request to the target URL
-  if (!http.begin(client, url)) {
-    Serial.println("HTTP begin failed");
-    lastApiFail = millis();
-    return false;
+  if (USE_HTTPS) {
+    WiFiClientSecure secureClient;
+    secureClient.setInsecure();  // skip certificate verification
+    if (!http.begin(secureClient, url)) {
+      Serial.println("HTTP begin failed");
+      lastApiFail = millis();
+      return false;
+    }
+  } else {
+    WiFiClient plainClient;
+    if (!http.begin(plainClient, url)) {
+      Serial.println("HTTP begin failed");
+      lastApiFail = millis();
+      return false;
+    }
   }
 
   // Set request headers: JSON content type and optional Bearer token auth
@@ -227,6 +246,12 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
 void setup() {
   Serial.begin(115200);
   Serial.println("\n\nBuckPow INA219 + OLED Firmware v" FW_VERSION);
+  Serial.print("Host: ");
+  Serial.println(API_BASE);
+  Serial.print("Proto: ");
+  Serial.println(USE_HTTPS ? "HTTPS" : "HTTP");
+  Serial.print("Key:   ");
+  Serial.println(maskKey(API_KEY));
 
   Wire.begin();
 

@@ -43,17 +43,19 @@
 #if defined(ESP32)
   #include <WiFi.h>
   #include <HTTPClient.h>
+  #include <WiFiClientSecure.h>
 #elif defined(ESP8266)
   #include <ESP8266WiFi.h>
   #include <ESP8266HTTPClient.h>
   #include <WiFiClient.h>
+  #include <WiFiClientSecure.h>
 #endif
 
 #include <Adafruit_INA219.h>
 #include <ArduinoJson.h>
 
 // ── Firmware Version ──
-#define FW_VERSION "1.0.0"
+#define FW_VERSION "1.1.0"
 
 // ── WiFi Configuration ──
 const char* WIFI_SSID     = "your-ssid";
@@ -64,6 +66,7 @@ const char* API_BASE   = "http://192.168.100.16:8000";
 const char* API_PATH   = "/api/v1/measurements";
 const char* DEVICE_ID  = "esp32-ina219-01";
 const char* API_KEY    = "";
+const bool  USE_HTTPS  = false;  // set true for HTTPS
 
 // ── Timing ──
 const unsigned long INTERVAL_MS  = 1000;
@@ -75,6 +78,13 @@ Adafruit_INA219 ina219;
 unsigned long lastSend    = 0;
 unsigned long lastWifiTry = 0;
 unsigned long lastApiFail = 0;
+
+String maskKey(const char* key) {
+  int len = strlen(key);
+  if (len <= 8) return String(key);
+  String out = String(key).substring(0, 4) + "****" + String(key).substring(len - 4);
+  return out;
+}
 
 bool connectWiFi() {
   if (WiFi.status() == WL_CONNECTED) return true;
@@ -111,12 +121,23 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
   String payload;
   serializeJson(doc, payload);
 
-  WiFiClient client;
   HTTPClient http;
-  if (!http.begin(client, url)) {
-    Serial.println("HTTP begin failed");
-    lastApiFail = millis();
-    return false;
+
+  if (USE_HTTPS) {
+    WiFiClientSecure secureClient;
+    secureClient.setInsecure();
+    if (!http.begin(secureClient, url)) {
+      Serial.println("HTTP begin failed");
+      lastApiFail = millis();
+      return false;
+    }
+  } else {
+    WiFiClient plainClient;
+    if (!http.begin(plainClient, url)) {
+      Serial.println("HTTP begin failed");
+      lastApiFail = millis();
+      return false;
+    }
   }
   http.addHeader("Content-Type", "application/json");
   if (API_KEY[0] != '\0') {
@@ -143,7 +164,13 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
 
 void setup() {
   Serial.begin(115200);
-  Serial.println("\n\nBuckPow INA219 Firmware");
+  Serial.println("\n\nBuckPow INA219 Firmware v" FW_VERSION);
+  Serial.print("Host: ");
+  Serial.println(API_BASE);
+  Serial.print("Proto: ");
+  Serial.println(USE_HTTPS ? "HTTPS" : "HTTP");
+  Serial.print("Key:   ");
+  Serial.println(maskKey(API_KEY));
 
   Wire.begin();
   if (!ina219.begin()) {
