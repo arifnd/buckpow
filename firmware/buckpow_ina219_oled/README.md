@@ -28,6 +28,18 @@ Install via **Arduino Library Manager** (`Tools > Manage Libraries`):
 - **Adafruit GFX Library** by Adafruit
 - **ArduinoJson** by Benoit Blanchon
 
+## Configuration
+
+Edit near the top of `buckpow_ina219_oled.ino`:
+
+```cpp
+const char* WIFI_SSID     = "your-ssid";
+const char* WIFI_PASSWORD = "your-password";
+const char* API_BASE      = "http://192.168.1.100:8000";
+const char* DEVICE_ID     = "esp32-ina219-oled";
+const char* API_KEY       = "";
+```
+
 ## OLED Display Layout
 
 On startup, shows `BuckPow v1.1.0` for 2 seconds, then real-time readings:
@@ -52,11 +64,9 @@ E:  1.23Wh 01:23
 
 ## Data Sent
 
-Same payload as the base variant:
-
 ```json
 {
-  "device_id": "esp32-ina219-oled-01",
+  "device_id": "esp32-ina219-oled",
   "firmware_version": "1.1.0",
   "bus_voltage": 5.12,
   "shunt_voltage": 82.0,
@@ -75,7 +85,8 @@ Same payload as the base variant:
 
 ## WiFi Behavior
 
-Same as base variant: 30-second startup timeout, 30-second reconnect interval, readings skipped while disconnected.
+- **Startup** — tries to connect for 30 seconds, then continues even if WiFi is unavailable
+- **Runtime** — if disconnected, retries every 30 seconds. Readings are skipped until WiFi reconnects
 
 ## Error Backoff
 

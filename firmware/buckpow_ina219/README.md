@@ -1,6 +1,6 @@
 # buckpow_ina219 — Base Variant
 
-Sends INA219 power readings to BuckPow via HTTP POST. No display — status via Serial only.
+Sends INA219 power readings to BuckPow via HTTP POST. No display — status and readings via Serial only.
 
 - **Version:** 1.0.0
 - **Interval:** 1 second (`INTERVAL_MS = 1000`)
@@ -22,9 +22,21 @@ Install via **Arduino Library Manager** (`Tools > Manage Libraries`):
 - **Adafruit INA219** by Adafruit
 - **ArduinoJson** by Benoit Blanchon
 
-## Serial Output
+## Configuration
 
-Opens Serial at 115200 baud. Shows WiFi connection status, HTTP response codes, and measurement values. The sketch runs normally with or without a Serial monitor connected.
+Edit near the top of `buckpow_ina219.ino`:
+
+```cpp
+const char* WIFI_SSID     = "your-ssid";
+const char* WIFI_PASSWORD = "your-password";
+const char* API_BASE      = "http://192.168.1.100:8000";
+const char* DEVICE_ID     = "esp32-ina219-01";
+const char* API_KEY       = "";
+```
+
+- `API_BASE` — BuckPow server address and port (default: `8000`)
+- `DEVICE_ID` — unique identifier, auto-registers on first reading
+- `API_KEY` — optional, leave empty when auth is disabled
 
 ## Data Sent
 
@@ -53,6 +65,10 @@ Opens Serial at 115200 baud. Shows WiFi connection status, HTTP response codes, 
 | Resolution | ~0.1 mA |
 
 Calibrated via `setCalibration_32V_2A()` — optimal accuracy up to ~3.2 A with the standard 0.1 Ω shunt.
+
+## Serial Output
+
+Opens Serial at 115200 baud. Shows WiFi connection status, HTTP response codes, and measurement values. The sketch runs normally with or without a Serial monitor connected.
 
 ## WiFi Behavior
 
