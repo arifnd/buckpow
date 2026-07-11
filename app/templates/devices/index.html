@@ -154,7 +154,7 @@ async function loadDevices(page) {
       <td class="py-2 px-3 text-right">${d.sampling_interval}s</td>
       <td class="py-2 px-3 text-center"><span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white ${badge}">${status}</span></td>
       <td class="py-2 px-3 text-center">${enabledBadge}</td>
-      <td class="py-2 px-3">${d.last_seen ? new Date(d.last_seen).toLocaleString() : '—'}</td>
+      <td class="py-2 px-3">${formatTimestamp(d.last_seen)}</td>
       <td class="py-2 px-3 text-right">
         <button class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" onclick="openDeviceModal(${d.id})">Edit</button>
         <button class="inline-flex items-center px-2 py-1 rounded text-xs font-medium ${d.enabled ? 'bg-yellow-500 hover:bg-yellow-400' : 'bg-green-600 hover:bg-green-500'} text-white transition-colors ml-1" onclick="toggleDevice(${d.id})">${d.enabled ? 'Disable' : 'Enable'}</button>

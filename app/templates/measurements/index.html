@@ -97,7 +97,7 @@ async function loadMeasurements(page) {
     <td class="py-2 px-2 text-right">${(m.current * 1000).toFixed(2)} mA</td>
     <td class="py-2 px-2 text-right">${(m.power * 1000).toFixed(2)} mW</td>
     <td class="py-2 px-2 text-right">${m.energy.toFixed(6)}</td>
-    <td class="py-2 px-2">${m.created_at ? new Date(m.created_at).toLocaleString() : '—'}</td>
+    <td class="py-2 px-2">${formatTimestamp(m.created_at)}</td>
   </tr>`).join('');
 
   const pagination = document.getElementById('pagination');

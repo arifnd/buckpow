@@ -112,8 +112,8 @@ function renderComparison(sessions) {
     { label: 'Voltage Std Dev', fn: function(s) { return s.voltage_stddev; } },
     { label: 'Duration', fn: function(s) { return fmtDuration(s.duration); } },
     { label: 'Measurements', fn: function(s) { return s.measurement_count; } },
-    { label: 'Started', fn: function(s) { return s.started_at ? new Date(s.started_at).toLocaleString() : '\u2014'; } },
-    { label: 'Ended', fn: function(s) { return s.ended_at ? new Date(s.ended_at).toLocaleString() : '\u2014'; } },
+    { label: 'Started', fn: function(s) { return formatTimestamp(s.started_at); } },
+    { label: 'Ended', fn: function(s) { return formatTimestamp(s.ended_at); } },
   ];
   tbody.innerHTML = rows.map(function(r, i) {
     var cls = i % 2 === 0 ? 'bg-white dark:bg-gray-900' : '';
@@ -133,9 +133,10 @@ function formatBenchTime(isoString) {
   if (!isoString) return '';
   var d = new Date(isoString);
   if (isNaN(d.getTime())) return '';
-  return d.getHours().toString().padStart(2, '0') + ':' +
-         d.getMinutes().toString().padStart(2, '0') + ':' +
-         d.getSeconds().toString().padStart(2, '0');
+  var tzOffset = parseInt(window.__userTimezone || '0', 10) || 0;
+  var dt = new Date(d.getTime() + tzOffset * 3600000);
+  function pad(n) { return String(n).padStart(2, '0'); }
+  return pad(dt.getUTCHours()) + ':' + pad(dt.getUTCMinutes()) + ':' + pad(dt.getUTCSeconds());
 }
 
 function renderOverlayChart(sessions) {
