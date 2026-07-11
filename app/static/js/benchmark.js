@@ -5,6 +5,7 @@ function initBenchmarkPage() {
   document.getElementById('compare-btn').addEventListener('click', runComparison);
   document.getElementById('session-a').addEventListener('change', enableCompare);
   document.getElementById('session-b').addEventListener('change', enableCompare);
+  document.getElementById('session-c').addEventListener('change', enableCompare);
 }
 
 function enableCompare() {
@@ -19,8 +20,10 @@ function loadSessions() {
     .then(function(sessions) {
       var selA = document.getElementById('session-a');
       var selB = document.getElementById('session-b');
+      var selC = document.getElementById('session-c');
       selA.innerHTML = '<option value="">Select a finished session</option>';
       selB.innerHTML = '<option value="">Select a finished session</option>';
+      selC.innerHTML = '<option value="">Select (optional)</option>';
       sessions.filter(function(s) { return s.status === 'finished'; }).forEach(function(s) {
         var label = s.name + ' (' + s.device_name + ')';
         var optA = document.createElement('option');
@@ -31,6 +34,10 @@ function loadSessions() {
         optB.value = s.id;
         optB.textContent = label;
         selB.appendChild(optB);
+        var optC = document.createElement('option');
+        optC.value = s.id;
+        optC.textContent = label;
+        selC.appendChild(optC);
       });
       if (sessions.filter(function(s) { return s.status === 'finished'; }).length === 0) {
         var statusEl = document.getElementById('compare-status');
@@ -42,14 +49,18 @@ function loadSessions() {
 function runComparison() {
   var a = document.getElementById('session-a').value;
   var b = document.getElementById('session-b').value;
+  var c = document.getElementById('session-c').value;
   if (!a || !b) return;
+
+  var ids = [a, b];
+  if (c) ids.push(c);
 
   var btn = document.getElementById('compare-btn');
   var statusEl = document.getElementById('compare-status');
   btn.disabled = true;
   statusEl.textContent = 'Loading...';
 
-  fetch('/api/v1/benchmark/compare?sessions=' + a + ',' + b)
+  fetch('/api/v1/benchmark/compare?sessions=' + ids.join(','))
     .then(function(r) { return r.json(); })
     .then(function(data) {
       statusEl.textContent = '';
@@ -81,27 +92,37 @@ function fmtDuration(secs) {
 function renderComparison(sessions) {
   document.getElementById('results-section').classList.remove('hidden');
   document.getElementById('header-a').textContent = sessions[0].session_name;
-  document.getElementById('header-b').textContent = sessions[1].session_name;
+  document.getElementById('header-b').textContent = sessions.length >= 2 ? sessions[1].session_name : '';
+  var headerC = document.getElementById('header-c');
+  if (sessions.length >= 3) {
+    headerC.textContent = sessions[2].session_name;
+    headerC.classList.remove('hidden');
+  } else {
+    headerC.textContent = 'Session 3';
+    headerC.classList.add('hidden');
+  }
 
   var tbody = document.getElementById('comparison-tbody');
   var rows = [
-    { label: 'Device', a: sessions[0].device_name || '\u2014', b: sessions[1].device_name || '\u2014' },
-    { label: 'Avg Power (W)', a: sessions[0].avg_power, b: sessions[1].avg_power },
-    { label: 'Peak Power (W)', a: sessions[0].peak_power, b: sessions[1].peak_power },
-    { label: 'Total Energy (Wh)', a: sessions[0].total_energy, b: sessions[1].total_energy },
-    { label: 'Avg Current (A)', a: sessions[0].avg_current, b: sessions[1].avg_current },
-    { label: 'Voltage Std Dev', a: sessions[0].voltage_stddev, b: sessions[1].voltage_stddev },
-    { label: 'Duration', a: fmtDuration(sessions[0].duration), b: fmtDuration(sessions[1].duration) },
-    { label: 'Measurements', a: sessions[0].measurement_count, b: sessions[1].measurement_count },
-    { label: 'Started', a: sessions[0].started_at ? new Date(sessions[0].started_at).toLocaleString() : '\u2014', b: sessions[1].started_at ? new Date(sessions[1].started_at).toLocaleString() : '\u2014' },
-    { label: 'Ended', a: sessions[0].ended_at ? new Date(sessions[0].ended_at).toLocaleString() : '\u2014', b: sessions[1].ended_at ? new Date(sessions[1].ended_at).toLocaleString() : '\u2014' },
+    { label: 'Device', fn: function(s) { return s.device_name || '\u2014'; } },
+    { label: 'Avg Power (W)', fn: function(s) { return s.avg_power; } },
+    { label: 'Peak Power (W)', fn: function(s) { return s.peak_power; } },
+    { label: 'Total Energy (Wh)', fn: function(s) { return s.total_energy; } },
+    { label: 'Avg Current (A)', fn: function(s) { return s.avg_current; } },
+    { label: 'Voltage Std Dev', fn: function(s) { return s.voltage_stddev; } },
+    { label: 'Duration', fn: function(s) { return fmtDuration(s.duration); } },
+    { label: 'Measurements', fn: function(s) { return s.measurement_count; } },
+    { label: 'Started', fn: function(s) { return s.started_at ? new Date(s.started_at).toLocaleString() : '\u2014'; } },
+    { label: 'Ended', fn: function(s) { return s.ended_at ? new Date(s.ended_at).toLocaleString() : '\u2014'; } },
   ];
   tbody.innerHTML = rows.map(function(r, i) {
     var cls = i % 2 === 0 ? 'bg-white dark:bg-gray-900' : '';
+    var hiddenCol = sessions.length < 3 ? ' hidden' : '';
     return '<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 ' + cls + '">'
       + '<td class="py-2 px-3 font-medium">' + r.label + '</td>'
-      + '<td class="py-2 px-3">' + r.a + '</td>'
-      + '<td class="py-2 px-3">' + r.b + '</td>'
+      + '<td class="py-2 px-3">' + r.fn(sessions[0]) + '</td>'
+      + '<td class="py-2 px-3">' + (sessions[1] ? r.fn(sessions[1]) : '') + '</td>'
+      + '<td class="py-2 px-3' + hiddenCol + '">' + (sessions[2] ? r.fn(sessions[2]) : '') + '</td>'
       + '</tr>';
   }).join('');
 
@@ -124,7 +145,7 @@ function renderOverlayChart(sessions) {
   }
 
   var labels = sessions[0].chart_data.labels.map(formatBenchTime);
-  var colors = ['#58a6ff', '#f85149'];
+  var colors = ['#58a6ff', '#f85149', '#3fb950'];
   var datasets = sessions.map(function(s, i) {
     return {
       label: s.session_name,

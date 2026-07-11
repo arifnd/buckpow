@@ -3,17 +3,23 @@
 <div class="max-w-7xl mx-auto px-4 py-6" hx-boost="false">
   <h1 class="text-xl font-bold mb-4">Benchmark Comparison</h1>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
     <div>
-      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Session A</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Session 1</label>
       <select id="session-a" class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300">
         <option value="">Select a finished session</option>
       </select>
     </div>
     <div>
-      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Session B</label>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Session 2</label>
       <select id="session-b" class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300">
         <option value="">Select a finished session</option>
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Session 3 <span class="text-gray-400 dark:text-gray-500">(optional)</span></label>
+      <select id="session-c" class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300">
+        <option value="">Select (optional)</option>
       </select>
     </div>
   </div>
@@ -29,8 +35,9 @@
         <thead>
           <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
             <th class="text-left py-2 px-3 font-medium">Metric</th>
-            <th class="text-left py-2 px-3 font-medium" id="header-a">Session A</th>
-            <th class="text-left py-2 px-3 font-medium" id="header-b">Session B</th>
+            <th class="text-left py-2 px-3 font-medium" id="header-a">Session 1</th>
+            <th class="text-left py-2 px-3 font-medium" id="header-b">Session 2</th>
+            <th class="text-left py-2 px-3 font-medium" id="header-c">Session 3</th>
           </tr>
         </thead>
         <tbody id="comparison-tbody">

@@ -18,8 +18,8 @@ def compare(
     if not sessions:
         raise HTTPException(status_code=400, detail='sessions parameter is required (comma-separated IDs)')
     session_ids = [s.strip() for s in sessions.split(',') if s.strip()]
-    if len(session_ids) < 2:
-        raise HTTPException(status_code=400, detail='At least two session IDs are required')
+    if len(session_ids) < 2 or len(session_ids) > 3:
+        raise HTTPException(status_code=400, detail='2 to 3 session IDs are required')
     results = []
     for sid in session_ids:
         try:
