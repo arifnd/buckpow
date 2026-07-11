@@ -14,6 +14,24 @@
     { id: 'form-general', fields: ['brand', 'timestamp_format', 'timezone', 'device_watchdog_timeout'], status: 'status-general' },
   ];
 
+  function showStatus(el, type, message) {
+    el.className = 'mb-3 p-2 rounded text-sm';
+    if (type === 'saving') {
+      el.classList.add('bg-blue-50', 'dark:bg-blue-900/20', 'text-blue-600', 'dark:text-blue-400');
+    } else if (type === 'success') {
+      el.classList.add('bg-green-50', 'dark:bg-green-900/20', 'text-green-600', 'dark:text-green-400');
+    } else if (type === 'error') {
+      el.classList.add('bg-red-50', 'dark:bg-red-900/20', 'text-red-600', 'dark:text-red-400');
+    }
+    el.textContent = message;
+    el.classList.remove('hidden');
+  }
+
+  function hideStatus(el) {
+    el.classList.add('hidden');
+    el.className = 'hidden mb-3 p-2 rounded text-sm';
+  }
+
   function load() {
     fetch('/api/v1/settings').then(function(r) { return r.json(); }).then(function(s) {
       Object.keys(FIELD_MAP).forEach(function(key) {
@@ -40,17 +58,19 @@
         data[key] = val || null;
       });
 
-      status.textContent = 'Saving\u2026';
+      showStatus(status, 'saving', 'Saving\u2026');
       fetch('/api/v1/settings', {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data),
       }).then(function(r) {
         if (r.ok) {
-          status.textContent = 'Saved';
-          setTimeout(function() { status.textContent = ''; }, 2000);
+          showStatus(status, 'success', 'Saved');
+          setTimeout(function() { hideStatus(status); }, 2000);
         } else {
-          r.json().then(function(err) { status.textContent = 'Error: ' + (err.error || 'Unknown'); });
+          r.json().then(function(err) {
+            showStatus(status, 'error', 'Error: ' + (err.error || 'Unknown'));
+          });
         }
       });
     });

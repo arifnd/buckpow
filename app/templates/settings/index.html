@@ -7,43 +7,15 @@
     <h2 class="text-xl font-semibold mb-6">Settings</h2>
 
     <div class="flex border-b border-gray-200 dark:border-gray-800 mb-4">
-      <button class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 -mb-px" data-tab="alerts">Alert Thresholds</button>
-      <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 border-b-2 border-transparent" data-tab="general">General</button>
+      <button class="tab-btn px-4 py-2 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-400 -mb-px" data-tab="general">General</button>
+      <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 border-b-2 border-transparent" data-tab="alerts">Alert Thresholds</button>
       <button class="tab-btn px-4 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 border-b-2 border-transparent" data-tab="backup">Backup</button>
     </div>
 
-    <div id="tab-alerts" class="tab-content">
+    <div id="tab-general" class="tab-content">
       <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
         <div class="p-4 pb-0">
-          <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Leave empty to use global defaults.</p>
-          <form id="form-alerts" class="settings-card-form" data-fields='["high_power_threshold","high_current_threshold","low_voltage_threshold"]'>
-            <div class="mb-3">
-              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">High Power Threshold (W)</label>
-              <input type="number" step="0.1" name="high_power_threshold" id="field-high-power"
-                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
-            </div>
-            <div class="mb-3">
-              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">High Current Threshold (A)</label>
-              <input type="number" step="0.01" name="high_current_threshold" id="field-high-current"
-                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
-            </div>
-            <div class="mb-3">
-              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Low Voltage Threshold (V)</label>
-              <input type="number" step="0.1" name="low_voltage_threshold" id="field-low-voltage"
-                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
-            </div>
-          </form>
-        </div>
-        <div class="border-t border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center gap-3">
-          <button type="submit" form="form-alerts" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
-          <span class="status text-sm text-gray-500 dark:text-gray-400" id="status-alerts"></span>
-        </div>
-      </div>
-    </div>
-
-    <div id="tab-general" class="tab-content hidden">
-      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
-        <div class="p-4 pb-0">
+          <div id="status-general" class="hidden mb-3 p-2 rounded text-sm"></div>
           <form id="form-general" class="settings-card-form" data-fields='["brand","timestamp_format","timezone","device_watchdog_timeout"]'>
             <div class="mb-3">
               <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Brand Title</label>
@@ -99,7 +71,35 @@
         </div>
         <div class="border-t border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center gap-3">
           <button type="submit" form="form-general" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
-          <span class="status text-sm text-gray-500 dark:text-gray-400" id="status-general"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-alerts" class="tab-content hidden">
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
+        <div class="p-4 pb-0">
+          <div id="status-alerts" class="hidden mb-3 p-2 rounded text-sm"></div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Leave empty to use global defaults.</p>
+          <form id="form-alerts" class="settings-card-form" data-fields='["high_power_threshold","high_current_threshold","low_voltage_threshold"]'>
+            <div class="mb-3">
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">High Power Threshold (W)</label>
+              <input type="number" step="0.1" name="high_power_threshold" id="field-high-power"
+                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">High Current Threshold (A)</label>
+              <input type="number" step="0.01" name="high_current_threshold" id="field-high-current"
+                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+            </div>
+            <div class="mb-3">
+              <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Low Voltage Threshold (V)</label>
+              <input type="number" step="0.1" name="low_voltage_threshold" id="field-low-voltage"
+                     class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+            </div>
+          </form>
+        </div>
+        <div class="border-t border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center gap-3">
+          <button type="submit" form="form-alerts" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
         </div>
       </div>
     </div>
@@ -171,6 +171,84 @@ function loadDbInfo() {
       }
     });
 }
+
+var FIELD_MAP = {
+  high_power_threshold: 'field-high-power',
+  high_current_threshold: 'field-high-current',
+  low_voltage_threshold: 'field-low-voltage',
+  brand: 'field-brand',
+  timestamp_format: 'field-timestamp-format',
+  timezone: 'field-timezone',
+  device_watchdog_timeout: 'field-device-watchdog-timeout',
+};
+
+var FORMS = [
+  { id: 'form-alerts', fields: ['high_power_threshold', 'high_current_threshold', 'low_voltage_threshold'], status: 'status-alerts' },
+  { id: 'form-general', fields: ['brand', 'timestamp_format', 'timezone', 'device_watchdog_timeout'], status: 'status-general' },
+];
+
+function showStatus(el, type, message) {
+  el.className = 'mb-3 p-2 rounded text-sm';
+  if (type === 'saving') {
+    el.classList.add('bg-blue-50', 'dark:bg-blue-900/20', 'text-blue-600', 'dark:text-blue-400');
+  } else if (type === 'success') {
+    el.classList.add('bg-green-50', 'dark:bg-green-900/20', 'text-green-600', 'dark:text-green-400');
+  } else if (type === 'error') {
+    el.classList.add('bg-red-50', 'dark:bg-red-900/20', 'text-red-600', 'dark:text-red-400');
+  }
+  el.textContent = message;
+  el.classList.remove('hidden');
+}
+
+function hideStatus(el) {
+  el.classList.add('hidden');
+  el.className = 'hidden mb-3 p-2 rounded text-sm';
+}
+
+function loadSettings() {
+  fetch('/api/v1/settings').then(function(r) { return r.json(); }).then(function(s) {
+    Object.keys(FIELD_MAP).forEach(function(key) {
+      var el = document.getElementById(FIELD_MAP[key]);
+      if (!el) return;
+      if (s[key] != null) {
+        if (el.tagName === 'SELECT') el.value = s[key];
+        else el.value = s[key];
+      }
+    });
+  });
+}
+
+FORMS.forEach(function(f) {
+  var form = document.getElementById(f.id);
+  if (!form) return;
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var status = document.getElementById(f.status);
+    var data = {};
+    f.fields.forEach(function(key) {
+      var el = document.getElementById(FIELD_MAP[key]);
+      var val = el ? el.value.trim() : '';
+      data[key] = val || null;
+    });
+
+    showStatus(status, 'saving', 'Saving\u2026');
+    fetch('/api/v1/settings', {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data),
+    }).then(function(r) {
+      if (r.ok) {
+        showStatus(status, 'success', 'Settings saved successfully');
+        setTimeout(function() { hideStatus(status); }, 2000);
+      } else {
+        r.json().then(function(err) {
+          showStatus(status, 'error', 'Error: ' + (err.error || 'Unknown'));
+        });
+      }
+    });
+  });
+});
+
+loadSettings();
 </script>
-<script src="{{ url_for('static', filename='js/settings.js') }}"></script>
 {% endblock %}
