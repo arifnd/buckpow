@@ -26,8 +26,8 @@ class Device(Base):
     high_current_threshold = Column(Float, nullable=True)
     high_power_threshold = Column(Float, nullable=True)
     low_voltage_threshold = Column(Float, nullable=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     sessions = relationship('Session', back_populates='device_ref', lazy='dynamic')
     measurements = relationship('Measurement', back_populates='device_ref', lazy='dynamic')

@@ -18,7 +18,7 @@ class Measurement(Base):
     current = Column(Float, nullable=False)
     power = Column(Float, nullable=False)
     energy = Column(Float, default=0.0)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     __table_args__ = (
         Index('idx_measurement_device_time', 'device_id', 'created_at'),

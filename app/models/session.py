@@ -18,8 +18,8 @@ class Session(Base):
     project_id = Column(Integer, ForeignKey('projects.id'), nullable=True)
     started_at = Column(DateTime, nullable=True)
     ended_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     device_ref = relationship('Device', back_populates='sessions')
     measurements = relationship('Measurement', back_populates='session_ref', lazy='dynamic')

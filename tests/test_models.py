@@ -74,6 +74,27 @@ class TestDeviceModel:
         assert repr(d) == '<Device esp32-repr>'
         db.close()
 
+    def test_created_at_is_recent(self, app):
+        db = SessionLocal()
+        before = datetime.now(timezone.utc)
+        d = Device(device_id='esp32-ts-created')
+        db.add(d)
+        db.commit()
+        after = datetime.now(timezone.utc)
+        assert before <= d.created_at.replace(tzinfo=timezone.utc) <= after
+        db.close()
+
+    def test_updated_at_updates_on_change(self, app):
+        db = SessionLocal()
+        d = Device(device_id='esp32-ts-updated')
+        db.add(d)
+        db.commit()
+        original = d.updated_at
+        d.alias = 'Changed'
+        db.commit()
+        assert d.updated_at > original
+        db.close()
+
 
 class TestSessionModel:
     def test_to_dict(self, app):
@@ -137,6 +158,33 @@ class TestSessionModel:
         assert repr(s) == '<Session My Session>'
         db.close()
 
+    def test_session_created_at_is_recent(self, app):
+        db = SessionLocal()
+        d = Device(device_id='esp32-sess-ts')
+        db.add(d)
+        db.flush()
+        before = datetime.now(timezone.utc)
+        s = Session(device_id=d.id, name='TS Session')
+        db.add(s)
+        db.commit()
+        after = datetime.now(timezone.utc)
+        assert before <= s.created_at.replace(tzinfo=timezone.utc) <= after
+        db.close()
+
+    def test_session_updated_at_updates_on_change(self, app):
+        db = SessionLocal()
+        d = Device(device_id='esp32-sess-upd')
+        db.add(d)
+        db.flush()
+        s = Session(device_id=d.id, name='Original')
+        db.add(s)
+        db.commit()
+        original = s.updated_at
+        s.name = 'Changed'
+        db.commit()
+        assert s.updated_at > original
+        db.close()
+
 
 class TestMeasurementModel:
     def test_to_dict(self, app):
@@ -197,6 +245,20 @@ class TestMeasurementModel:
         m = Measurement(device_id=1, bus_voltage=5.0, shunt_voltage=80.0,
                         load_voltage=5.08, current=0.24, power=1.2)
         assert repr(m) == '<Measurement None device=1>'
+        db.close()
+
+    def test_measurement_created_at_is_recent(self, app):
+        db = SessionLocal()
+        d = Device(device_id='esp32-meas-ts')
+        db.add(d)
+        db.flush()
+        before = datetime.now(timezone.utc)
+        m = Measurement(device_id=d.id, bus_voltage=5.0, shunt_voltage=80.0,
+                        load_voltage=5.08, current=0.24, power=1.2)
+        db.add(m)
+        db.commit()
+        after = datetime.now(timezone.utc)
+        assert before <= m.created_at.replace(tzinfo=timezone.utc) <= after
         db.close()
 
 

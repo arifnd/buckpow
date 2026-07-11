@@ -13,8 +13,8 @@ class Project(Base):
     name = Column(String(256), nullable=False)
     description = Column(Text, default='')
     owner_id = Column(Integer, ForeignKey('users.id'), nullable=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     owner = relationship('User', backref='projects', lazy='select')
     devices = relationship('Device', backref='project', lazy='dynamic')

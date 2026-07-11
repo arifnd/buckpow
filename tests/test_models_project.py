@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from app.database import SessionLocal
 from app.models import Project, User, Device, Session
 
@@ -68,4 +70,25 @@ class TestProjectModel:
         db.add(p)
         db.commit()
         assert p.description == ''
+        db.close()
+
+    def test_created_at_is_recent(self, app):
+        db = SessionLocal()
+        before = datetime.now(timezone.utc)
+        p = Project(name='TS Project')
+        db.add(p)
+        db.commit()
+        after = datetime.now(timezone.utc)
+        assert before <= p.created_at.replace(tzinfo=timezone.utc) <= after
+        db.close()
+
+    def test_updated_at_updates_on_change(self, app):
+        db = SessionLocal()
+        p = Project(name='TS Update')
+        db.add(p)
+        db.commit()
+        original = p.updated_at
+        p.name = 'Changed'
+        db.commit()
+        assert p.updated_at > original
         db.close()
