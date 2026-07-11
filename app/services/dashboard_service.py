@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.models import Device, Session, Project, Measurement
+from app.utils.dates import utc_iso
 
 
 class DashboardService:
@@ -53,6 +54,12 @@ class DashboardService:
             q = q.filter(Measurement.created_at <= end_date)
         q = q.order_by(Measurement.created_at.desc()).limit(500)
 
+        session_started_at = None
+        if session_id:
+            sess = db.query(Session).filter_by(id=session_id, status='running').first()
+            if sess:
+                session_started_at = utc_iso(sess.started_at)
+
         rows = q.all()
         if not rows:
             return {
@@ -60,6 +67,8 @@ class DashboardService:
                 'current': {'min': 0, 'max': 0, 'avg': 0},
                 'power': {'min': 0, 'max': 0, 'avg': 0, 'peak': 0},
                 'energy': {'hourly': [], 'daily': [], 'weekly': [], 'monthly': []},
+                'total_energy': 0,
+                'session_started_at': session_started_at,
             }
 
         voltages = [r.bus_voltage for r in rows]
@@ -87,6 +96,8 @@ class DashboardService:
                 db, device_id=device_id, session_id=session_id,
                 start_date=start_date, end_date=end_date
             ),
+            'total_energy': round(rows[0].energy, 6) if rows else 0,
+            'session_started_at': session_started_at,
         }
         return stats
 

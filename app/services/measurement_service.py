@@ -109,7 +109,7 @@ class MeasurementService:
                 load_voltage.append(round(sum(b['load_voltage']) / len(b['load_voltage']), 3))
                 current.append(round(sum(b['current']) / len(b['current']), 3))
                 power.append(round(sum(b['power']) / len(b['power']), 3))
-                energy.append(round(sum(b['energy']) / len(b['energy']), 3))
+                energy.append(round(b['energy'][-1], 6))
             return {
                 'labels': labels,
                 'voltage': voltage,

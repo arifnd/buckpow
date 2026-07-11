@@ -85,12 +85,11 @@ function updateStats(dashboard) {
   if (!stats || !stats.voltage) return;
   var container = document.getElementById('stats-cards');
   var totalFields = [];
-  if (dashboard.latest && dashboard.latest.energy != null) {
-    totalFields.push({ label: 'Energy', val: toFixedSafe(dashboard.latest.energy, 6) });
+  if (stats.total_energy != null) {
+    totalFields.push({ label: 'Energy', val: toFixedSafe(stats.total_energy, 6) });
   }
-  var started = sessionStartedAts[currentSessionId];
-  if (started) {
-    totalFields.push({ label: 'Running', val: formatDuration(started) });
+  if (stats.session_started_at) {
+    totalFields.push({ label: 'Running', val: formatDuration(stats.session_started_at) });
   }
   container.innerHTML =
     statCard('Voltage', 'V', 'info', [
@@ -137,6 +136,17 @@ function updateTable(measurements) {
 
 function updateCharts(chartData) {
   if (!chartData || !chartData.labels || chartData.labels.length === 0) {
+    ['voltage', 'current', 'power', 'energy'].forEach(function(key) {
+      var el = document.getElementById('chart-val-' + key);
+      if (el) el.textContent = '\u2014';
+    });
+    [voltageChart, currentChart, powerChart, energyChart].forEach(function(chart) {
+      if (chart) {
+        chart.data.labels = [];
+        chart.data.datasets.forEach(function(ds) { ds.data = []; });
+        chart.update();
+      }
+    });
     return;
   }
 
@@ -226,8 +236,6 @@ async function fetchSummary() {
 }
 
 async function fetchDashboardData() {
-  const dashboard = await fetchJSON('/api/v1/dashboard');
-
   var sessionFilter = buildSessionFilter();
   if (!sessionFilter) {
     updateCharts({labels: [], voltage: [], current: [], power: [], energy: []});
@@ -235,9 +243,16 @@ async function fetchDashboardData() {
     return;
   }
 
+  var [dashboard, stats] = await Promise.all([
+    fetchJSON('/api/v1/dashboard'),
+    fetchJSON('/api/v1/dashboard/statistics?' + sessionFilter),
+  ]);
+
   if (dashboard) {
     updateSummaryCards(dashboard);
-    updateStats(dashboard);
+  }
+  if (stats) {
+    updateStats({stats: stats, latest: dashboard ? dashboard.latest : null});
   }
 
   var granularityMap = {'1h': 'm', '24h': 'h', '7d': 'd', '30d': 'd'};
