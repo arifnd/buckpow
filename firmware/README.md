@@ -1,99 +1,44 @@
-# BuckPow Firmware — ESP32/ESP8266 + INA219
+# BuckPow Firmware
 
-Arduino sketch for the BuckPow power monitoring dashboard. Sends INA219 readings (voltage, current, power) via HTTP POST to the BuckPow API.
+Arduino sketches for ESP32/ESP8266 + INA219 that send power readings to BuckPow.
 
-## Wiring
+| Sketch | Display | Version | Interval |
+|--------|---------|---------|----------|
+| [`buckpow_ina219`](buckpow_ina219/) | None (Serial only) | 1.0.0 | 1s |
+| [`buckpow_ina219_oled`](buckpow_ina219_oled/) | SSD1306 128x32 OLED | 1.1.0 | 5s |
+
+## Common Wiring
 
 | INA219 | ESP32 | ESP8266 |
 |--------|-------|---------|
-| VCC    | 3.3V  | 3.3V    |
-| GND    | GND   | GND     |
-| SCL    | GPIO 22 | D1 (GPIO 5) |
-| SDA    | GPIO 21 | D2 (GPIO 4) |
+| VCC | 3.3V | 3.3V |
+| GND | GND | GND |
+| SCL | GPIO 22 | D1 (GPIO 5) |
+| SDA | GPIO 21 | D2 (GPIO 4) |
 
-## Required Libraries
-
-Install via Arduino Library Manager (`Tools → Manage Libraries`):
-
-- **Adafruit INA219** by Adafruit
-- **ArduinoJson** by Benoit Blanchon
+See per-sketch READMEs for wiring with OLED and variant-specific details.
 
 ## Configuration
 
-Edit these values near the top of `buckpow_ina219.ino`:
+Edit these defines near the top of the sketch:
 
-```cpp
-const char* WIFI_SSID     = "your-ssid";
-const char* WIFI_PASSWORD = "your-password";
-const char* API_BASE      = "http://192.168.1.100:5001";
-const char* DEVICE_ID     = "esp32-ina219-01";
-```
-
-| Setting | Description |
-|---|---|
-| `WIFI_SSID` / `WIFI_PASSWORD` | Your 2.4 GHz WiFi credentials |
-| `API_BASE` | BuckPow server address and port |
-| `DEVICE_ID` | Unique identifier for this device (auto-registers on first reading) |
-| `API_KEY` | API key for device authentication (leave empty for dev without auth) |
-| `INTERVAL_MS` | Milliseconds between readings (default: 1000) |
-| `FW_VERSION` | Firmware version (defined as `#define FW_VERSION "1.0.0"`) — sent with each reading; API checks compatibility |
-
-## Firmware Compatibility
-
-| API Version (health endpoint) | Minimum Firmware |
-|---|---|
-| `min_firmware_version: "1.0.0"` | `FW_VERSION >= 1.0.0` |
-
-The API health endpoint (`GET /api/v1/health`) returns the minimum supported firmware version. If the device's firmware is below this version, the API still accepts readings but sets the `X-Firmware-Outdated: true` response header and auto-updates the device's `firmware_version` field in the database.
-
-## Measurement Range
-
-| Parameter | Range |
-|---|---|
-| Bus voltage | 0–26V |
-| Current | ±3.2A (0.1Ω shunt) |
-| Resolution | ~0.1 mA |
-
-INA219 is calibrated via `setCalibration_32V_2A()` — despite the name, this gives optimal accuracy for up to **3.2A** with the standard 0.1Ω shunt resistor.
-
-## WiFi Behavior
-
-- **Startup** — tries to connect for 30 seconds (`WIFI_TIMEOUT`), then continues even if WiFi is unavailable.
-- **Runtime** — if disconnected, retries every 30 seconds. Readings are skipped until WiFi reconnects.
-
-## API Unreachable
-
-When the server doesn't respond or returns an error, the sketch backs off for 10 seconds before retrying. This prevents spamming retries on a down server.
-
-## Serial Output
-
-Status messages print over Serial at 115200 baud. The sketch runs normally with or without a Serial monitor connected.
+| Define | Default | Description |
+|--------|---------|-------------|
+| `WIFI_SSID` / `WIFI_PASSWORD` | — | 2.4 GHz WiFi credentials |
+| `API_BASE` | — | BuckPow server address + port |
+| `DEVICE_ID` | — | Unique device ID (auto-registers) |
+| `API_KEY` | (empty) | API key for device auth; leave empty for dev |
+| `INTERVAL_MS` | 1000 / 5000 | Milliseconds between readings |
+| `FW_VERSION` | 1.0.0 / 1.1.0 | Sent with each reading |
 
 ## Upload
 
-1. Select your board (`Tools → Board → ESP32 Dev Module` or `Generic ESP8266 Module`)
-2. Select the correct port
-3. Click **Upload**
+1. Install board support: ESP32 or ESP8266 via Arduino Board Manager
+2. Install required libraries listed in each sketch's README
+3. Select board (`Tools > Board > ESP32 Dev Module` / `Generic ESP8266 Module`)
+4. Select port and click **Upload**
+5. Open **Serial Monitor** at 115200 baud to verify
 
-Open `Serial Monitor` (115200 baud) to verify WiFi connection and readings.
+## Compatibility
 
-## Data Sent
-
-Each POST contains:
-
-```json
-{
-  "device_id": "esp32-ina219-01",
-  "firmware_version": "1.0.0",
-  "bus_voltage": 5.12,
-  "shunt_voltage": 82.0,
-  "current": 241.0,
-  "power": 1234.0
-}
-```
-
-- `firmware_version` — sketch version (`FW_VERSION` define)
-- `bus_voltage` — load voltage (V)
-- `shunt_voltage` — shunt voltage (mV)
-- `current` — current draw (mA)
-- `power` — power consumption (mW)
+The API health endpoint (`GET /api/v1/health`) returns `min_firmware_version`. Devices below this version still send readings but the API flags them with a response header and updates the device record.
