@@ -14,6 +14,6 @@ RUN mkdir -p /code/instance && chown -R appuser:appuser /code
 
 USER appuser
 
-EXPOSE 5000
+EXPOSE 8000
 
-CMD ["fastapi", "run", "app/main.py", "--port", "5000", "--proxy-headers"]
+CMD ["fastapi", "run", "app/main.py", "--port", "8000", "--proxy-headers"]

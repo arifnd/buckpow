@@ -72,7 +72,7 @@ const char* WIFI_SSID     = "your-ssid";
 const char* WIFI_PASSWORD = "your-password";
 
 // ── BuckPow API Configuration ──
-const char* API_BASE   = "http://192.168.100.16:5001";
+const char* API_BASE   = "http://192.168.100.16:8000";
 const char* API_PATH   = "/api/v1/measurements";
 const char* DEVICE_ID  = "esp32-ina219-oled";
 const char* API_KEY    = "";

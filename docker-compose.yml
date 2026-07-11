@@ -27,7 +27,7 @@ services:
       DEFAULT_SAMPLING_INTERVAL: "1"
       LOG_LEVEL: info
     ports:
-      - "5000:5000"
+      - "8000:8000"
 
   nginx:
     image: nginx:alpine

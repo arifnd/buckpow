@@ -40,7 +40,7 @@ def send_reading(url, device_id, energy, api_key=None):
 def main():
     parser = argparse.ArgumentParser(description="Send dummy power readings to BuckPow v0.1 API")
     parser.add_argument("--interval", type=float, default=1.0, help="Seconds between readings (default: 1.0)")
-    parser.add_argument("--url", default="http://localhost:5001/api/v1/measurements", help="API endpoint URL")
+    parser.add_argument("--url", default="http://localhost:8000/api/v1/measurements", help="API endpoint URL")
     parser.add_argument("--device", default="esp32-dummy", help="Device ID (default: esp32-dummy)")
     parser.add_argument("--api-key", help="API key for device authentication (Bearer token)")
     parser.add_argument("--firmware", default="1.0.0", help="Firmware version to report (default: 1.0.0)")

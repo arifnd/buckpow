@@ -24,7 +24,7 @@ Power monitoring dashboard built with FastAPI + SQLAlchemy + SQLite. Receives po
 | `firmware/` | Arduino sketches for ESP32/ESP8266 + INA219 |
 | `tests/` | Pytest suite (335 tests) |
 | `.env` | Config via env vars |
-| `Dockerfile` | `CMD ["fastapi", "run", "app/main.py", "--port", "5000", "--proxy-headers"]` |
+| `Dockerfile` | `CMD ["fastapi", "run", "app/main.py", "--port", "8000", "--proxy-headers"]` |
 | `docker-compose.yml` | PostgreSQL + Nginx production stack |
 
 ## Quick start
@@ -96,12 +96,12 @@ Tables auto-create on first run. Default admin: `admin@example.com` / `password`
 
 ```bash
 # Without authentication (dev mode)
-curl -X POST http://localhost:5001/api/v1/measurements \
-  -H 'Content-Type: application/json' \
+curl -X POST http://localhost:8000/api/v1/measurements \
+
   -d '{"device_id":"esp32-01","bus_voltage":5.12,"shunt_voltage":82,"current":241,"power":1234}'
 
 # With API key
-curl -X POST http://localhost:5001/api/v1/measurements \
+curl -X POST http://localhost:8000/api/v1/measurements \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer <api_key>' \
   -d '{"device_id":"esp32-01","bus_voltage":5.12,"shunt_voltage":82,"current":241,"power":1234}'

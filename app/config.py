@@ -17,7 +17,7 @@ class Settings:
     )
 
     HOST: str = os.getenv('APP_HOST', '0.0.0.0')
-    PORT: int = int(os.getenv('APP_PORT', 5001))
+    PORT: int = int(os.getenv('APP_PORT', 8000))
     DEBUG: bool = os.getenv('APP_ENV', 'development') == 'development'
     LOG_LEVEL: str = os.getenv('LOG_LEVEL', 'info')
 
