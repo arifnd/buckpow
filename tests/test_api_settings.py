@@ -25,6 +25,7 @@ class TestSettingsAPI:
             'low_voltage_threshold': 3.0,
             'brand': 'Test',
             'timestamp_format': '12h',
+            'date_format': 'DD/MM/YYYY',
             'timezone': '+7',
             'device_watchdog_timeout': 60,
         })
@@ -35,8 +36,21 @@ class TestSettingsAPI:
         assert data['low_voltage_threshold'] == 3.0
         assert data['brand'] == 'Test'
         assert data['timestamp_format'] == '12h'
+        assert data['date_format'] == 'DD/MM/YYYY'
         assert data['timezone'] == '+7'
         assert data['device_watchdog_timeout'] == 60
+
+    def test_update_date_format(self, client):
+        resp = client.put('/api/v1/settings', json={'date_format': 'MM/DD/YYYY'})
+        assert resp.status_code == 200
+        assert resp.json()['date_format'] == 'MM/DD/YYYY'
+        resp = client.put('/api/v1/settings', json={'date_format': ''})
+        assert 'date_format' not in resp.json()
+
+    def test_get_date_format_default(self, client):
+        resp = client.get('/api/v1/settings')
+        assert resp.status_code == 200
+        assert 'date_format' not in resp.json()
 
     def test_update_settings_clear_value(self, client):
         client.put('/api/v1/settings', json={'brand': 'Temp'})

@@ -20,6 +20,7 @@ if (window.tailwind) {
 <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <script>
   window.__userTimestampFormat = '{{ current_user.settings.get("timestamp_format", "24h") if current_user and current_user.is_authenticated else "24h" }}';
+  window.__userDateFormat = '{{ current_user.settings.get("date_format", "YYYY-MM-DD") if current_user and current_user.is_authenticated else "YYYY-MM-DD" }}';
   window.__userTimezone = '{{ current_user.settings.get("timezone", "+0") if current_user and current_user.is_authenticated else "+0" }}';
 </script>
 <script src="{{ url_for('static', filename='js/timestamp.js') }}"></script>

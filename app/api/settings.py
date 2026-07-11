@@ -74,12 +74,13 @@ class SettingsUpdate(BaseModel):
     low_voltage_threshold: float | str | None = None
     brand: str | None = None
     timestamp_format: str | None = None
+    date_format: str | None = None
     timezone: str | None = None
     device_watchdog_timeout: int | str | None = None
 
 
 ALLOWED = {'high_power_threshold', 'high_current_threshold', 'low_voltage_threshold',
-           'brand', 'timestamp_format', 'timezone', 'device_watchdog_timeout'}
+           'brand', 'timestamp_format', 'date_format', 'timezone', 'device_watchdog_timeout'}
 
 
 @router.get('/settings')

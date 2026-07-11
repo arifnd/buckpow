@@ -221,7 +221,14 @@ class TestNavigationCompleteness:
 
     def test_header_has_settings_link(self, client):
         resp = client.get('/')
+        assert resp.status_code == 200
         assert 'href="/settings"' in resp.content.decode()
+
+    def test_dashboard_page_has_timestamp_globals(self, client):
+        html = client.get('/').content.decode()
+        assert '__userTimestampFormat' in html
+        assert '__userDateFormat' in html
+        assert '__userTimezone' in html
 
     def test_active_page_highlighted(self, client):
         resp = client.get('/')
@@ -305,6 +312,17 @@ class TestHTMLStructure:
         html = client.get('/settings').content.decode()
         assert 'id="form-general"' in html
         assert 'id="form-alerts"' in html
+
+    def test_settings_page_has_date_format_field(self, client):
+        html = client.get('/settings').content.decode()
+        assert 'id="field-date-format"' in html
+        assert 'YYYY-MM-DD' in html
+        assert 'DD/MM/YYYY' in html
+        assert 'MM/DD/YYYY' in html
+
+    def test_settings_page_has_date_format_in_form_data_fields(self, client):
+        html = client.get('/settings').content.decode()
+        assert '"date_format"' in html
 
     def test_profile_page_has_form_fields(self, client):
         html = client.get('/profile').content.decode()
@@ -401,6 +419,11 @@ class TestEdgeCases:
 class TestAPIEndpoints:
     def test_health_returns_200(self, client):
         assert client.get('/api/v1/health').status_code == 200
+
+    def test_settings_inline_field_map_includes_date_format(self, client):
+        html = client.get('/settings').content.decode()
+        assert "date_format: 'field-date-format'" in html
+        assert "'date_format'" in html
 
     def test_settings_returns_json(self, client):
         resp = client.get('/api/v1/settings')

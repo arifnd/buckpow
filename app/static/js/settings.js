@@ -5,13 +5,14 @@
     low_voltage_threshold: 'field-low-voltage',
     brand: 'field-brand',
     timestamp_format: 'field-timestamp-format',
+    date_format: 'field-date-format',
     timezone: 'field-timezone',
     device_watchdog_timeout: 'field-device-watchdog-timeout',
   };
 
   var FORMS = [
     { id: 'form-alerts', fields: ['high_power_threshold', 'high_current_threshold', 'low_voltage_threshold'], status: 'status-alerts' },
-    { id: 'form-general', fields: ['brand', 'timestamp_format', 'timezone', 'device_watchdog_timeout'], status: 'status-general' },
+    { id: 'form-general', fields: ['brand', 'timestamp_format', 'date_format', 'timezone', 'device_watchdog_timeout'], status: 'status-general' },
   ];
 
   function showStatus(el, type, message) {
