@@ -47,10 +47,14 @@ def _require_dashboard_user(current_user):
 
 
 @dashboard_router.get('/auth/login')
-def login_page(current_user: User | None = Depends(get_current_user)):
+def login_page(current_user: User | None = Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user:
         return RedirectResponse(url='/', status_code=302)
-    return HTMLResponse(_render('auth/login.html', current_user=current_user))
+    brand = 'BuckPow'
+    user = db.query(User).first()
+    if user and user.settings and user.settings.get('brand'):
+        brand = user.settings['brand']
+    return HTMLResponse(_render('auth/login.html', current_user=current_user, brand_name=brand))
 
 
 @dashboard_router.post('/auth/logout')
