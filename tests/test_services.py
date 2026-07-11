@@ -349,15 +349,6 @@ class TestSessionService:
         assert active.id == s.id
         db.close()
 
-    def test_get_any_active_session(self, app):
-        db = self._db(app)
-        d = DeviceService.create(db, 'esp32-any')
-        s = SessionService.create(db, d.id, 'Any')
-        SessionService.start(db, s.id)
-        active = SessionService.get_any_active_session(db)
-        assert active is not None
-        db.close()
-
     def test_auto_stop_other_on_start(self, app):
         db = self._db(app)
         d = DeviceService.create(db, 'esp32-auto')
@@ -371,7 +362,7 @@ class TestSessionService:
         assert a.status == 'running'
         db.close()
 
-    def test_global_auto_finish_different_device(self, app):
+    def test_multiple_devices_can_run_concurrently(self, app):
         db = self._db(app)
         d1 = DeviceService.create(db, 'esp32-d1')
         d2 = DeviceService.create(db, 'esp32-d2')
@@ -381,7 +372,7 @@ class TestSessionService:
         assert a.status == 'running'
         SessionService.start(db, b.id)
         assert b.status == 'running'
-        assert a.status == 'finished'
+        assert a.status == 'running'
         db.close()
 
     def test_get_for_device(self, app):
