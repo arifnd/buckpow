@@ -92,6 +92,28 @@ class TestAPI:
         assert resp.status_code == 200
         assert resp.json()['status'] == 'finished'
 
+    def test_session_list_includes_stats(self, client, app):
+        d = client.post('/api/v1/devices', json={'device_id': 'esp32-sess-list'}).json()
+        resp = client.post('/api/v1/sessions', json={'device_id': d['id'], 'name': 'Stats List'})
+        s = resp.json()
+        resp = client.get('/api/v1/sessions?page=1')
+        data = resp.json()
+        session_data = [x for x in data['sessions'] if x['id'] == s['id']][0]
+        assert 'avg_power' in session_data
+        assert 'total_energy' in session_data
+
+    def test_session_stats_with_measurements(self, client, app):
+        d = client.post('/api/v1/devices', json={'device_id': 'esp32-sess-stats'}).json()
+        resp = client.post('/api/v1/sessions', json={'device_id': d['id'], 'name': 'Stats Session'})
+        s = resp.json()
+        client.post(f'/api/v1/sessions/{s["id"]}/start')
+        client.post(f'/api/v1/sessions/{s["id"]}/stop')
+        resp = client.get('/api/v1/sessions?page=1')
+        data = resp.json()
+        session_data = [x for x in data['sessions'] if x['id'] == s['id']][0]
+        assert session_data['avg_power'] is None
+        assert session_data['total_energy'] is None
+
     def test_dashboard_page(self, client):
         resp = client.get('/')
         assert resp.status_code == 200

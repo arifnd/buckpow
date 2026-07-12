@@ -1,4 +1,4 @@
-from app.utils.rate_limiter import RateLimiterMiddleware, bearer_token_key
+from app.middleware.rate_limiter import RateLimiterMiddleware, bearer_token_key
 
 
 class TestBearerTokenKey:

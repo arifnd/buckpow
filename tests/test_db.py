@@ -12,6 +12,7 @@ def test_init_db_creates_tables(app):
     assert 'users' in tables
     assert 'projects' in tables
     assert 'alerts' in tables
+    assert 'audit_logs' in tables
 
 
 def test_create_device(app):

@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 # These imports trigger app init, must come after env var is set
 from app.database import engine, Base, SessionLocal, get_db
 from app.config import settings
-from app.models import Device, Measurement, Session, User, Project, Alert
+from app.models import Device, Measurement, Session, User, Project, Alert, AuditLog
 from app.services.user_service import UserService
 from app.services.device_service import DeviceService
 from app.services.project_service import ProjectService
@@ -42,7 +42,7 @@ def reset_db():
     yield
     try:
         db = SessionLocal()
-        for m in [Alert, Measurement, Session, Device, Project, User]:
+        for m in [Alert, Measurement, Session, Device, Project, User, AuditLog]:
             db.query(m).delete()
         db.commit()
         db.close()
@@ -74,6 +74,15 @@ def client(app):
 @pytest.fixture
 def unauth_client(app):
     return TestClient(app)
+
+
+@pytest.fixture
+def db(app):
+    session = SessionLocal()
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 @pytest.fixture
