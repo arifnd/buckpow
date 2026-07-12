@@ -800,3 +800,16 @@ class TestDeviceAuthDisabled:
             'shunt_voltage': 80, 'current': 200, 'power': 1000,
         })
         assert resp.status_code == 401
+
+    def test_auth_ignored_when_disabled(self, client, device_auth_header):
+        from app.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = False
+        try:
+            resp = client.post('/api/v1/measurements', json={
+                'device_id': 'esp32-auth', 'bus_voltage': 5.0,
+                'shunt_voltage': 80, 'current': 200, 'power': 1000,
+            }, headers=device_auth_header)
+            assert resp.status_code == 201
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
