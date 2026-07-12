@@ -4,15 +4,26 @@
 
 Open-source energy observability and benchmarking platform for low-power edge devices.
 
-**Tech stack:** [FastAPI](https://fastapi.tiangolo.com/) · [SQLAlchemy](https://www.sqlalchemy.org/) · [SQLite](https://www.sqlite.org/) / [PostgreSQL](https://www.postgresql.org/) · [Tailwind CSS](https://tailwindcss.com/) · [HTMX](https://htmx.org/) · [Chart.js](https://www.chartjs.org/)
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white)
+![HTMX](https://img.shields.io/badge/HTMX-3366CC?logo=htmx&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white)
+![Chart.js](https://img.shields.io/badge/Chart.js-FF6384?logo=chartdotjs&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?logo=sqlite&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 ## What is BuckPow
 
-BuckPow is a self-hosted platform designed to measure, analyze, and benchmark power consumption across low-power DC systems. It helps developers, researchers, makers, and engineers understand how much energy their devices actually consume through reproducible measurements.
+BuckPow is a self-hosted platform for measuring, analyzing, and benchmarking energy consumption across low-power DC systems.
 
-Instead of only displaying live telemetry, BuckPow focuses on **energy observability**, allowing users to compare devices, firmware versions, experiments, batteries, and solar-powered systems using real-world data.
+Unlike traditional IoT dashboards that only display live telemetry, BuckPow treats every measurement as part of an engineering experiment. Measurements are organized into sessions, allowing developers and researchers to compare hardware, firmware, batteries, operating modes, and workloads using reproducible real-world data.
 
-Whether you are validating an IoT prototype, optimizing battery life, benchmarking a Raspberry Pi, evaluating a small solar panel, or conducting Green AI research, BuckPow provides a consistent workflow for collecting, visualizing, and comparing energy data.
+BuckPow is designed for developers, researchers, makers, engineers, and educators who need accurate energy measurements rather than simple monitoring.
+
+Whether you are validating an IoT prototype, optimizing battery life, benchmarking a Raspberry Pi, evaluating a solar-powered system, profiling TinyML applications, or conducting Green AI research, BuckPow provides a complete workflow for collecting, visualizing, and comparing energy data.
 
 ## Key Features
 
@@ -74,10 +85,25 @@ BuckPow helps replace assumptions with measurements.
 
 ```mermaid
 graph LR
-    S["ESP32/ESP8266<br/>(INA219)"] -->|HTTP POST| API["FastAPI"]
-    API --> DB["SQLite / PostgreSQL"]
-    API --> DASH["HTML Dashboard<br/>(HTMX + Chart.js)"]
-    DASH -->|REST API| API
+    subgraph Hardware
+        ESP["ESP32 / ESP8266"]
+        PI["Raspberry Pi"]
+        OTHER["Future Agents"]
+    end
+
+    ESP --> API
+    PI --> API
+    OTHER --> API
+
+    API["BuckPow API"]
+
+    API --> DB["Measurements Database"]
+
+    DB --> DASH["Real-time Dashboard"]
+    DB --> SESSION["Experiment Sessions"]
+    SESSION --> BENCH["Energy Benchmarking"]
+    DB --> ALERT["Alert Engine"]
+    DB --> EXPORT["CSV / XLSX Export"]
 ```
 
 Power sensors collect measurements from edge devices and send them to the BuckPow API. The API stores measurements, processes sessions and benchmarks, and serves a web dashboard for visualization and analysis.
@@ -147,27 +173,22 @@ pip install -r requirements.txt
 fastapi dev app/main.py --port 8000
 ```
 
-Open http://localhost:8000. Tables auto-create on first run (SQLite).  
-Default admin credentials come from `ADMIN_EMAIL` and `ADMIN_PASSWORD` env vars (auto-created on first run if both are set).
+Tables are automatically created on first startup when using SQLite.
+
+The administrator account is automatically created if `ADMIN_EMAIL` and `ADMIN_PASSWORD` are configured.
 
 ### Production
 
-```bash
-fastapi run app/main.py --port 8000 --proxy-headers
-```
-
-For PostgreSQL, run migrations first:
+Run database migrations.
 
 ```bash
 alembic upgrade head
-fastapi run app/main.py
 ```
 
-### Database Migrations
+Start the application.
 
 ```bash
-alembic revision --autogenerate -m "description"
-alembic upgrade head
+fastapi run app/main.py --proxy-headers
 ```
 
 ## API Documentation
@@ -178,40 +199,27 @@ When `DISABLE_API_DOCS` is not set, interactive docs are available at:
 - **ReDoc** — [/redoc](http://localhost:8000/redoc)
 - **OpenAPI JSON** — [/openapi.json](http://localhost:8000/openapi.json)
 
-### Endpoints
+## REST API
 
-| Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| POST | `/api/v1/measurements` | API key | Send a reading from ESP device |
-| GET | `/api/v1/measurements` | User | Paginated readings |
-| GET | `/api/v1/measurements/export/csv` | User | Export as CSV |
-| GET | `/api/v1/measurements/export/xlsx` | User | Export as Excel |
-| GET | `/api/v1/dashboard` | — | Latest + stats + devices |
-| GET | `/api/v1/dashboard/summary` | — | Online/offline count, active sessions, today energy |
-| GET | `/api/v1/dashboard/statistics` | — | Full stats with energy breakdown |
-| GET | `/api/v1/chart` | — | Chart data (device/session filter, granularity) |
-| GET/POST | `/api/v1/devices` | User | List / create devices |
-| GET/PUT/DELETE | `/api/v1/devices/<id>` | User | Device CRUD |
-| PATCH | `/api/v1/devices/<id>/toggle` | User | Enable/disable device |
-| POST | `/api/v1/devices/<id>/regenerate-key` | User | Generate new API key |
-| GET/POST | `/api/v1/sessions` | User | List / create sessions |
-| GET/PUT/DELETE | `/api/v1/sessions/<id>` | User | Session CRUD |
-| POST | `/api/v1/sessions/<id>/start` | User | Start session |
-| POST | `/api/v1/sessions/<id>/stop` | User | Stop session |
-| GET/POST | `/api/v1/projects` | User | List / create projects |
-| GET/PUT/DELETE | `/api/v1/projects/<id>` | User | Project CRUD |
-| GET/POST | `/api/v1/alerts` | User | List / create alerts |
-| PATCH | `/api/v1/alerts/<id>/resolve` | User | Resolve alert |
-| POST | `/api/v1/alerts/resolve-all` | User | Resolve all unresolved |
-| GET | `/api/v1/benchmark/compare` | User | Compare 2–3 sessions |
-| POST | `/api/v1/auth/login` | — | Email/password login |
-| POST | `/api/v1/auth/logout` | User | Logout |
-| GET | `/api/v1/auth/me` | User | Current user info |
-| PUT | `/api/v1/auth/profile` | User | Update profile |
-| GET/PUT | `/api/v1/settings` | User | Get / update settings |
-| GET | `/api/v1/health` | — | Health check |
+BuckPow provides REST APIs for:
 
-### Send a reading
+- Authentication
+- Device management
+- Measurement ingestion
+- Session management
+- Projects
+- Alerts
+- Benchmarking
+- Dashboard statistics
+- Settings
+- Audit logs
+- Health monitoring
+
+See the OpenAPI documentation for the complete API reference.
+
+## Sending Measurements
+
+Example:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/measurements \
@@ -222,26 +230,22 @@ curl -X POST http://localhost:8000/api/v1/measurements \
 
 API key is optional when authentication is disabled (dev mode). Get the key from the device detail page.
 
-### Dashboard pages
+## Dashboard Pages
 
-| Path | Page |
-|------|------|
-| `/` | Dashboard with real-time charts & summary cards |
-| `/devices` | Device management |
-| `/devices/new` | Create device form |
-| `/devices/<id>/edit` | Edit device form |
-| `/sessions` | Session management |
-| `/sessions/new` | Create session form |
-| `/sessions/<id>/edit` | Edit session form |
-| `/measurements` | Paginated readings with date range filter |
-| `/projects` | Project management |
-| `/benchmark` | Session comparison |
-| `/alerts` | Alert management |
-| `/settings` | User preferences |
-| `/profile` | Profile editing |
-| `/auth/login` | Login page |
+- Dashboard
+- Devices
+- Sessions
+- Measurements
+- Projects
+- Benchmark
+- Alerts
+- Audit Log
+- Settings
+- User Profile
 
 ## Testing
+
+Run the test suite.
 
 ```bash
 python -m pytest tests/ -v
@@ -249,11 +253,20 @@ python -m pytest tests/ -v
 
 ### Send dummy data
 
+Generate dummy measurements.
+
 ```bash
-python scripts/send_dummy.py --interval 1
 python scripts/send_dummy.py --interval 1 --api-key <key>
 ```
 
+## Contributing
+
+Contributions are welcome.
+
+Bug reports, feature requests, documentation improvements, and pull requests are greatly appreciated.
+
+Please open an issue before submitting large changes to discuss the proposed implementation.
+
 ## License
 
-MIT
+MIT License
