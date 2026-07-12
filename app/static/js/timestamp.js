@@ -29,3 +29,21 @@ function formatTimestamp(isoString) {
   }
   return dateStr + ' ' + pad(hours) + ':' + minutes + ':' + seconds;
 }
+
+function formatRelativeTime(isoString) {
+  if (!isoString) return '—';
+  var d = new Date(isoString);
+  if (isNaN(d.getTime())) return '—';
+  var now = Date.now();
+  var diffMs = now - d.getTime();
+  if (diffMs < 0) return 'Just now';
+  var seconds = Math.floor(diffMs / 1000);
+  if (seconds < 5) return 'Just now';
+  if (seconds < 60) return seconds + 's ago';
+  var minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + 'm ago';
+  var hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours + 'h ago';
+  var days = Math.floor(hours / 24);
+  return days + 'd ago';
+}
