@@ -85,7 +85,7 @@ class TestPageStructure:
     def test_sessions_page_has_columns(self, client):
         resp = client.get('/sessions')
         html = resp.content.decode()
-        for col in ['Name', 'Device ID', 'Status', 'Started', 'Ended', 'Actions']:
+        for col in ['Name', 'Device ID', 'Status', 'Duration', 'AVG Power', 'Energy', 'Actions']:
             assert col in html
 
     def test_measurements_page_has_table(self, client):

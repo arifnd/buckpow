@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session, selectinload
 
 from app.models import Session
@@ -99,3 +100,26 @@ class SessionService:
     @staticmethod
     def get_for_device(db: Session, device_id):
         return db.query(Session).filter_by(device_id=device_id).order_by(Session.created_at.desc()).all()
+
+    @staticmethod
+    def get_stats_for_sessions(db: Session, session_ids):
+        if not session_ids:
+            return {}
+        from app.models import Measurement
+        rows = db.query(
+            Measurement.session_id,
+            func.avg(Measurement.power).label('avg_power'),
+            func.max(Measurement.energy).label('last_energy'),
+            func.min(Measurement.energy).label('first_energy'),
+        ).filter(
+            Measurement.session_id.in_(session_ids),
+            Measurement.session_id.isnot(None),
+        ).group_by(Measurement.session_id).all()
+        result = {}
+        for r in rows:
+            total = (r.last_energy or 0) - (r.first_energy or 0)
+            result[r.session_id] = {
+                'avg_power': round(r.avg_power, 2) if r.avg_power is not None else None,
+                'total_energy': round(total, 2) if total > 0 else 0.0,
+            }
+        return result

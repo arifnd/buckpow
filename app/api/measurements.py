@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
+from app.models.session import Session as SessionModel
 from app.services.measurement_service import MeasurementService
 from app.services.device_service import DeviceService
 from app.services.audit_service import AuditService
@@ -135,10 +136,16 @@ def export_csv(
         ])
     ip = get_client_ip(request)
     AuditService.log(db, 'export.csv', user_id=_current_user.id, target_type='export', ip_address=ip, details={'rows': len(rows)})
+    filename = 'measurements.csv'
+    if session_id:
+        session = db.query(SessionModel).get(session_id)
+        if session:
+            safe_name = ''.join(c if c.isalnum() or c in ' -_' else '' for c in session.name).strip().replace(' ', '_')
+            filename = f'{safe_name}_report.csv'
     return Response(
         content=output.getvalue(),
         media_type='text/csv',
-        headers={'Content-Disposition': 'attachment; filename=measurements.csv'},
+        headers={'Content-Disposition': f'attachment; filename={filename}'},
     )
 
 

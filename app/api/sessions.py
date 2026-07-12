@@ -36,10 +36,28 @@ def list_sessions(
 ):
     if page == 0:
         sessions = SessionService.get_all(db)
-        return [s.to_dict() for s in sessions]
+        session_ids = [s.id for s in sessions]
+        stats = SessionService.get_stats_for_sessions(db, session_ids)
+        result = []
+        for s in sessions:
+            d = s.to_dict()
+            st = stats.get(s.id, {})
+            d['avg_power'] = st.get('avg_power')
+            d['total_energy'] = st.get('total_energy')
+            result.append(d)
+        return result
     pagination = SessionService.get_paginated(db, page=page, per_page=per_page)
+    session_ids = [s.id for s in pagination.items]
+    stats = SessionService.get_stats_for_sessions(db, session_ids)
+    sessions = []
+    for s in pagination.items:
+        d = s.to_dict()
+        st = stats.get(s.id, {})
+        d['avg_power'] = st.get('avg_power')
+        d['total_energy'] = st.get('total_energy')
+        sessions.append(d)
     return {
-        'sessions': [s.to_dict() for s in pagination.items],
+        'sessions': sessions,
         'page': pagination.page,
         'pages': pagination.pages,
         'total': pagination.total,
