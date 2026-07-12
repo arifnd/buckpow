@@ -37,9 +37,15 @@ def receive_measurement(
     db: Session = Depends(get_db),
     device=Depends(get_api_key_device),
 ):
-    device_id_str = body.device_id
-    if device_id_str != device.device_id:
-        raise HTTPException(status_code=403, detail='device_id does not match the authenticated device')
+    if device is None:
+        device = DeviceService.get_by_device_id(db, body.device_id)
+        if not device:
+            device = DeviceService.get_or_create(db, body.device_id)
+        if not device.enabled:
+            raise HTTPException(status_code=403, detail='Device is disabled')
+    else:
+        if body.device_id != device.device_id:
+            raise HTTPException(status_code=403, detail='device_id does not match the authenticated device')
 
     fw = body.firmware_version or ''
     outdated = False
@@ -58,7 +64,7 @@ def receive_measurement(
     try:
         measurement = MeasurementService.create(
             db,
-            device_id_str=device_id_str,
+            device_id_str=body.device_id,
             bus_voltage=float(body.bus_voltage),
             shunt_voltage=float(body.shunt_voltage),
             current=float(body.current),

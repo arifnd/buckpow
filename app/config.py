@@ -23,6 +23,7 @@ class Settings(BaseSettings):
 
     DEVICE_ONLINE_TIMEOUT: int = Field(default=30)
     DEFAULT_SAMPLING_INTERVAL: int = Field(default=1)
+    DEVICE_AUTH_ENABLED: bool = Field(default=True)
     DISABLE_API_DOCS: bool = Field(default=False)
 
     DEBUG: bool = Field(default=True, exclude=True)

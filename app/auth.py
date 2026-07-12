@@ -62,6 +62,8 @@ def get_api_key_device(
     db: Session = Depends(get_db),
 ):
     from app.services.device_service import DeviceService
+    if not settings.DEVICE_AUTH_ENABLED:
+        return None
     if credentials is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Missing or invalid Authorization header')
     api_key = credentials.credentials

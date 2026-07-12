@@ -12,6 +12,7 @@ class TestSettings:
         assert s.ACCESS_TOKEN_EXPIRE_MINUTES == 60 * 24 * 7
         assert s.DEVICE_ONLINE_TIMEOUT == 30
         assert s.DEFAULT_SAMPLING_INTERVAL == 1
+        assert s.DEVICE_AUTH_ENABLED is True
         assert s.DISABLE_API_DOCS is False
 
     def test_database_url_default(self):

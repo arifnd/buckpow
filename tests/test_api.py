@@ -749,3 +749,54 @@ class TestOwnerChecks:
         d = db.query(Device).filter_by(device_id='esp32-fw').first()
         assert d.firmware_version == '1.0.0'
         db.close()
+
+
+class TestDeviceAuthDisabled:
+
+    def test_measurement_no_auth_succeeds(self, unauth_client, app):
+        from app.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = False
+        try:
+            resp = unauth_client.post('/api/v1/measurements', json={
+                'device_id': 'esp32-nodev', 'bus_voltage': 5.0,
+                'shunt_voltage': 80, 'current': 200, 'power': 1000,
+            })
+            assert resp.status_code == 201
+            assert resp.json()['status'] == 'success'
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
+
+    def test_disabled_device_rejected_when_auth_off(self, unauth_client, app):
+        from app.config import settings
+        from app.database import SessionLocal
+        from app.services.device_service import DeviceService
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = False
+        try:
+            db = SessionLocal()
+            d = DeviceService.create(db, 'esp32-disabled-off')
+            d.enabled = False
+            db.commit()
+            db.close()
+            resp = unauth_client.post('/api/v1/measurements', json={
+                'device_id': 'esp32-disabled-off', 'bus_voltage': 5.0,
+                'shunt_voltage': 80, 'current': 200, 'power': 1000,
+            })
+            assert resp.status_code == 403
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
+
+    def test_auth_still_works_when_enabled(self, client, device_auth_header):
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        }, headers=device_auth_header)
+        assert resp.status_code == 201
+
+    def test_no_auth_rejected_when_enabled(self, unauth_client):
+        resp = unauth_client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
+            'shunt_voltage': 80, 'current': 200, 'power': 1000,
+        })
+        assert resp.status_code == 401
