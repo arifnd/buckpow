@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.models import Device
 from app.config import settings
+from app.utils.pagination import PaginatedResult
 
 
 class DeviceService:
@@ -20,7 +21,7 @@ class DeviceService:
         total = q.count()
         items = q.offset(offset).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
-        return type('Pagination', (), {'items': items, 'page': page, 'pages': pages, 'total': total, 'per_page': per_page})()
+        return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
 
     @staticmethod
     def get_by_id(db: Session, device_id):

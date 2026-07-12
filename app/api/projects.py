@@ -3,23 +3,14 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.auth import require_user
+from app.dependencies import require_user
 from app.models import User
 from app.services.project_service import ProjectService
 from app.services.audit_service import AuditService
 from app.utils.client_ip import get_client_ip
+from app.schemas import ProjectCreate, ProjectUpdate
 
 router = APIRouter()
-
-
-class ProjectCreate(BaseModel):
-    name: str
-    description: str = ''
-
-
-class ProjectUpdate(BaseModel):
-    name: str | None = None
-    description: str | None = None
 
 
 @router.get('/projects')

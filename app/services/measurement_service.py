@@ -6,6 +6,7 @@ from app.models import Measurement
 from app.models.session import Session as SessionModel
 from app.utils.calculations import calc_load_voltage, calc_energy_increment
 from app.utils.dates import utc_iso
+from app.utils.pagination import PaginatedResult
 from app.services.device_service import DeviceService
 from app.services.session_service import SessionService
 from app.services.alert_service import AlertService
@@ -262,7 +263,7 @@ class MeasurementService:
         total = q.count()
         items = q.offset(offset).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
-        return type('Pagination', (), {'items': items, 'page': page, 'pages': pages, 'total': total, 'per_page': per_page})()
+        return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
 
     @staticmethod
     def get_all_filtered(db: DBSession, device_id=None, session_id=None, start_date=None, end_date=None):

@@ -11,9 +11,10 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database import get_db, engine
-from app.auth import require_user
+from app.dependencies import require_user
 from app.models import User
 from app.config import settings
+from app.schemas import SettingsUpdate
 
 router = APIRouter()
 
@@ -66,17 +67,6 @@ def _parse_mysql_url():
         'user': parsed.username or '',
         'password': parsed.password or '',
     }
-
-
-class SettingsUpdate(BaseModel):
-    high_power_threshold: float | str | None = None
-    high_current_threshold: float | str | None = None
-    low_voltage_threshold: float | str | None = None
-    brand: str | None = None
-    timestamp_format: str | None = None
-    date_format: str | None = None
-    timezone: str | None = None
-    device_watchdog_timeout: int | str | None = None
 
 
 ALLOWED = {'high_power_threshold', 'high_current_threshold', 'low_voltage_threshold',

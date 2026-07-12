@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import engine, Base
-from app.utils.rate_limiter import RateLimiterMiddleware, bearer_token_key
+from app.middleware import RateLimiterMiddleware, bearer_token_key
 
 APP_VERSION = '0.1.0'
 

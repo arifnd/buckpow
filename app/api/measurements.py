@@ -17,19 +17,11 @@ from app.services.measurement_service import MeasurementService
 from app.services.device_service import DeviceService
 from app.services.audit_service import AuditService
 from app.utils.client_ip import get_client_ip
-from app.auth import get_api_key_device, require_user
+from app.dependencies import get_api_key_device, require_user
 from app.api.health import MIN_FIRMWARE_VERSION
+from app.schemas import MeasurementCreate
 
 router = APIRouter()
-
-
-class MeasurementCreate(BaseModel):
-    device_id: str
-    bus_voltage: float
-    shunt_voltage: float
-    current: float
-    power: float
-    firmware_version: str | None = None
 
 
 def _parse_version(v):

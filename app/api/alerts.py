@@ -5,15 +5,10 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 from app.services.alert_service import AlertService
-from app.auth import require_user
+from app.dependencies import require_user
+from app.schemas import AlertCreate
 
 router = APIRouter()
-
-
-class AlertCreate(BaseModel):
-    device_id: int
-    level: str = 'warning'
-    message: str
 
 
 @router.get('/alerts')

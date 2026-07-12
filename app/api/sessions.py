@@ -7,24 +7,10 @@ from app.models import User
 from app.services.session_service import SessionService
 from app.services.audit_service import AuditService
 from app.utils.client_ip import get_client_ip
-from app.auth import require_user
+from app.dependencies import require_user
+from app.schemas import SessionCreate, SessionUpdate
 
 router = APIRouter()
-
-
-class SessionCreate(BaseModel):
-    device_id: int
-    name: str
-    target_device: str = ''
-    description: str = ''
-    project_id: int | None = None
-
-
-class SessionUpdate(BaseModel):
-    name: str | None = None
-    target_device: str | None = None
-    description: str | None = None
-    project_id: int | None = None
 
 
 @router.get('/sessions')

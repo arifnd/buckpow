@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.models import AuditLog
+from app.utils.pagination import PaginatedResult
 
 
 class AuditService:
@@ -33,7 +34,7 @@ class AuditService:
         total = q.count()
         items = q.offset(offset).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
-        return type('Pagination', (), {'items': items, 'page': page, 'pages': pages, 'total': total, 'per_page': per_page})()
+        return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
 
     @staticmethod
     def get_actions(db: Session):

@@ -2,26 +2,16 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.auth import create_access_token, get_current_user, require_user
+from app.dependencies import create_access_token, get_current_user, require_user
 from app.database import get_db
 from app.services.user_service import UserService
 from app.services.audit_service import AuditService
 from app.utils.client_ip import get_client_ip
 from app.models import User
 from app.config import settings
+from app.schemas import LoginRequest, ProfileUpdate
 
 router = APIRouter()
-
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-
-class ProfileUpdate(BaseModel):
-    name: str | None = None
-    email: str | None = None
-    password: str | None = None
 
 
 @router.post('/auth/login')

@@ -8,21 +8,25 @@ Power monitoring dashboard built with FastAPI + SQLAlchemy + SQLite. Receives po
 |---|---|
 | `app/main.py` | FastAPI entrypoint (`fastapi run app/main.py`) |
 | `app/__init__.py` | FastAPI app factory, lifespan, exception handlers, router mounting |
-| `app/config.py` | Settings via `pydantic-settings`-style env vars |
+| `app/config.py` | Settings via `pydantic-settings` BaseSettings |
 | `app/database.py` | SQLAlchemy engine, SessionLocal, Base, `get_db` dependency |
 | `app/auth.py` | JWT creation/verification, `get_current_user`, `get_api_key_device` deps |
+| `app/dependencies.py` | Canonical re-export of all FastAPI dependencies (`get_db`, `require_user`, etc.) |
+| `app/schemas/` | Pydantic request/response models (Measurement, Session, Device, Alert, Project, Auth, Settings) |
 | `app/models/` | SQLAlchemy models (User, Device, Session, Measurement, Alert, Project) |
 | `app/services/` | Business logic layer (User, Device, Session, Measurement, Alert, Project, Dashboard) |
+| `app/middleware/` | ASGI middleware (rate limiter) |
 | `app/api/` | FastAPI APIRouters (`/api/v1/*`) |
 | `app/dashboard/` | Server-rendered page routes (Jinja2) |
 | `app/templates/` | Jinja2 templates (Tailwind CSS, HTMX) |
+| `app/templates/_partials/` | Reusable template fragments (confirm modal, etc.) |
 | `app/static/` | CSS, JS (Chart.js, dashboard, theme) |
-| `app/utils/` | Utility functions (calculations, errors, validators, hash) |
+| `app/utils/` | Utility functions (calculations, errors, validators, hash, pagination) |
 | `instance/buckpow.db` | SQLite database (auto-created) |
 | `migrations/` | Alembic migration files (Flask-Migrate) |
 | `scripts/send_dummy.py` | Dummy data generator |
 | `firmware/` | Arduino sketches for ESP32/ESP8266 + INA219 |
-| `tests/` | Pytest suite (335 tests) |
+| `tests/` | Pytest suite (497 tests) |
 | `.env` | Config via env vars |
 | `Dockerfile` | `CMD ["fastapi", "run", "app/main.py", "--port", "8000", "--proxy-headers"]` |
 | `docker-compose.yml` | PostgreSQL + Nginx production stack |
@@ -112,6 +116,11 @@ curl -X POST http://localhost:8000/api/v1/measurements \
 - **Models** — User, Device (with API key & thresholds), Session (with energy), Measurement (with energy), Alert (levels: info/warning/critical), Project
 - **Authentication** — JWT bearer token for API, JWT cookie-based for dashboard, Bearer token for device API
 - **Service layer** — business logic separated from HTTP handlers (7 services), all accept `db: Session`
+- **Schemas** — Pydantic request/response models in `app/schemas/`, imported by API route files
+- **Dependencies** — canonical import point in `app/dependencies.py` (re-exports from `app.auth` and `app.database`)
+- **Pagination** — `PaginatedResult` dataclass in `app/utils/pagination.py` used by all services
+- **Middleware** — ASGI middleware in `app/middleware/` (rate limiter with sliding window)
+- **Config** — `pydantic-settings` BaseSettings with env var loading and type validation
 - **HTMX navigation** — `hx-boost="true"` on `<body>` for SPA-like page transitions with native `<script>` re-evaluation
 - **Tailwind CSS** — Utility-first styling with dark theme via CSS variables
 - **Flowbite Datepicker** — Used on measurements filter page for date range selection

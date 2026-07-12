@@ -7,7 +7,8 @@ from app.models import Device, Project, User
 from app.services.device_service import DeviceService
 from app.services.audit_service import AuditService
 from app.utils.client_ip import get_client_ip
-from app.auth import require_user
+from app.dependencies import require_user
+from app.schemas import DeviceCreate, DeviceUpdate
 
 router = APIRouter()
 
@@ -20,30 +21,6 @@ def _check_device_owner(db, device_id, user_id):
     if project and project.owner_id and project.owner_id != user_id:
         return False
     return True
-
-
-class DeviceCreate(BaseModel):
-    device_id: str
-    alias: str = ''
-    description: str = ''
-    sampling_interval: int | None = None
-    project_id: int | None = None
-    firmware_version: str = ''
-    high_current_threshold: float | None = None
-    high_power_threshold: float | None = None
-    low_voltage_threshold: float | None = None
-
-
-class DeviceUpdate(BaseModel):
-    alias: str | None = None
-    description: str | None = None
-    sampling_interval: int | None = None
-    project_id: int | None = None
-    firmware_version: str | None = None
-    enabled: bool | None = None
-    high_current_threshold: float | None = None
-    high_power_threshold: float | None = None
-    low_voltage_threshold: float | None = None
 
 
 @router.get('/devices')

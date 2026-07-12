@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader
 
-from app.auth import get_current_user
+from app.dependencies import get_current_user
 from app.models import User
 from app.services.project_service import ProjectService
 from app.services.device_service import DeviceService

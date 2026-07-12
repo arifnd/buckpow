@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models import Alert
 from app.config import settings
+from app.utils.pagination import PaginatedResult
 
 DEFAULT_HIGH_POWER_THRESHOLD = 2.5
 DEFAULT_HIGH_CURRENT_THRESHOLD = 0.5
@@ -35,7 +36,7 @@ class AlertService:
         total = q.count()
         items = q.offset(offset).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
-        return type('Pagination', (), {'items': items, 'page': page, 'pages': pages, 'total': total, 'per_page': per_page})()
+        return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
 
     @staticmethod
     def resolve(db: Session, alert_id):
