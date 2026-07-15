@@ -12,7 +12,7 @@ from app.config import settings
 from app.database import engine, Base
 from app.middleware import RateLimiterMiddleware, bearer_token_key
 
-APP_VERSION = '0.1.0'
+APP_VERSION = '0.1.0-beta.1'
 
 
 @asynccontextmanager

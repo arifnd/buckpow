@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader
 
 from app.dependencies import get_current_user
+from app import APP_VERSION
 from app.models import User
 from app.services.project_service import ProjectService
 from app.services.device_service import DeviceService
@@ -23,7 +24,7 @@ def _url_for(endpoint, **kwargs):
 
 
 templates.globals['url_for'] = _url_for
-templates.globals['app_version'] = '0.1.0'
+templates.globals['app_version'] = APP_VERSION
 
 
 class _AnonymousUser:
