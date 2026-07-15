@@ -3,11 +3,15 @@ name: CD
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+env:
+  IMAGE_NAME: arifnd/buckpow
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    if: "!contains(github.ref_name, '-')"
 
     steps:
     - name: Checkout code
@@ -26,7 +30,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: arifnd/configpad
+        images: ${{ env.IMAGE_NAME }}
         tags: |
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
