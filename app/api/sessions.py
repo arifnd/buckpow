@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 from app.services.session_service import SessionService
+from app.services.measurement_service import MeasurementService
 from app.services.audit_service import AuditService
 from app.utils.client_ip import get_client_ip
 from app.dependencies import require_user
@@ -93,6 +94,14 @@ def delete_session(session_id: int, db: Session = Depends(get_db), _current_user
     if SessionService.delete(db, session_id):
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Session not found')
+
+
+@router.get('/sessions/{session_id}/stats')
+def session_stats(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+    stats = MeasurementService.get_session_stats(db, session_id)
+    if stats is None:
+        raise HTTPException(status_code=404, detail='Session not found')
+    return stats
 
 
 @router.post('/sessions/{session_id}/start')

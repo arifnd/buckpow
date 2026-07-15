@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Session as DBSession
+from sqlalchemy.orm import Session as DBSession, selectinload
 
 from app.models import Measurement
 from app.models.session import Session as SessionModel
@@ -175,7 +175,7 @@ class MeasurementService:
 
     @staticmethod
     def get_session_stats(db: DBSession, session_id):
-        session = db.get(SessionModel, session_id)
+        session = db.query(SessionModel).options(selectinload(SessionModel.device_ref)).filter(SessionModel.id == session_id).first()
         if not session:
             return None
 
@@ -244,6 +244,7 @@ class MeasurementService:
                 'power': [m.power for m in measurements],
                 'voltage': [m.bus_voltage for m in measurements],
                 'current': [m.current for m in measurements],
+                'energy': [m.energy for m in measurements],
             },
         }
 

@@ -307,7 +307,7 @@ function startDashboard() {
 }
 
 function isDashboardPage() {
-  return !!document.getElementById('voltageChart');
+  return !!document.getElementById('session-selector');
 }
 
 function initOnDashboard() {
@@ -320,6 +320,7 @@ document.addEventListener('DOMContentLoaded', initOnDashboard);
 document.addEventListener('htmx:afterSettle', initOnDashboard);
 
 document.addEventListener('change', function(e) {
+  if (!isDashboardPage()) return;
   if (e.target.id === 'session-selector') {
     currentSessionId = e.target.value;
     if (currentSessionId) {
@@ -333,6 +334,7 @@ document.addEventListener('change', function(e) {
 });
 
 document.addEventListener('click', function(e) {
+  if (!isDashboardPage()) return;
   var rangeBtn = e.target.closest('#time-range-group button');
   if (!rangeBtn) return;
   var r = rangeBtn.dataset.range;

@@ -114,6 +114,47 @@ class TestAPI:
         assert session_data['avg_power'] is None
         assert session_data['total_energy'] is None
 
+    def test_session_stats_api(self, client, app):
+        d = client.post('/api/v1/devices', json={'device_id': 'esp32-stats-api'}).json()
+        resp = client.post('/api/v1/sessions', json={'device_id': d['id'], 'name': 'Stats API Session'})
+        s = resp.json()
+        resp = client.get(f'/api/v1/sessions/{s["id"]}/stats')
+        assert resp.status_code == 200
+        data = resp.json()
+        assert 'avg_power' in data
+        assert 'peak_power' in data
+        assert 'total_energy' in data
+        assert 'measurement_count' in data
+        assert data['measurement_count'] == 0
+
+    def test_session_stats_api_not_found(self, client):
+        resp = client.get('/api/v1/sessions/99999/stats')
+        assert resp.status_code == 404
+
+    def test_session_stats_api_with_measurements(self, client, app):
+        d = client.post('/api/v1/devices', json={'device_id': 'esp32-stats-m'}).json()
+        key_resp = client.get(f'/api/v1/devices/{d["id"]}/key')
+        api_key = key_resp.json()['api_key']
+        device_headers = {'Authorization': f'Bearer {api_key}'}
+        resp = client.post('/api/v1/sessions', json={'device_id': d['id'], 'name': 'Stats M Session'})
+        s = resp.json()
+        client.post(f'/api/v1/sessions/{s["id"]}/start')
+        for i in range(5):
+            client.post('/api/v1/measurements', json={
+                'device_id': 'esp32-stats-m',
+                'bus_voltage': 5.0 + i * 0.1,
+                'shunt_voltage': 80 + i,
+                'current': 200 + i * 10,
+                'power': 1000 + i * 50,
+            }, headers=device_headers)
+        client.post(f'/api/v1/sessions/{s["id"]}/stop')
+        resp = client.get(f'/api/v1/sessions/{s["id"]}/stats')
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data['measurement_count'] == 5
+        assert data['avg_power'] > 0
+        assert data['peak_power'] >= data['avg_power']
+
     def test_dashboard_page(self, client):
         resp = client.get('/')
         assert resp.status_code == 200

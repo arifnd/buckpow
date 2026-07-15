@@ -2,11 +2,13 @@ import re
 
 
 HREF_RE = re.compile(r'href="([^"]+)"')
+SCRIPT_RE = re.compile(r'<script[^>]*>.*?</script>', re.DOTALL)
 
 
 def extract_links(html):
+    clean = SCRIPT_RE.sub('', html)
     links = set()
-    for match in HREF_RE.finditer(html):
+    for match in HREF_RE.finditer(clean):
         href = match.group(1)
         if href.startswith(('http://', 'https://', 'mailto:', 'tel:', 'javascript:', '#')):
             continue
@@ -66,6 +68,27 @@ class TestDeadLinks:
             if r.status_code not in (200, 302):
                 broken.append((link, r.status_code))
         assert not broken, f'Sessions new has broken links: {broken}'
+
+    def test_session_detail_has_no_broken_links(self, client):
+        from app.database import SessionLocal
+        from app.models import Device, Session
+        db = SessionLocal()
+        d = Device(device_id='esp32-link-detail', alias='Link Detail Device', sampling_interval=1)
+        db.add(d)
+        db.commit()
+        s = Session(name='Link Detail Session', device_id=d.id, status='draft')
+        db.add(s)
+        db.commit()
+        sid = s.id
+        db.close()
+        resp = client.get(f'/sessions/{sid}')
+        links = extract_links(resp.content.decode())
+        broken = []
+        for link in links:
+            r = client.get(link, follow_redirects=False)
+            if r.status_code not in (200, 302):
+                broken.append((link, r.status_code))
+        assert not broken, f'Session detail has broken links: {broken}'
 
     def test_projects_has_no_broken_links(self, client):
         resp = client.get('/projects')

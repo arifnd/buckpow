@@ -141,6 +141,21 @@ def sessions_edit_page(
     return HTMLResponse(_render('sessions/form.html', current_user=current_user, active_page='sessions', session=session, devices=devices, projects=projects))
 
 
+@dashboard_router.get('/sessions/{session_id}')
+def sessions_detail_page(
+    session_id: int,
+    current_user: User | None = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    redir = _require_dashboard_user(current_user)
+    if isinstance(redir, RedirectResponse):
+        return redir
+    session = SessionService.get_by_id(db, session_id)
+    if not session:
+        return RedirectResponse(url='/sessions', status_code=302)
+    return HTMLResponse(_render('sessions/detail.html', current_user=current_user, active_page='sessions', session=session))
+
+
 @dashboard_router.get('/projects')
 def projects_page(current_user: User | None = Depends(get_current_user)):
     redir = _require_dashboard_user(current_user)

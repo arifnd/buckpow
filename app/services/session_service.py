@@ -24,7 +24,10 @@ class SessionService:
 
     @staticmethod
     def get_by_id(db: Session, session_id):
-        return db.get(Session, session_id)
+        return db.query(Session).options(
+            selectinload(Session.device_ref),
+            selectinload(Session.project),
+        ).filter(Session.id == session_id).first()
 
     @staticmethod
     def get_active_session(db: Session, device_id):

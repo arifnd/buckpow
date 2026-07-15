@@ -32,6 +32,26 @@ class TestDashboardRoutes:
         resp = client.get('/sessions/1/edit')
         assert resp.status_code == 200
 
+    def test_session_detail_page(self, client, app):
+        from app.database import SessionLocal
+        from app.models import Device, Session
+        db = SessionLocal()
+        d = Device(device_id='esp32-detail', alias='Detail Device', sampling_interval=1)
+        db.add(d)
+        db.commit()
+        s = Session(name='Detail Session', device_id=d.id, status='draft')
+        db.add(s)
+        db.commit()
+        sid = s.id
+        db.close()
+        resp = client.get(f'/sessions/{sid}')
+        assert resp.status_code == 200
+        assert b'Detail Session' in resp.content
+
+    def test_session_detail_not_found(self, client):
+        resp = client.get('/sessions/99999')
+        assert resp.status_code == 200
+
     def test_projects_page(self, client):
         resp = client.get('/projects')
         assert resp.status_code == 200
@@ -112,6 +132,10 @@ class TestAuthRedirects:
         resp = unauth_client.get('/sessions/1/edit', follow_redirects=False)
         assert resp.status_code == 302
 
+    def test_session_detail_requires_login(self, unauth_client):
+        resp = unauth_client.get('/sessions/1', follow_redirects=False)
+        assert resp.status_code == 302
+
     def test_dashboard_redirect_target_is_login(self, unauth_client):
         resp = unauth_client.get('/', follow_redirects=False)
         assert '/auth/login' in resp.headers.get('location', '')
@@ -160,6 +184,10 @@ class TestAuthRedirects:
         resp = unauth_client.get('/sessions/1/edit', follow_redirects=False)
         assert '/auth/login' in resp.headers.get('location', '')
 
+    def test_session_detail_redirect_target_is_login(self, unauth_client):
+        resp = unauth_client.get('/sessions/1', follow_redirects=False)
+        assert '/auth/login' in resp.headers.get('location', '')
+
     def test_authenticated_dashboard_returns_200(self, client):
         assert client.get('/').status_code == 200
 
@@ -174,6 +202,20 @@ class TestAuthRedirects:
 
     def test_authenticated_sessions_new_returns_200(self, client):
         assert client.get('/sessions/new').status_code == 200
+
+    def test_authenticated_session_detail_returns_200(self, client, app):
+        from app.database import SessionLocal
+        from app.models import Device, Session
+        db = SessionLocal()
+        d = Device(device_id='esp32-auth-detail', alias='Auth Detail Device', sampling_interval=1)
+        db.add(d)
+        db.commit()
+        s = Session(name='Auth Detail Session', device_id=d.id, status='draft')
+        db.add(s)
+        db.commit()
+        sid = s.id
+        db.close()
+        assert client.get(f'/sessions/{sid}').status_code == 200
 
     def test_authenticated_projects_returns_200(self, client):
         assert client.get('/projects').status_code == 200

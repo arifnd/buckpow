@@ -1,0 +1,485 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-4">
+  <div class="flex items-center gap-3">
+    <a href="/sessions" class="inline-flex items-center justify-center w-8 h-8 rounded text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+      <iconify-icon icon="heroicons-outline:arrow-left" width="20" height="20"></iconify-icon>
+    </a>
+    <h2 class="text-xl font-semibold" id="detail-session-name">Session</h2>
+    <span id="detail-status-badge"></span>
+  </div>
+  <div class="flex flex-wrap items-center gap-2" id="detail-actions"></div>
+</div>
+
+<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 mb-6">
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+    <div>
+      <span class="text-gray-500 dark:text-gray-400">Device</span>
+      <p class="font-medium" id="detail-device">-</p>
+    </div>
+    <div>
+      <span class="text-gray-500 dark:text-gray-400">Target Device</span>
+      <p class="font-medium" id="detail-target-device">-</p>
+    </div>
+    <div>
+      <span class="text-gray-500 dark:text-gray-400">Project</span>
+      <p class="font-medium" id="detail-project">-</p>
+    </div>
+    <div>
+      <span class="text-gray-500 dark:text-gray-400">Started</span>
+      <p class="font-medium" id="detail-started">-</p>
+    </div>
+    <div>
+      <span class="text-gray-500 dark:text-gray-400">Ended</span>
+      <p class="font-medium" id="detail-ended">-</p>
+    </div>
+    <div>
+      <span class="text-gray-500 dark:text-gray-400">Created</span>
+      <p class="font-medium" id="detail-created">-</p>
+    </div>
+  </div>
+  <div class="mt-3" id="detail-desc-section" style="display:none;">
+    <span class="text-gray-500 dark:text-gray-400 text-sm">Description</span>
+    <p class="text-sm mt-1" id="detail-description"></p>
+  </div>
+</div>
+
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6" id="detail-stats">
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+    <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Duration</small>
+    <h4 class="text-base font-semibold mt-1" id="stat-duration">-</h4>
+  </div>
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+    <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Measurements</small>
+    <h4 class="text-base font-semibold mt-1" id="stat-count">-</h4>
+  </div>
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+    <div class="flex items-center gap-1">
+      <iconify-icon class="w-3.5 h-3.5 text-yellow-600" icon="heroicons-outline:bolt"></iconify-icon>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Avg Power</small>
+    </div>
+    <h4 class="text-base font-semibold text-yellow-600 mt-1" id="stat-avg-power">-</h4>
+  </div>
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+    <div class="flex items-center gap-1">
+      <iconify-icon class="w-3.5 h-3.5 text-red-500" icon="heroicons-outline:fire"></iconify-icon>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Peak Power</small>
+    </div>
+    <h4 class="text-base font-semibold text-red-500 mt-1" id="stat-peak-power">-</h4>
+  </div>
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+    <div class="flex items-center gap-1">
+      <iconify-icon class="w-3.5 h-3.5 text-green-500" icon="heroicons-outline:bolt"></iconify-icon>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Avg Current</small>
+    </div>
+    <h4 class="text-base font-semibold text-green-500 mt-1" id="stat-avg-current">-</h4>
+  </div>
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+    <div class="flex items-center gap-1">
+      <iconify-icon class="w-3.5 h-3.5 text-purple-400" icon="heroicons-outline:chart-pie"></iconify-icon>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Total Energy</small>
+    </div>
+    <h4 class="text-base font-semibold text-purple-400 mt-1" id="stat-total-energy">-</h4>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h6 class="text-base text-gray-500 dark:text-gray-400 font-medium">Voltage</h6>
+      <span class="text-sm text-gray-900 dark:text-gray-300">
+        <span class="font-semibold" id="chart-val-voltage">-</span> V
+      </span>
+    </div>
+    <div class="chart-container"><canvas id="voltageChart"></canvas></div>
+  </div>
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h6 class="text-base text-gray-500 dark:text-gray-400 font-medium">Current</h6>
+      <span class="text-sm text-gray-900 dark:text-gray-300">
+        <span class="font-semibold" id="chart-val-current">-</span> A
+      </span>
+    </div>
+    <div class="chart-container"><canvas id="currentChart"></canvas></div>
+  </div>
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h6 class="text-base text-gray-500 dark:text-gray-400 font-medium">Power</h6>
+      <span class="text-sm text-gray-900 dark:text-gray-300">
+        <span class="font-semibold" id="chart-val-power">-</span> W
+      </span>
+    </div>
+    <div class="chart-container"><canvas id="powerChart"></canvas></div>
+  </div>
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
+    <div class="flex items-center justify-between mb-3">
+      <h6 class="text-base text-gray-500 dark:text-gray-400 font-medium">Cumulative Energy</h6>
+      <span class="text-sm text-gray-900 dark:text-gray-300">
+        <span class="font-semibold" id="chart-val-energy">-</span> Wh
+      </span>
+    </div>
+    <div class="chart-container"><canvas id="energyChart"></canvas></div>
+  </div>
+</div>
+
+<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 mb-4">
+  <div class="flex items-center gap-2 mb-3">
+    <iconify-icon class="w-4 h-4 text-gray-500 dark:text-gray-400" icon="heroicons-outline:chart-bar-square"></iconify-icon>
+    <h6 class="text-base text-gray-500 dark:text-gray-400 font-medium">Energy Breakdown</h6>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Hourly</small>
+      <table class="w-full text-xs mt-1 border-collapse" id="energy-hourly">
+        <thead>
+          <tr class="text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+            <th class="text-left py-1 pr-2">Period</th>
+            <th class="text-right py-1">Wh</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Daily</small>
+      <table class="w-full text-xs mt-1 border-collapse" id="energy-daily">
+        <thead>
+          <tr class="text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+            <th class="text-left py-1 pr-2">Date</th>
+            <th class="text-right py-1">Wh</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Weekly</small>
+      <table class="w-full text-xs mt-1 border-collapse" id="energy-weekly">
+        <thead>
+          <tr class="text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+            <th class="text-left py-1 pr-2">Week</th>
+            <th class="text-right py-1">Wh</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Monthly</small>
+      <table class="w-full text-xs mt-1 border-collapse" id="energy-monthly">
+        <thead>
+          <tr class="text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
+            <th class="text-left py-1 pr-2">Month</th>
+            <th class="text-right py-1">Wh</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 mb-4">
+  <div class="flex items-center gap-2 mb-3">
+    <iconify-icon class="w-4 h-4 text-gray-500 dark:text-gray-400" icon="heroicons-outline:document-text"></iconify-icon>
+    <h6 class="text-base text-gray-500 dark:text-gray-400 font-medium">Measurements</h6>
+  </div>
+  <div>
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
+          <th class="text-left py-2 px-2 font-medium">Time</th>
+          <th class="text-right py-2 px-2 font-medium">Bus V</th>
+          <th class="text-right py-2 px-2 font-medium">Load V</th>
+          <th class="text-right py-2 px-2 font-medium">Current</th>
+          <th class="text-right py-2 px-2 font-medium">Power</th>
+          <th class="text-right py-2 px-2 font-medium">Energy</th>
+        </tr>
+      </thead>
+      <tbody id="measurements-body"></tbody>
+    </table>
+  </div>
+  <nav class="mt-4">
+    <ul class="flex items-center justify-center gap-1" id="measurements-pagination"></ul>
+  </nav>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+var SESSION_ID = {{ session.id }};
+var SESSION_STATUS = '{{ session.status }}';
+var voltageChart, currentChart, powerChart, energyChart;
+var MAX_POINTS = 50;
+
+function statusBadge(status) {
+  var map = {draft: 'bg-gray-400', running: 'bg-green-500', finished: 'bg-blue-600'};
+  return '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white ' + (map[status] || 'bg-gray-400') + '">' + status + '</span>';
+}
+
+function formatDurationSec(seconds) {
+  if (!seconds || seconds <= 0) return '-';
+  var d = Math.floor(seconds / 86400);
+  var h = Math.floor((seconds % 86400) / 3600);
+  var m = Math.floor((seconds % 3600) / 60);
+  return d + 'd ' + h + 'h ' + m + 'm';
+}
+
+function formatEnergy(wh) {
+  if (wh == null) return '-';
+  if (Math.abs(wh) >= 1000) return (wh / 1000).toFixed(2) + ' kWh';
+  return wh.toFixed(2) + ' Wh';
+}
+
+function formatTime(isoString) {
+  if (!isoString) return '';
+  var d = new Date(isoString);
+  if (isNaN(d.getTime())) return '';
+  var tzOffset = parseInt(window.__userTimezone || '0', 10) || 0;
+  var targetMs = d.getTime() + tzOffset * 3600000;
+  var dt = new Date(targetMs);
+  return dt.getUTCHours().toString().padStart(2, '0') + ':' +
+         dt.getUTCMinutes().toString().padStart(2, '0') + ':' +
+         dt.getUTCSeconds().toString().padStart(2, '0');
+}
+
+function toFixedSafe(val, digits) {
+  return (val != null ? Number(val) : 0).toFixed(digits);
+}
+
+function renderActions(status) {
+  var html = '';
+  if (status === 'draft') {
+    html += '<button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-green-600 text-white hover:bg-green-500 transition-colors" onclick="startSession()">Start</button>';
+  }
+  if (status === 'running') {
+    html += '<button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-yellow-500 text-white hover:bg-yellow-400 transition-colors" onclick="stopSession()">Stop</button>';
+  }
+  if (status === 'finished') {
+    html += '<a href="/api/v1/measurements/export/csv?session_id=' + SESSION_ID + '" class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Export CSV</a>';
+  }
+  html += '<a href="/sessions/' + SESSION_ID + '/edit" class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors">Edit</a>';
+  html += '<button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-red-600 text-white hover:bg-red-500 transition-colors" onclick="deleteSession()">Delete</button>';
+  document.getElementById('detail-actions').innerHTML = html;
+}
+
+function updateStats(data) {
+  document.getElementById('stat-duration').textContent = formatDurationSec(data.duration);
+  document.getElementById('stat-count').textContent = data.measurement_count != null ? data.measurement_count : '-';
+  document.getElementById('stat-avg-power').textContent = data.avg_power != null ? data.avg_power.toFixed(3) + ' W' : '-';
+  document.getElementById('stat-peak-power').textContent = data.peak_power != null ? data.peak_power.toFixed(3) + ' W' : '-';
+  document.getElementById('stat-avg-current').textContent = data.avg_current != null ? data.avg_current.toFixed(3) + ' A' : '-';
+  document.getElementById('stat-total-energy').textContent = formatEnergy(data.total_energy);
+}
+
+function updateCharts(cd) {
+  if (!cd || !cd.labels || cd.labels.length === 0) {
+    ['voltage', 'current', 'power', 'energy'].forEach(function(key) {
+      var el = document.getElementById('chart-val-' + key);
+      if (el) el.textContent = '-';
+    });
+    [voltageChart, currentChart, powerChart, energyChart].forEach(function(chart) {
+      if (chart) {
+        chart.data.labels = [];
+        chart.data.datasets.forEach(function(ds) { ds.data = []; });
+        chart.update();
+      }
+    });
+    return;
+  }
+
+  var lastIdx = cd.labels.length - 1;
+  var el;
+  el = document.getElementById('chart-val-voltage');
+  if (el && cd.voltage && cd.voltage[lastIdx] != null) el.textContent = toFixedSafe(cd.voltage[lastIdx], 3);
+  el = document.getElementById('chart-val-current');
+  if (el && cd.current && cd.current[lastIdx] != null) el.textContent = toFixedSafe(cd.current[lastIdx], 3);
+  el = document.getElementById('chart-val-power');
+  if (el && cd.power && cd.power[lastIdx] != null) el.textContent = toFixedSafe(cd.power[lastIdx], 3);
+  el = document.getElementById('chart-val-energy');
+  if (el && cd.energy && cd.energy[lastIdx] != null) el.textContent = toFixedSafe(cd.energy[lastIdx], 6);
+
+  var slice = function(arr) { return arr.slice(-MAX_POINTS); };
+  var labels = slice(cd.labels).map(formatTime);
+
+  voltageChart.data.labels = labels;
+  voltageChart.data.datasets[0].data = slice(cd.voltage);
+  voltageChart.update();
+
+  currentChart.data.labels = labels;
+  currentChart.data.datasets[0].data = slice(cd.current);
+  currentChart.update();
+
+  powerChart.data.labels = labels;
+  powerChart.data.datasets[0].data = slice(cd.power);
+  powerChart.update();
+
+  energyChart.data.labels = labels;
+  energyChart.data.datasets[0].data = slice(cd.energy);
+  energyChart.update();
+}
+
+async function fetchJSON(url) {
+  try {
+    var res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) { return null; }
+}
+
+async function loadStats() {
+  var data = await fetchJSON('/api/v1/sessions/' + SESSION_ID + '/stats');
+  if (data) updateStats(data);
+}
+
+async function loadCharts() {
+  var params = 'session_id=' + SESSION_ID + '&limit=500';
+  var chartData = await fetchJSON('/api/v1/chart?' + params);
+  if (chartData) updateCharts(chartData);
+}
+
+function formatPeriod(period, key) {
+  if (!period) return '';
+  var tzOffset = parseInt(window.__userTimezone || '0', 10) || 0;
+  var dFmt = window.__userDateFormat || 'YYYY-MM-DD';
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function fmtDate(y, m, d) {
+    if (dFmt === 'DD/MM/YYYY') return pad(d) + '/' + pad(m) + '/' + y;
+    if (dFmt === 'MM/DD/YYYY') return pad(m) + '/' + pad(d) + '/' + y;
+    return y + '-' + pad(m) + '-' + pad(d);
+  }
+  if (key === 'monthly' && /^\d{4}-\d{2}$/.test(period)) {
+    var parts = period.split('-');
+    return fmtDate(parseInt(parts[0]), parseInt(parts[1]), 1).slice(0, -3);
+  }
+  if (key === 'weekly' && /^\d{4}-W\d{2}$/.test(period)) {
+    return period.replace('-', ' ');
+  }
+  if (key === 'daily' && /^\d{4}-\d{2}-\d{2}$/.test(period) && !period.includes('T')) {
+    var p = period.split('-');
+    return fmtDate(parseInt(p[0]), parseInt(p[1]), parseInt(p[2]));
+  }
+  if (key === 'hourly' && period.includes('T')) {
+    var dt = new Date(period);
+    if (isNaN(dt.getTime())) return period;
+    var targetMs = dt.getTime() + tzOffset * 3600000;
+    var adjusted = new Date(targetMs);
+    var dStr = fmtDate(adjusted.getUTCFullYear(), adjusted.getUTCMonth() + 1, adjusted.getUTCDate());
+    return dStr + ' ' + pad(adjusted.getUTCHours()) + ':00';
+  }
+  return period;
+}
+
+function updateEnergyBreakdown(stats) {
+  if (!stats || !stats.energy) return;
+  var tables = {
+    hourly: document.getElementById('energy-hourly').querySelector('tbody'),
+    daily: document.getElementById('energy-daily').querySelector('tbody'),
+    weekly: document.getElementById('energy-weekly').querySelector('tbody'),
+    monthly: document.getElementById('energy-monthly').querySelector('tbody'),
+  };
+  Object.keys(tables).forEach(function(key) {
+    var rows = stats.energy[key] || [];
+    tables[key].innerHTML = rows.slice(-20).map(function(r) {
+      return '<tr class="border-b border-gray-200 dark:border-gray-800"><td class="py-0.5 pr-2">' + formatPeriod(r.period, key) + '</td><td class="py-0.5 text-right">' + r.energy.toFixed(6) + '</td></tr>';
+    }).join('') || '<tr><td class="py-1 text-gray-500 dark:text-gray-400" colspan="2">No data</td></tr>';
+  });
+}
+
+async function loadStatistics() {
+  var params = 'session_id=' + SESSION_ID;
+  var stats = await fetchJSON('/api/v1/dashboard/statistics?' + params);
+  if (stats) updateEnergyBreakdown(stats);
+}
+
+async function loadMeasurements(page) {
+  page = page || 1;
+  var res = await fetch('/api/v1/measurements?session_id=' + SESSION_ID + '&page=' + page + '&per_page=10');
+  var data = await res.json();
+  var tbody = document.getElementById('measurements-body');
+  tbody.innerHTML = data.measurements.map(function(m) {
+    return '<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">' +
+      '<td class="py-2 px-2 text-xs">' + formatTimestamp(m.created_at) + '</td>' +
+      '<td class="py-2 px-2 text-right text-xs">' + m.bus_voltage.toFixed(3) + ' V</td>' +
+      '<td class="py-2 px-2 text-right text-xs">' + m.load_voltage.toFixed(3) + ' V</td>' +
+      '<td class="py-2 px-2 text-right text-xs">' + m.current.toFixed(3) + ' A</td>' +
+      '<td class="py-2 px-2 text-right text-xs">' + m.power.toFixed(3) + ' W</td>' +
+      '<td class="py-2 px-2 text-right text-xs">' + m.energy.toFixed(6) + ' Wh</td>' +
+    '</tr>';
+  }).join('');
+
+  var pagination = document.getElementById('measurements-pagination');
+  var p = data.page, total = data.pages;
+  pagination.parentElement.style.display = total <= 1 ? 'none' : '';
+  var html = '<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ' + (p <= 1 ? 'text-gray-500 pointer-events-none' : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800') + ' border border-gray-300 dark:border-gray-700 transition-colors" href="#" onclick="loadMeasurements(' + (p - 1) + '); return false;">&laquo;</a></li>';
+  var pages = new Set([1, total]);
+  for (var i = Math.max(2, p - 2); i <= Math.min(total - 1, p + 2); i++) pages.add(i);
+  var sorted = Array.from(pages).sort(function(a, b) { return a - b; });
+  sorted.forEach(function(n, idx) {
+    if (idx > 0 && n - sorted[idx - 1] > 1) html += '<li><span class="flex items-center justify-center w-7 h-7 text-xs text-gray-500">&hellip;</span></li>';
+    html += '<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs border border-gray-300 dark:border-gray-700 transition-colors ' + (n === p ? 'bg-blue-600 border-blue-600 text-white' : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800') + '" href="#" onclick="loadMeasurements(' + n + '); return false;">' + n + '</a></li>';
+  });
+  html += '<li><a class="flex items-center justify-center w-7 h-7 rounded text-xs ' + (p >= total ? 'text-gray-500 pointer-events-none' : 'text-gray-900 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800') + ' border border-gray-300 dark:border-gray-700 transition-colors" href="#" onclick="loadMeasurements(' + (p + 1) + '); return false;">&raquo;</a></li>';
+  pagination.innerHTML = html;
+}
+
+async function startSession() {
+  await fetch('/api/v1/sessions/' + SESSION_ID + '/start', {method: 'POST'});
+  location.reload();
+}
+
+async function stopSession() {
+  await fetch('/api/v1/sessions/' + SESSION_ID + '/stop', {method: 'POST'});
+  location.reload();
+}
+
+async function deleteSession() {
+  if (!await confirmDialog('Delete this session?')) return;
+  await fetch('/api/v1/sessions/' + SESSION_ID, {method: 'DELETE'});
+  window.location.href = '/sessions';
+}
+
+function initDetail() {
+  if (document.getElementById('detail-session-name').dataset.initialized) return;
+  document.getElementById('detail-session-name').dataset.initialized = '1';
+
+  document.getElementById('detail-session-name').textContent = {{ session.name | tojson }};
+  document.getElementById('detail-status-badge').innerHTML = statusBadge(SESSION_STATUS);
+  renderActions(SESSION_STATUS);
+
+  document.getElementById('detail-device').textContent = {{ (session.device_ref.alias or session.device_ref.device_id if session.device_ref else '-') | tojson }};
+  document.getElementById('detail-target-device').textContent = {{ (session.target_device or '-') | tojson }};
+  document.getElementById('detail-project').textContent = {{ (session.project.name if session.project else '-') | tojson }};
+  document.getElementById('detail-started').textContent = formatTimestamp({{ (session.started_at.isoformat() if session.started_at else '') | tojson }});
+  document.getElementById('detail-ended').textContent = formatTimestamp({{ (session.ended_at.isoformat() if session.ended_at else '') | tojson }});
+  document.getElementById('detail-created').textContent = formatTimestamp({{ (session.created_at.isoformat() if session.created_at else '') | tojson }});
+  {% if session.description %}
+  document.getElementById('detail-desc-section').style.display = '';
+  document.getElementById('detail-description').textContent = {{ session.description | tojson }};
+  {% endif %}
+
+  if (window.__dashboardIntervalId) { clearInterval(window.__dashboardIntervalId); window.__dashboardIntervalId = null; }
+  if (window.__statIntervalId) { clearInterval(window.__statIntervalId); window.__statIntervalId = null; }
+  if (window.__summaryIntervalId) { clearInterval(window.__summaryIntervalId); window.__summaryIntervalId = null; }
+
+  if (voltageChart) { voltageChart.destroy(); voltageChart = null; }
+  if (currentChart) { currentChart.destroy(); currentChart = null; }
+  if (powerChart) { powerChart.destroy(); powerChart = null; }
+  if (energyChart) { energyChart.destroy(); energyChart = null; }
+
+  voltageChart = createChart('voltageChart', 'Voltage', 'voltage');
+  currentChart = createChart('currentChart', 'Current', 'current');
+  powerChart = createChart('powerChart', 'Power', 'power');
+  energyChart = createChart('energyChart', 'Energy', 'energy', false);
+
+  loadStats();
+  loadCharts();
+  loadStatistics();
+  loadMeasurements();
+}
+
+document.addEventListener('DOMContentLoaded', initDetail);
+document.addEventListener('htmx:load', function() { setTimeout(initDetail, 0); });
+</script>
+{% endblock %}

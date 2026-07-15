@@ -117,6 +117,70 @@ class TestPageStructure:
         html = resp.content.decode()
         assert 'id="sessions-pagination"' in html
 
+    def _create_session(self, client):
+        from app.database import SessionLocal
+        from app.models import Device, Session
+        db = SessionLocal()
+        d = Device(device_id='esp32-fe-detail', alias='FE Detail Device', sampling_interval=1)
+        db.add(d)
+        db.commit()
+        s = Session(name='FE Detail Session', device_id=d.id, status='draft')
+        db.add(s)
+        db.commit()
+        sid = s.id
+        db.close()
+        return sid
+
+    def test_session_detail_has_chart_canvases(self, client):
+        sid = self._create_session(client)
+        resp = client.get(f'/sessions/{sid}')
+        html = resp.content.decode()
+        assert 'id="voltageChart"' in html
+        assert 'id="currentChart"' in html
+        assert 'id="powerChart"' in html
+        assert 'id="energyChart"' in html
+
+    def test_session_detail_has_stats_cards(self, client):
+        sid = self._create_session(client)
+        resp = client.get(f'/sessions/{sid}')
+        html = resp.content.decode()
+        for stat in ['stat-duration', 'stat-count', 'stat-avg-power', 'stat-peak-power', 'stat-avg-current', 'stat-total-energy']:
+            assert f'id="{stat}"' in html
+
+    def test_session_detail_has_measurements_table(self, client):
+        sid = self._create_session(client)
+        resp = client.get(f'/sessions/{sid}')
+        html = resp.content.decode()
+        assert 'id="measurements-body"' in html
+        assert 'id="measurements-pagination"' in html
+
+    def test_session_detail_has_energy_breakdown(self, client):
+        sid = self._create_session(client)
+        resp = client.get(f'/sessions/{sid}')
+        html = resp.content.decode()
+        for table_id in ['energy-hourly', 'energy-daily', 'energy-weekly', 'energy-monthly']:
+            assert f'id="{table_id}"' in html
+
+    def test_session_detail_has_session_info(self, client):
+        sid = self._create_session(client)
+        resp = client.get(f'/sessions/{sid}')
+        html = resp.content.decode()
+        for field in ['detail-device', 'detail-project', 'detail-started', 'detail-ended', 'detail-created']:
+            assert f'id="{field}"' in html
+
+    def test_session_detail_has_actions(self, client):
+        sid = self._create_session(client)
+        resp = client.get(f'/sessions/{sid}')
+        html = resp.content.decode()
+        assert 'id="detail-actions"' in html
+        assert 'Edit' in html or 'edit' in html
+
+    def test_session_detail_returns_html(self, client):
+        sid = self._create_session(client)
+        resp = client.get(f'/sessions/{sid}')
+        assert resp.status_code == 200
+        assert resp.headers['content-type'].startswith('text/html')
+
 
 class TestPageRendering:
     def test_dashboard_returns_200(self, client):
