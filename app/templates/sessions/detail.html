@@ -316,7 +316,12 @@ function updateCharts(cd) {
   powerChart.update();
 
   energyChart.data.labels = labels;
-  energyChart.data.datasets[0].data = slice(cd.energy);
+  var energyData = slice(cd.energy);
+  if (energyData.length > 0) {
+    var baseEnergy = energyData[0];
+    energyData = energyData.map(function(v) { return v - baseEnergy; });
+  }
+  energyChart.data.datasets[0].data = energyData;
   energyChart.update();
 }
 
