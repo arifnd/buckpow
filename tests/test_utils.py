@@ -1,9 +1,10 @@
 import pytest
 from app.utils.errors import (AppError, ValidationError, NotFoundError,
                                AuthError)
+from app.utils.hash import hash_password, verify_password
 from app.utils.validators import (validate_required, validate_float,
-                                  validate_int, validate_string,
-                                  validate_email, validate_uuid)
+                                   validate_int, validate_string,
+                                   validate_email, validate_uuid)
 
 
 class TestAppError:
@@ -135,3 +136,8 @@ class TestValidators:
     def test_validate_uuid_wrong_chars(self):
         with pytest.raises(ValidationError, match='Invalid UUID'):
             validate_uuid('z' + '0' * 63)
+
+
+class TestHash:
+    def test_verify_password_corrupt_hash(self):
+        assert verify_password('anything', 'not-a-bcrypt-hash') is False

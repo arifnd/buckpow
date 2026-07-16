@@ -279,3 +279,43 @@ class TestSettingsAPI:
             assert result['password'] is not None
         finally:
             database.engine.url = old
+
+    def test_backup_sqlite_relative_path(self):
+        from unittest.mock import patch, MagicMock
+        from app.api.settings import _backup_sqlite
+        from fastapi.exceptions import HTTPException
+        mock_engine = MagicMock()
+        mock_engine.url = 'sqlite:///relative/path/test.db'
+        with patch('app.api.settings.engine', mock_engine):
+            try:
+                _backup_sqlite('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert e.status_code == 404
+
+    def test_backup_sqlite_file_not_found(self):
+        from unittest.mock import patch, MagicMock
+        from app.api.settings import _backup_sqlite
+        from fastapi.exceptions import HTTPException
+        mock_engine = MagicMock()
+        mock_engine.url = 'sqlite:////nonexistent/path/buckpow.db'
+        with patch('app.api.settings.engine', mock_engine):
+            try:
+                _backup_sqlite('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert e.status_code == 404
+
+    def test_backup_sqlite_invalid_url(self):
+        from unittest.mock import patch, MagicMock
+        from app.api.settings import _backup_sqlite
+        from fastapi.exceptions import HTTPException
+        mock_engine = MagicMock()
+        mock_engine.url = 'mysql://localhost/test'
+        with patch('app.api.settings.engine', mock_engine):
+            try:
+                _backup_sqlite('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert e.status_code == 400
+                assert 'Invalid SQLite URL' in str(e.detail)

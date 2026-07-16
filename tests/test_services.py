@@ -230,6 +230,21 @@ class TestDeviceService:
         assert DeviceService.get_online_status(d) == 'offline'
         db.close()
 
+    def test_get_online_status_naive_datetime(self, app):
+        db = self._db(app)
+        d = DeviceService.create(db, 'esp32-stat-naive')
+        d.last_seen = datetime.now()
+        d.last_seen = d.last_seen.replace(tzinfo=None)
+        db.commit()
+        status = DeviceService.get_online_status(d)
+        assert status in ('online', 'offline')
+        db.close()
+
+    def test_masked_api_key_short(self, app):
+        from app.models import Device
+        d = Device(device_id='esp32-short', api_key='abcd1234')
+        assert d._masked_api_key() == 'abcd****'
+
     def test_update(self, app):
         db = self._db(app)
         d = DeviceService.create(db, 'esp32-upd')
@@ -420,6 +435,25 @@ class TestSessionService:
         assert len(SessionService.get_all(db)) >= 2
         db.close()
 
+    def test_get_stats_for_sessions_with_measurements(self, app):
+        db = self._db(app)
+        d = DeviceService.create(db, 'esp32-sts')
+        s = SessionService.create(db, d.id, 'Stats Session')
+        SessionService.start(db, s.id)
+        MeasurementService.create(db, 'esp32-sts', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        MeasurementService.create(db, 'esp32-sts', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        stats = SessionService.get_stats_for_sessions(db, [s.id])
+        assert s.id in stats
+        assert stats[s.id]['avg_power'] is not None
+        db.close()
+
+    def test_get_stats_for_sessions_empty_ids(self, app):
+        db = self._db(app)
+        stats = SessionService.get_stats_for_sessions(db, [])
+        assert stats == {}
+
 
 class TestMeasurementService:
     def _db(self, app):
@@ -555,6 +589,78 @@ class TestMeasurementService:
         assert len(rows) >= 1
         db.close()
 
+    def test_get_recent_with_device_filter(self, app):
+        db = self._db(app)
+        d = DeviceService.create(db, 'esp32-rec-filt')
+        MeasurementService.create(db, 'esp32-rec-filt', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        recent = MeasurementService.get_recent(db, limit=10, device_id=d.id)
+        assert len(recent) >= 1
+        db.close()
+
+    def test_get_chart_data_granularity_second(self, app):
+        db = self._db(app)
+        MeasurementService.create(db, 'esp32-g-s', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        data = MeasurementService.get_chart_data(db, limit=10, granularity='s')
+        assert len(data['labels']) >= 1
+        db.close()
+
+    def test_get_chart_data_granularity_minute(self, app):
+        db = self._db(app)
+        MeasurementService.create(db, 'esp32-g-m', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        data = MeasurementService.get_chart_data(db, limit=10, granularity='m')
+        assert len(data['labels']) >= 1
+        db.close()
+
+    def test_get_chart_data_granularity_day(self, app):
+        db = self._db(app)
+        MeasurementService.create(db, 'esp32-g-d', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        data = MeasurementService.get_chart_data(db, limit=10, granularity='d')
+        assert len(data['labels']) >= 1
+        db.close()
+
+    def test_get_chart_data_device_filter(self, app):
+        db = self._db(app)
+        d = DeviceService.create(db, 'esp32-cd-filt')
+        MeasurementService.create(db, 'esp32-cd-filt', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        data = MeasurementService.get_chart_data(db, limit=10, device_id=d.id)
+        assert len(data['labels']) >= 1
+        db.close()
+
+    def test_get_chart_data_session_filter(self, app):
+        db = self._db(app)
+        d = DeviceService.create(db, 'esp32-cs-filt')
+        s = SessionService.create(db, d.id, 'Chart Session')
+        SessionService.start(db, s.id)
+        MeasurementService.create(db, 'esp32-cs-filt', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        data = MeasurementService.get_chart_data(db, limit=10, session_id=s.id)
+        assert len(data['labels']) >= 1
+        db.close()
+
+    def test_get_stats_device_filter(self, app):
+        db = self._db(app)
+        d = DeviceService.create(db, 'esp32-stats-filt')
+        MeasurementService.create(db, 'esp32-stats-filt', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        stats = MeasurementService.get_stats(db, device_id=d.id)
+        assert stats['voltage']['avg'] > 0
+        db.close()
+
+    def test_energy_no_session_existing_device(self, app):
+        db = self._db(app)
+        DeviceService.create(db, 'esp32-ens-exist')
+        m1 = MeasurementService.create(db, 'esp32-ens-exist', bus_voltage=5.0,
+                                       shunt_voltage=80.0, current=200, power=1000)
+        m2 = MeasurementService.create(db, 'esp32-ens-exist', bus_voltage=5.0,
+                                       shunt_voltage=80.0, current=200, power=1000)
+        assert m2.energy > m1.energy
+        db.close()
+
 
 class TestAlertService:
     def _db(self, app):
@@ -660,6 +766,31 @@ class TestAlertService:
         alerts = db.query(Alert).filter_by(device_id=d.id, resolved_at=None).all()
         high_power_count = sum(1 for a in alerts if 'High power' in a.message)
         assert high_power_count == 1
+        db.close()
+
+    def test_resolve_all_with_device_filter(self, app, sample_device_id):
+        db = self._db(app)
+        AlertService.create(db, device_id=sample_device_id, level='warning', message='Filtered')
+        AlertService.resolve_all(db, device_id=sample_device_id)
+        count = AlertService.get_unresolved_count(db, device_id=sample_device_id)
+        assert count == 0
+        db.close()
+
+    def test_get_paginated_resolved_true(self, app, sample_device_id):
+        db = self._db(app)
+        a = AlertService.create(db, device_id=sample_device_id, level='info', message='Resolved alert')
+        AlertService.resolve(db, a.id)
+        p = AlertService.get_paginated(db, page=1, per_page=10, resolved=True)
+        assert len(p.items) >= 1
+        db.close()
+
+    def test_owner_settings_with_exception(self, app):
+        db = self._db(app)
+        d = DeviceService.create(db, 'esp32-own-err')
+        d.project_id = 99999
+        db.commit()
+        result = AlertService._owner_settings(db, d)
+        assert result == {}
         db.close()
 
 
@@ -840,4 +971,26 @@ class TestDashboardService:
         db = self._db(app)
         energy = DashboardService._get_energy_breakdown(db)
         assert energy == {'hourly': [], 'daily': [], 'weekly': [], 'monthly': []}
+        db.close()
+
+    def test_get_energy_breakdown_session_boundary(self, app):
+        db = self._db(app)
+        d1 = DeviceService.create(db, 'esp32-boundary1')
+        d2 = DeviceService.create(db, 'esp32-boundary2')
+        sess1 = SessionService.create(db, d1.id, 'Boundary S1')
+        sess2 = SessionService.create(db, d2.id, 'Boundary S2')
+        from app.models import Measurement as M
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(timezone.utc)
+        m1 = M(device_id=d1.id, session_id=sess1.id, bus_voltage=5.0,
+                shunt_voltage=0.0, load_voltage=5.0, current=0.1, power=0.5, energy=1.0,
+                created_at=now - timedelta(minutes=5))
+        m2 = M(device_id=d2.id, session_id=sess2.id, bus_voltage=5.0,
+                shunt_voltage=0.0, load_voltage=5.0, current=0.1, power=0.5, energy=2.0,
+                created_at=now)
+        db.add_all([m1, m2])
+        db.commit()
+        energy = DashboardService._get_energy_breakdown(db)
+        assert isinstance(energy['hourly'], list)
+        assert isinstance(energy['daily'], list)
         db.close()

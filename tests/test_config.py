@@ -1,6 +1,7 @@
 import os
 from unittest.mock import patch
 
+import pytest
 from app.config import Settings
 
 
@@ -50,3 +51,12 @@ class TestSettings:
         s = Settings(ADMIN_EMAIL='admin@test.com', ADMIN_PASSWORD='pass123')
         assert s.ADMIN_EMAIL == 'admin@test.com'
         assert s.ADMIN_PASSWORD == 'pass123'
+
+    def test_short_secret_key_warning(self):
+        with pytest.warns(UserWarning, match='SECRET_KEY is'):
+            Settings(SECRET_KEY='short', _env_file=None)
+
+    def test_production_missing_secret_key_raises(self):
+        with patch.dict(os.environ, {'APP_ENV': 'production', 'SECRET_KEY': ''}):
+            with pytest.raises(RuntimeError, match='SECRET_KEY environment variable is required'):
+                Settings(SECRET_KEY='', _env_file=None)

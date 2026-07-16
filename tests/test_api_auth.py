@@ -68,3 +68,26 @@ class TestAuthAPI:
     def test_update_profile_with_password(self, client):
         resp = client.put('/api/v1/auth/profile', json={'password': 'newpass'})
         assert resp.status_code == 200
+
+    def test_me_with_invalid_token(self, unauth_client):
+        resp = unauth_client.get('/api/v1/auth/me', headers={'Authorization': 'Bearer invalid.jwt.token'})
+        assert resp.status_code == 401
+
+    def test_me_with_missing_sub(self, unauth_client, app):
+        from app.auth import create_access_token
+        token = create_access_token(data={})
+        resp = unauth_client.get('/api/v1/auth/me', headers={'Authorization': f'Bearer {token}'})
+        assert resp.status_code == 401
+
+    def test_me_with_non_numeric_sub(self, unauth_client, app):
+        from app.auth import create_access_token
+        token = create_access_token(data={'sub': 'not-a-number'})
+        resp = unauth_client.get('/api/v1/auth/me', headers={'Authorization': f'Bearer {token}'})
+        assert resp.status_code == 401
+
+    def test_login_empty_fields(self, unauth_client):
+        resp = unauth_client.post('/api/v1/auth/login', json={
+            'email': '',
+            'password': '',
+        })
+        assert resp.status_code == 400
