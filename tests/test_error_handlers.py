@@ -22,6 +22,10 @@ class TestErrorHandlers:
         resp = client.get('/nonexistent/page')
         assert resp.status_code == 404
 
+    def test_html_405_returns_default(self, client):
+        resp = client.post('/nonexistent/page')
+        assert resp.status_code in (404, 405)
+
     def test_api_validation_error(self, client, device_auth_header):
         resp = client.post('/api/v1/measurements', json={
             'device_id': 'esp32-test',
@@ -31,3 +35,18 @@ class TestErrorHandlers:
     def test_api_auth_error(self, unauth_client):
         resp = unauth_client.get('/api/v1/auth/me')
         assert resp.status_code == 401
+
+    def test_app_error_handler(self, app):
+        from app.utils.errors import AppError
+        from starlette.testclient import TestClient
+
+        @app.get('/test-app-error')
+        def raise_app_error():
+            raise AppError('Custom error', status_code=422, code='CUSTOM')
+
+        c = TestClient(app, raise_server_exceptions=False)
+        resp = c.get('/test-app-error')
+        assert resp.status_code == 422
+        data = resp.json()
+        assert data['error'] == 'Custom error'
+        assert data['code'] == 'CUSTOM'

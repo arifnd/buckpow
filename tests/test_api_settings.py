@@ -85,3 +85,197 @@ class TestSettingsAPI:
     def test_backup_database_unauthorized(self, unauth_client):
         resp = unauth_client.get('/api/v1/settings/backup')
         assert resp.status_code == 401
+
+    def test_db_info(self, client):
+        resp = client.get('/api/v1/settings/db-info')
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data['type'] == 'sqlite'
+        assert data['size'] is not None
+        assert data['backup_formats']['sqlite'] is True
+        assert data['backup_formats']['sql_dump'] is False
+
+    def test_detect_db_type_sqlite(self):
+        from app.api.settings import _detect_db_type
+        assert _detect_db_type() == 'sqlite'
+
+    def test_detect_db_type_postgresql(self):
+        from app.api.settings import _detect_db_type
+        from app import database
+        old = database.engine.url
+        try:
+            database.engine.url = database.engine.url.set(host='localhost', database='test')
+            from sqlalchemy.engine import make_url
+            database.engine.url = make_url('postgresql://user:pass@localhost/test')
+            assert _detect_db_type() == 'postgresql'
+        finally:
+            database.engine.url = old
+
+    def test_detect_db_type_mysql(self):
+        from app.api.settings import _detect_db_type
+        from app import database
+        from sqlalchemy.engine import make_url
+        old = database.engine.url
+        try:
+            database.engine.url = make_url('mysql+pymysql://user:pass@localhost/test')
+            assert _detect_db_type() == 'mysql'
+        finally:
+            database.engine.url = old
+
+    def test_detect_db_type_unknown(self):
+        from app.api.settings import _detect_db_type
+        from app import database
+        from sqlalchemy.engine import make_url
+        old = database.engine.url
+        try:
+            database.engine.url = make_url('oracle://user:pass@localhost/test')
+            assert _detect_db_type() == 'unknown'
+        finally:
+            database.engine.url = old
+
+    def test_get_db_size_sqlite(self):
+        from app.api.settings import _get_db_size
+        size = _get_db_size()
+        assert size is not None
+        assert size > 0
+
+    def test_backup_postgresql_no_tool(self, client):
+        from unittest.mock import patch
+        from app.api.settings import _backup_postgresql
+        with patch('app.api.settings.shutil.which', return_value=None):
+            resp = client.get('/api/v1/settings/backup')
+            # Since actual db is sqlite, this won't hit postgresql path
+            # Test the function directly
+            from fastapi.exceptions import HTTPException
+            try:
+                _backup_postgresql('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert 'pg_dump not found' in str(e.detail)
+
+    def test_backup_mysql_no_tool(self):
+        from unittest.mock import patch
+        from app.api.settings import _backup_mysql
+        from fastapi.exceptions import HTTPException
+        with patch('app.api.settings.shutil.which', return_value=None):
+            try:
+                _backup_mysql('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert 'mysqldump not found' in str(e.detail)
+
+    def test_backup_postgresql_timeout(self):
+        from unittest.mock import patch, MagicMock
+        import subprocess
+        from app.api.settings import _backup_postgresql
+        from fastapi.exceptions import HTTPException
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = b'dump data'
+        with patch('app.api.settings.shutil.which', return_value='/usr/bin/pg_dump'), \
+             patch('app.api.settings.subprocess.run', side_effect=subprocess.TimeoutExpired(cmd='pg_dump', timeout=120)):
+            try:
+                _backup_postgresql('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert 'timed out' in str(e.detail)
+
+    def test_backup_mysql_timeout(self):
+        from unittest.mock import patch
+        import subprocess
+        from app.api.settings import _backup_mysql
+        from fastapi.exceptions import HTTPException
+        with patch('app.api.settings.shutil.which', return_value='/usr/bin/mysqldump'), \
+             patch('app.api.settings.subprocess.run', side_effect=subprocess.TimeoutExpired(cmd='mysqldump', timeout=120)):
+            try:
+                _backup_mysql('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert 'timed out' in str(e.detail)
+
+    def test_backup_postgresql_dump_error(self):
+        from unittest.mock import patch, MagicMock
+        from app.api.settings import _backup_postgresql
+        from fastapi.exceptions import HTTPException
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = b'permission denied'
+        with patch('app.api.settings.shutil.which', return_value='/usr/bin/pg_dump'), \
+             patch('app.api.settings.subprocess.run', return_value=mock_result):
+            try:
+                _backup_postgresql('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert 'pg_dump failed' in str(e.detail)
+
+    def test_backup_mysql_dump_error(self):
+        from unittest.mock import patch, MagicMock
+        from app.api.settings import _backup_mysql
+        from fastapi.exceptions import HTTPException
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = b'access denied'
+        with patch('app.api.settings.shutil.which', return_value='/usr/bin/mysqldump'), \
+             patch('app.api.settings.subprocess.run', return_value=mock_result):
+            try:
+                _backup_mysql('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert 'mysqldump failed' in str(e.detail)
+
+    def test_backup_postgresql_file_not_found(self):
+        from unittest.mock import patch
+        from app.api.settings import _backup_postgresql
+        from fastapi.exceptions import HTTPException
+        with patch('app.api.settings.shutil.which', return_value='/usr/bin/pg_dump'), \
+             patch('app.api.settings.subprocess.run', side_effect=FileNotFoundError):
+            try:
+                _backup_postgresql('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert 'not found' in str(e.detail).lower()
+
+    def test_backup_mysql_file_not_found(self):
+        from unittest.mock import patch
+        from app.api.settings import _backup_mysql
+        from fastapi.exceptions import HTTPException
+        with patch('app.api.settings.shutil.which', return_value='/usr/bin/mysqldump'), \
+             patch('app.api.settings.subprocess.run', side_effect=FileNotFoundError):
+            try:
+                _backup_mysql('2025-01-01-000000')
+                assert False, "Should have raised"
+            except HTTPException as e:
+                assert 'not found' in str(e.detail).lower()
+
+    def test_parse_pg_url(self):
+        from app.api.settings import _parse_pg_url
+        from app import database
+        from sqlalchemy.engine import make_url
+        old = database.engine.url
+        try:
+            database.engine.url = make_url('postgresql://admin:secret@db.example.com:5432/mydb')
+            result = _parse_pg_url()
+            assert result['host'] == 'db.example.com'
+            assert result['port'] == 5432
+            assert result['dbname'] == 'mydb'
+            assert result['user'] == 'admin'
+            # SQLAlchemy masks passwords in URL representation
+            assert result['password'] is not None
+        finally:
+            database.engine.url = old
+
+    def test_parse_mysql_url(self):
+        from app.api.settings import _parse_mysql_url
+        from app import database
+        from sqlalchemy.engine import make_url
+        old = database.engine.url
+        try:
+            database.engine.url = make_url('mysql+pymysql://root:pass@db.example.com:3306/mydb')
+            result = _parse_mysql_url()
+            assert result['host'] == 'db.example.com'
+            assert result['port'] == 3306
+            assert result['dbname'] == 'mydb'
+            assert result['user'] == 'root'
+            assert result['password'] is not None
+        finally:
+            database.engine.url = old

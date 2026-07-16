@@ -148,3 +148,54 @@ class TestRateLimiterMiddleware:
 
         assert tracker['calls'] == 5
         assert len(tracker['sent']) == 4  # 2 rate-limited requests × 2 messages each
+
+    def test_non_http_scope_passthrough(self):
+        tracker = {'calls': 0}
+
+        async def dummy_app(scope, receive, send):
+            tracker['calls'] += 1
+
+        async def send(msg):
+            pass
+
+        mw = RateLimiterMiddleware(dummy_app, limits=[('POST', '/api/v1/measurements', 1, 60)])
+        scope = {'type': 'websocket'}
+
+        import asyncio
+        asyncio.run(mw(scope, None, send))
+        assert tracker['calls'] == 1
+
+    def test_trim_cleans_old_entries(self):
+        import time
+        mw = RateLimiterMiddleware(lambda s, r, s2: None, limits=[])
+        key = 'test-key'
+        now = time.time()
+        mw.requests[key] = [now - 200, now - 50, now]
+        mw._trim()
+        assert len(mw.requests[key]) == 2  # -200 is trimmed, -50 and now remain
+
+    def test_trim_removes_empty_keys(self):
+        import time
+        mw = RateLimiterMiddleware(lambda s, r, s2: None, limits=[])
+        key = 'old-key'
+        mw.requests[key] = [time.time() - 200]
+        mw._trim()
+        assert key not in mw.requests
+
+    def test_cleanup_counter_triggers_trim(self):
+        tracker = {'calls': 0}
+
+        async def dummy_app(scope, receive, send):
+            tracker['calls'] += 1
+
+        async def send(msg):
+            pass
+
+        mw = RateLimiterMiddleware(dummy_app, limits=[('POST', '/api/v1/measurements', 1000, 60)])
+        mw._cleanup_counter = 100
+
+        scope = _make_scope()
+        import asyncio
+        asyncio.run(mw(scope, None, send))
+        assert mw._cleanup_counter == 0
+        assert tracker['calls'] == 1

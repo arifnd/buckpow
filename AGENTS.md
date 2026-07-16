@@ -26,7 +26,7 @@ Power monitoring dashboard built with FastAPI + SQLAlchemy + SQLite. Receives po
 | `migrations/` | Alembic migration files (Flask-Migrate) |
 | `scripts/send_dummy.py` | Dummy data generator |
 | `firmware/` | Arduino sketches for ESP32/ESP8266 + INA219 |
-| `tests/` | Pytest suite (497 tests) |
+| `tests/` | Pytest suite (607 tests) |
 | `.env` | Config via env vars |
 | `Dockerfile` | `CMD ["fastapi", "run", "app/main.py", "--port", "8000", "--proxy-headers"]` |
 | `docker-compose.yml` | PostgreSQL + Nginx production stack |
@@ -139,7 +139,7 @@ curl -X POST http://localhost:8000/api/v1/measurements \
 ## Tests
 
 ```bash
-python -m pytest tests/ -v
+python -m pytest tests/ -v --cov=app --cov-report=term-missing
 ```
 
 ## Send dummy data

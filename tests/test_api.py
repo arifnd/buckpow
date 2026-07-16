@@ -440,34 +440,58 @@ class TestAPI:
     # ── Measurement API auth ──
 
     def test_post_measurement_no_auth(self, unauth_client):
-        resp = unauth_client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
-            'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        })
-        assert resp.status_code == 401
-        assert 'Authorization' in resp.json()['error']
+        from app.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = True
+        try:
+            resp = unauth_client.post('/api/v1/measurements', json={
+                'device_id': 'esp32-auth', 'bus_voltage': 5.0,
+                'shunt_voltage': 80, 'current': 200, 'power': 1000,
+            })
+            assert resp.status_code == 401
+            assert 'Authorization' in resp.json()['error']
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
 
     def test_post_measurement_malformed_auth(self, client):
-        resp = client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
-            'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        }, headers={'Authorization': 'Invalid'})
-        assert resp.status_code == 401
+        from app.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = True
+        try:
+            resp = client.post('/api/v1/measurements', json={
+                'device_id': 'esp32-auth', 'bus_voltage': 5.0,
+                'shunt_voltage': 80, 'current': 200, 'power': 1000,
+            }, headers={'Authorization': 'Invalid'})
+            assert resp.status_code == 401
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
 
     def test_post_measurement_invalid_key(self, client):
-        resp = client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
-            'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        }, headers={'Authorization': 'Bearer invalidkey123'})
-        assert resp.status_code == 401
+        from app.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = True
+        try:
+            resp = client.post('/api/v1/measurements', json={
+                'device_id': 'esp32-auth', 'bus_voltage': 5.0,
+                'shunt_voltage': 80, 'current': 200, 'power': 1000,
+            }, headers={'Authorization': 'Bearer invalidkey123'})
+            assert resp.status_code == 401
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
 
     def test_post_measurement_device_id_mismatch(self, client, device_auth_header):
-        resp = client.post('/api/v1/measurements', json={
-            'device_id': 'some-other-device', 'bus_voltage': 5.0,
-            'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        }, headers=device_auth_header)
-        assert resp.status_code == 403
-        assert b'does not match' in resp.content
+        from app.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = True
+        try:
+            resp = client.post('/api/v1/measurements', json={
+                'device_id': 'some-other-device', 'bus_voltage': 5.0,
+                'shunt_voltage': 80, 'current': 200, 'power': 1000,
+            }, headers=device_auth_header)
+            assert resp.status_code == 403
+            assert b'does not match' in resp.content
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
 
     def test_post_measurement_disabled_device(self, client, app):
         from app.database import SessionLocal
@@ -836,11 +860,17 @@ class TestDeviceAuthDisabled:
         assert resp.status_code == 201
 
     def test_no_auth_rejected_when_enabled(self, unauth_client):
-        resp = unauth_client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
-            'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        })
-        assert resp.status_code == 401
+        from app.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = True
+        try:
+            resp = unauth_client.post('/api/v1/measurements', json={
+                'device_id': 'esp32-auth', 'bus_voltage': 5.0,
+                'shunt_voltage': 80, 'current': 200, 'power': 1000,
+            })
+            assert resp.status_code == 401
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
 
     def test_auth_ignored_when_disabled(self, client, device_auth_header):
         from app.config import settings

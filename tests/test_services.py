@@ -783,3 +783,61 @@ class TestDashboardService:
         stats = DashboardService.get_statistics(db)
         assert stats['voltage']['avg'] > 0
         db.close()
+
+    def test_get_statistics_with_device_filter(self, app):
+        db = self._db(app)
+        d = DeviceService.create(db, 'esp32-filter-dev')
+        MeasurementService.create(db, 'esp32-filter-dev', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        stats = DashboardService.get_statistics(db, device_id=d.id)
+        assert stats['voltage']['avg'] > 0
+        db.close()
+
+    def test_get_statistics_with_session_filter(self, app):
+        db = self._db(app)
+        d = DeviceService.create(db, 'esp32-filter-sess')
+        s = SessionService.create(db, d.id, 'Filter Sess')
+        SessionService.start(db, s.id)
+        MeasurementService.create(db, 'esp32-filter-sess', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        stats = DashboardService.get_statistics(db, session_id=s.id)
+        assert stats['voltage']['avg'] > 0
+        assert stats['session_started_at'] is not None
+        db.close()
+
+    def test_get_statistics_with_date_filter(self, app):
+        db = self._db(app)
+        MeasurementService.create(db, 'esp32-filter-date', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        from datetime import datetime, timezone, timedelta
+        start = datetime.now(timezone.utc) - timedelta(hours=1)
+        end = datetime.now(timezone.utc) + timedelta(hours=1)
+        stats = DashboardService.get_statistics(db, start_date=start, end_date=end)
+        assert stats['voltage']['avg'] > 0
+        db.close()
+
+    def test_get_statistics_outside_date_range(self, app):
+        db = self._db(app)
+        MeasurementService.create(db, 'esp32-filter-date2', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        from datetime import datetime, timezone, timedelta
+        start = datetime.now(timezone.utc) + timedelta(hours=10)
+        end = datetime.now(timezone.utc) + timedelta(hours=11)
+        stats = DashboardService.get_statistics(db, start_date=start, end_date=end)
+        assert stats['voltage']['avg'] == 0
+        db.close()
+
+    def test_get_energy_breakdown_with_device_filter(self, app):
+        db = self._db(app)
+        d = DeviceService.create(db, 'esp32-energy-filter')
+        MeasurementService.create(db, 'esp32-energy-filter', bus_voltage=5.0,
+                                  shunt_voltage=80.0, current=200, power=1000)
+        energy = DashboardService._get_energy_breakdown(db, device_id=d.id)
+        assert 'hourly' in energy
+        db.close()
+
+    def test_get_energy_breakdown_empty(self, app):
+        db = self._db(app)
+        energy = DashboardService._get_energy_breakdown(db)
+        assert energy == {'hourly': [], 'daily': [], 'weekly': [], 'monthly': []}
+        db.close()

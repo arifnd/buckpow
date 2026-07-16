@@ -24,6 +24,6 @@ jobs:
         run: uv pip install -r requirements.txt pytest-xdist
 
       - name: Run Tests
-        run: uv run pytest tests/ -v --tb=short -n auto --durations=5
+        run: uv run pytest tests/ -v --tb=short -n auto --durations=5 --cov=app --cov-report=term-missing
         env:
           SECRET_KEY: test-key

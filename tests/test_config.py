@@ -7,7 +7,8 @@ from app.config import Settings
 class TestSettings:
 
     def test_defaults(self):
-        s = Settings()
+        with patch.dict(os.environ, {}, clear=False):
+            s = Settings(_env_file=None)
         assert s.ALGORITHM == 'HS256'
         assert s.ACCESS_TOKEN_EXPIRE_MINUTES == 60 * 24 * 7
         assert s.DEVICE_ONLINE_TIMEOUT == 30
