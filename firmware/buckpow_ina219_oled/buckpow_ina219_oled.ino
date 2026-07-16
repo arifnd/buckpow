@@ -115,8 +115,9 @@ void updateDisplay(float voltage, float current, float power) {
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(0, 0);
 
-  // Line 0: Voltage
   char buf[24];
+
+  // Line 0: Voltage
   snprintf(buf, sizeof(buf), "V : %6.2f V", voltage);
   display.println(buf);
 
@@ -124,16 +125,24 @@ void updateDisplay(float voltage, float current, float power) {
   snprintf(buf, sizeof(buf), "I : %6.1f mA", current);
   display.println(buf);
 
-  // Line 2: Power
-  snprintf(buf, sizeof(buf), "P : %6.0f mW", power);
+  // Line 2: Power (auto mW / W)
+  if (power >= 1000.0) {
+    snprintf(buf, sizeof(buf), "P : %6.2f W", power / 1000.0);
+  } else {
+    snprintf(buf, sizeof(buf), "P : %6.1f mW", power);
+  }
   display.println(buf);
 
-  // Line 3: Energy + Uptime
+  // Line 3: Energy + Uptime (auto mWh / Wh)
   unsigned long elapsed = (millis() - startTime) / 1000;
   unsigned long hours   = elapsed / 3600;
   unsigned long minutes = (elapsed % 3600) / 60;
 
-  snprintf(buf, sizeof(buf), "E :%5.2fWh %02lu:%02lu", energyWh, hours, minutes);
+  if (energyWh >= 1.0) {
+    snprintf(buf, sizeof(buf), "E : %6.2f Wh %02lu:%02lu", energyWh, hours, minutes);
+  } else {
+    snprintf(buf, sizeof(buf), "E : %6.1f mWh %02lu:%02lu", energyWh * 1000.0, hours, minutes);
+  }
   display.println(buf);
 
   display.display();
@@ -302,8 +311,8 @@ void loop() {
   float current_mA = ina219.getCurrent_mA();
   float power_mW   = ina219.getPower_mW();
 
-  // Accumulate energy: Wh = mW * ms / 3600000
-  energyWh += power_mW * INTERVAL_MS / 3600000.0;
+  // Accumulate energy: Wh = mW * ms / 3600000000
+  energyWh += power_mW * INTERVAL_MS / 3600000000.0;
 
   updateDisplay(busV, current_mA, power_mW);
   sendReading(busV, shuntV, current_mA, power_mW);
