@@ -9,7 +9,33 @@ env:
   IMAGE_NAME: arifnd/buckpow
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: "requirements.txt"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Create Virtual Environment
+        run: uv venv
+
+      - name: Install dependencies
+        run: uv pip install -r requirements.txt pytest-xdist
+
+      - name: Run Tests
+        run: uv run pytest tests/ -v --tb=short -n auto --durations=5 --cov=app --cov-report=term-missing
+        env:
+          SECRET_KEY: test-secret-key-that-is-long-enough-for-hmac-sha256
+
   docker:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
