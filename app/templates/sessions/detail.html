@@ -204,6 +204,48 @@
     <ul class="flex items-center justify-center gap-1" id="measurements-pagination"></ul>
   </nav>
 </div>
+
+<div id="session-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+  <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+    <h3 class="text-base font-semibold mb-4">Edit Session</h3>
+    <form id="session-form">
+      <div class="mb-4">
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Session Name</label>
+        <input type="text" name="name" id="field-session-name" required
+               class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Device</label>
+        <select name="device_id" id="field-session-device" disabled
+                class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+          <option value="">Select device</option>
+        </select>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Target Device</label>
+        <input type="text" name="target_device" id="field-target-device"
+               class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional: the device being benchmarked.</p>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Description</label>
+        <textarea name="description" id="field-session-desc" rows="2"
+                  class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400"></textarea>
+      </div>
+      <div class="mb-4">
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Project</label>
+        <select name="project_id" id="field-session-project"
+                class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
+          <option value="">No project</option>
+        </select>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button type="button" class="px-4 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="session-modal-cancel">Cancel</button>
+        <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -259,7 +301,7 @@ function renderActions(status) {
   if (status === 'finished') {
     html += '<a href="/api/v1/measurements/export/csv?session_id=' + SESSION_ID + '" class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Export CSV</a>';
   }
-  html += '<a href="/sessions/' + SESSION_ID + '/edit" class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors">Edit</a>';
+  html += '<button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" onclick="openSessionModal()">Edit</button>';
   html += '<button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-red-600 text-white hover:bg-red-500 transition-colors" onclick="deleteSession()">Delete</button>';
   document.getElementById('detail-actions').innerHTML = html;
 }
@@ -445,6 +487,63 @@ async function deleteSession() {
   window.location.href = '/sessions';
 }
 
+function showSessionModal() {
+  var modal = document.getElementById('session-modal');
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function hideSessionModal() {
+  var modal = document.getElementById('session-modal');
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+async function populateDeviceSelect(selectedId) {
+  var sel = document.getElementById('field-session-device');
+  sel.innerHTML = '<option value="">Select device</option>';
+  var devices = await fetchJSON('/api/v1/devices?page=0');
+  if (devices) {
+    devices.forEach(function(d) {
+      var opt = document.createElement('option');
+      opt.value = d.id;
+      opt.textContent = d.alias || d.device_id;
+      if (selectedId && d.id === selectedId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+async function populateProjectSelect(selectedId) {
+  var sel = document.getElementById('field-session-project');
+  sel.innerHTML = '<option value="">No project</option>';
+  var projects = await fetchJSON('/api/v1/projects?page=0');
+  if (projects) {
+    projects.forEach(function(p) {
+      var opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      if (selectedId && p.id === selectedId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+async function openSessionModal() {
+  var s = await fetchJSON('/api/v1/sessions/' + SESSION_ID);
+  if (!s) return;
+  await Promise.all([
+    populateDeviceSelect(s.device_id),
+    populateProjectSelect(s.project_id),
+  ]);
+  document.getElementById('field-session-name').value = s.name;
+  document.getElementById('field-session-device').value = s.device_id;
+  document.getElementById('field-session-device').setAttribute('disabled', true);
+  document.getElementById('field-target-device').value = s.target_device || '';
+  document.getElementById('field-session-desc').value = s.description || '';
+  showSessionModal();
+}
+
 function initDetail() {
   if (document.getElementById('detail-session-name').dataset.initialized) return;
   document.getElementById('detail-session-name').dataset.initialized = '1';
@@ -486,5 +585,28 @@ function initDetail() {
 
 document.addEventListener('DOMContentLoaded', initDetail);
 document.addEventListener('htmx:load', function() { setTimeout(initDetail, 0); });
+
+document.getElementById('session-modal-cancel').addEventListener('click', hideSessionModal);
+document.getElementById('session-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  var data = {
+    name: document.getElementById('field-session-name').value,
+    target_device: document.getElementById('field-target-device').value,
+    description: document.getElementById('field-session-desc').value,
+    project_id: parseInt(document.getElementById('field-session-project').value) || null,
+  };
+  var res = await fetch('/api/v1/sessions/' + SESSION_ID, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data),
+  });
+  if (res.ok) {
+    hideSessionModal();
+    location.reload();
+  } else {
+    var err = await res.json();
+    alert('Error: ' + (err.error || 'Unknown error'));
+  }
+});
 </script>
 {% endblock %}
