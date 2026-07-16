@@ -6,7 +6,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class Settings(BaseSettings):
-    SECRET_KEY: str = Field(default='powerdash-dev-key-change-in-production')
+    SECRET_KEY: str = Field(default='buckpow-dev-key-change-in-production')
     ALGORITHM: str = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
 
@@ -36,6 +36,13 @@ class Settings(BaseSettings):
         object.__setattr__(self, 'DEBUG', env == 'development')
         if not self.SECRET_KEY and env == 'production':
             raise RuntimeError('SECRET_KEY environment variable is required in production')
+        if len(self.SECRET_KEY) < 32:
+            import warnings
+            warnings.warn(
+                f'SECRET_KEY is {len(self.SECRET_KEY)} bytes (minimum 32 recommended for HMAC-SHA256)',
+                UserWarning,
+                stacklevel=2,
+            )
         return self
 
 

@@ -43,8 +43,8 @@ class TestSettings:
         assert s.PORT == 3000
 
     def test_secret_key_override(self):
-        s = Settings(SECRET_KEY='my-secret')
-        assert s.SECRET_KEY == 'my-secret'
+        s = Settings(SECRET_KEY='my-secret-key-that-is-long-enough-for-testing')
+        assert s.SECRET_KEY == 'my-secret-key-that-is-long-enough-for-testing'
 
     def test_admin_fields(self):
         s = Settings(ADMIN_EMAIL='admin@test.com', ADMIN_PASSWORD='pass123')

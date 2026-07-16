@@ -26,4 +26,4 @@ jobs:
       - name: Run Tests
         run: uv run pytest tests/ -v --tb=short -n auto --durations=5 --cov=app --cov-report=term-missing
         env:
-          SECRET_KEY: test-key
+          SECRET_KEY: test-secret-key-that-is-long-enough-for-hmac-sha256
