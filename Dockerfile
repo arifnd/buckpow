@@ -6,6 +6,7 @@ COPY requirements-prod.txt /code/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt && \
     adduser --disabled-password --gecos '' appuser
 
+COPY .env.example /code/.env
 COPY alembic.ini /code/alembic.ini
 COPY ./migrations /code/migrations
 COPY ./app /code/app
