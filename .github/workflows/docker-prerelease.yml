@@ -34,8 +34,26 @@ jobs:
         env:
           SECRET_KEY: test-secret-key-that-is-long-enough-for-hmac-sha256
 
-  docker:
+  docker-build-test:
     needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t ${{ env.IMAGE_NAME }}:test .
+
+      - name: Smoke test
+        run: |
+          docker run -d --name test-container -p 8000:8000 \
+            -e SECRET_KEY=test-secret-key-that-is-long-enough-for-hmac-sha256 \
+            ${{ env.IMAGE_NAME }}:test
+          sleep 5
+          docker exec test-container curl -sf http://localhost:8000/api/v1/health || exit 1
+          docker stop test-container
+
+  docker:
+    needs: docker-build-test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
