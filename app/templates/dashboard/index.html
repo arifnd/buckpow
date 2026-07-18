@@ -8,61 +8,45 @@
 
 <div class="grid grid-cols-2 md:grid-cols-6 gap-3 mb-6" id="summary-cards">
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
-      <div class="flex items-center gap-2 mb-2">
-        <iconify-icon class="w-4 h-4 text-gray-500 dark:text-gray-400" icon="heroicons-outline:cpu-chip"></iconify-icon>
-        <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Devices</small>
-      </div>
-      <h5 class="text-base font-semibold mb-0" id="val-device">-</h5>
-      <small class="text-gray-500 dark:text-gray-400 text-xs mt-1 block" id="last-updated">Reporting in last 30s</small>
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full flex flex-col items-center text-center">
+      <iconify-icon class="w-6 h-6 text-blue-400 mb-1" icon="heroicons-outline:cpu-chip"></iconify-icon>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Devices</small>
+      <h5 class="text-base font-semibold mb-0 mt-1" id="val-device">-</h5>
     </div>
   </div>
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
-      <div class="flex items-center gap-2 mb-2">
-        <iconify-icon class="w-4 h-4 text-gray-500 dark:text-gray-400" icon="heroicons-outline:briefcase"></iconify-icon>
-        <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Projects</small>
-      </div>
-      <h4 class="text-lg font-semibold mb-0" id="val-load-voltage">-</h4>
-      <small class="text-gray-500 dark:text-gray-400">Active workspaces</small>
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full flex flex-col items-center text-center">
+      <iconify-icon class="w-6 h-6 text-indigo-400 mb-1" icon="heroicons-outline:briefcase"></iconify-icon>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Projects</small>
+      <h4 class="text-lg font-semibold mb-0 mt-1" id="val-load-voltage">-</h4>
     </div>
   </div>
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
-      <div class="flex items-center gap-2 mb-2">
-        <iconify-icon class="w-4 h-4 text-gray-500 dark:text-gray-400" icon="heroicons-outline:fire"></iconify-icon>
-        <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Active Sessions</small>
-      </div>
-      <h4 class="text-lg font-semibold mb-0" id="val-voltage">-</h4>
-      <small class="text-gray-500 dark:text-gray-400">Currently recording</small>
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full flex flex-col items-center text-center">
+      <iconify-icon class="w-6 h-6 text-orange-400 mb-1" icon="heroicons-outline:fire"></iconify-icon>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Active Sessions</small>
+      <h4 class="text-lg font-semibold mb-0 mt-1" id="val-voltage">-</h4>
     </div>
   </div>
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
-      <div class="flex items-center gap-2 mb-2">
-        <iconify-icon class="w-4 h-4 text-green-500" icon="heroicons-outline:bolt"></iconify-icon>
-        <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Current Draw</small>
-      </div>
-      <h4 class="text-lg font-semibold text-green-500 mb-0" id="val-current">—</h4>
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full flex flex-col items-center text-center">
+      <iconify-icon class="w-6 h-6 text-green-500 mb-1" icon="heroicons-outline:bolt"></iconify-icon>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Current Draw</small>
+      <h4 class="text-lg font-semibold text-green-500 mb-0 mt-1" id="val-current">—</h4>
     </div>
   </div>
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
-      <div class="flex items-center gap-2 mb-2">
-        <iconify-icon class="w-4 h-4 text-yellow-600" icon="heroicons-outline:bolt"></iconify-icon>
-        <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Current Power</small>
-      </div>
-      <h4 class="text-lg font-semibold text-yellow-600 mb-0" id="val-power">—</h4>
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full flex flex-col items-center text-center">
+      <iconify-icon class="w-6 h-6 text-yellow-600 mb-1" icon="heroicons-outline:bolt"></iconify-icon>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Current Power</small>
+      <h4 class="text-lg font-semibold text-yellow-600 mb-0 mt-1" id="val-power">—</h4>
     </div>
   </div>
   <div>
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full">
-      <div class="flex items-center gap-2 mb-2">
-        <iconify-icon class="w-4 h-4 text-purple-400" icon="heroicons-outline:chart-pie"></iconify-icon>
-        <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Today Energy</small>
-      </div>
-      <h4 class="text-lg font-semibold text-purple-400 mb-0" id="val-energy">—</h4>
-      <small class="text-gray-500 dark:text-gray-400">Wh</small>
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-3 h-full flex flex-col items-center text-center">
+      <iconify-icon class="w-6 h-6 text-purple-400 mb-1" icon="heroicons-outline:chart-pie"></iconify-icon>
+      <small class="text-gray-500 dark:text-gray-400 uppercase tracking-wide text-xs">Today Energy</small>
+      <h4 class="text-lg font-semibold text-purple-400 mb-0 mt-1" id="val-energy"><span id="val-energy-value">—</span> <span id="val-energy-unit" class="text-sm font-normal text-purple-400">Wh</span></h4>
     </div>
   </div>
 </div>
