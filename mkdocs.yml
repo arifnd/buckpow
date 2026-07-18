@@ -1,0 +1,83 @@
+site_name: BuckPow
+site_description: Energy observability and benchmarking platform
+site_url: https://arifnd.github.io/buckpow
+repo_url: https://github.com/arifnd/buckpow
+repo_name: arifnd/buckpow
+
+theme:
+  name: material
+  icon:
+    logo: material/lightning-bolt
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+
+nav:
+  - Home: index.md
+  - Quick Start:
+      - Overview: quick-start.md
+      - Docker: quick-start/docker.md
+      - Local: quick-start/local.md
+  - User Guide:
+      - Installation: user-guide/installation.md
+      - Dashboard: user-guide/dashboard.md
+      - Devices: user-guide/devices.md
+      - Measurement Node: user-guide/measurement-node.md
+      - Connect Node: user-guide/connect-node.md
+      - First Measurement: user-guide/first-measurement.md
+      - Benchmark: user-guide/benchmark.md
+      - Export Data: user-guide/export-data.md
+      - Troubleshooting: user-guide/troubleshooting.md
+  - Developer Guide:
+      - Architecture: developer-guide/architecture.md
+      - API Reference: developer-guide/api.md
+      - Database: developer-guide/database.md
+      - Frontend: developer-guide/frontend.md
+      - Backend: developer-guide/backend.md
+      - Firmware: developer-guide/firmware.md
+      - Contributing: developer-guide/contributing.md
+  - Blog:
+      - Why BuckPow: blog/why-buckpow.md
+      - HTTP vs MQTT: blog/http-vs-mqtt.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+plugins:
+  - search
