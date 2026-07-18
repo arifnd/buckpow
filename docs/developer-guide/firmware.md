@@ -12,6 +12,7 @@ BuckPow provides two firmware variants:
 |--------|---------|---------|----------|
 | `buckpow_ina219` | None (Serial only) | 1.1.0 | 1s |
 | `buckpow_ina219_oled` | SSD1306 128x32 OLED | 1.1.0 | 5s |
+| `buckpow_ina219_captive` | None (Web UI) | 1.1.0 | Configurable |
 
 Both sketches support **ESP32** and **ESP8266** with the INA219 current/power sensor.
 
@@ -112,6 +113,15 @@ Install via Arduino Library Manager:
 | Adafruit SSD1306 | Adafruit |
 | Adafruit GFX Library | Adafruit |
 | ArduinoJson | Benoit Blanchon |
+
+### buckpow_ina219_captive
+
+| Library | Author |
+|---------|--------|
+| Adafruit INA219 | Adafruit |
+| ArduinoJson | Benoit Blanchon |
+
+No external WiFi library required — uses built-in `DNSServer` and `WebServer` for the captive portal.
 
 ## Upload Instructions
 
@@ -223,6 +233,51 @@ energyWh += power_mW * INTERVAL_MS / 3600000000.0;
 
 !!! note "Wh = mW × ms / 3,600,000,000"
     This converts milliwatt-milliseconds to watt-hours.
+
+## Captive Portal Variant
+
+The `buckpow_ina219_captive` variant replaces hardcoded WiFi credentials with a custom captive portal web interface.
+
+### How It Works
+
+1. On first boot (or after `/setup`), the device starts in AP mode as `BuckPow-XXXXXXXX`
+2. Connect to the AP — a captive portal page opens automatically
+3. Scan and select a WiFi network from the list
+4. Configure device name, server URL, API key, and sample interval (in seconds)
+5. Save — device stores credentials in EEPROM and reboots
+6. Device connects to the configured WiFi network
+
+### Captive Portal Features
+
+- Dark-themed UI matching the status page
+- WiFi network list with signal strength (dBm) and lock icons for encrypted networks
+- "Strong" badges on top 3 strongest signals
+- Rescan button to refresh the network list
+- Show/hide password toggle
+- Sample interval input in seconds (stored as milliseconds internally)
+
+### Status Page
+
+After connecting to WiFi, visit `http://<device-ip>/` for a live status page showing:
+
+- WiFi connection status, IP, RSSI
+- Server connection status
+- Live voltage and current readings
+- Last upload time, uptime, and firmware version
+
+### Reconfiguration
+
+Visit `http://<device-ip>/setup` to clear WiFi credentials and re-enter the captive portal.
+
+### Architecture
+
+```
+captive_portal.h   — Captive portal HTML (PROGMEM)
+status_page.h      — Status page HTML (PROGMEM, split into HEAD/BODY/SCRIPT)
+setup_page.h       — Reconfigure redirect page (PROGMEM)
+```
+
+The captive portal uses the built-in `DNSServer` to redirect all DNS queries to the device IP, triggering the captive portal prompt on phones and laptops. The `WebServer` serves the config page for all requests except `/scan` and `/save`.
 
 ## WiFi Behavior
 
