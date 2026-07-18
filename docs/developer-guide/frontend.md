@@ -63,6 +63,7 @@ app/
     ├── css/
     │   └── style.css                # Custom styles
     └── js/
+        ├── format.js               # Unit formatting (fmtCurrent, fmtPower, fmtEnergy)
         ├── dashboard.js             # Dashboard logic
         ├── benchmark.js             # Benchmark logic
         ├── charts.js                # Chart.js factory

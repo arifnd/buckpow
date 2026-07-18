@@ -100,12 +100,6 @@ function formatDuration(startedAt, endedAt, status) {
   return d + 'd ' + h + 'h ' + m + 'm';
 }
 
-function formatEnergy(wh) {
-  if (wh == null) return '-';
-  if (Math.abs(wh) >= 1000) return (wh / 1000).toFixed(2) + ' kWh';
-  return wh.toFixed(2) + ' Wh';
-}
-
 async function loadSessions(page) {
   page = page || 1;
   const res = await fetch('/api/v1/sessions?page=' + page + '&per_page=10');
@@ -125,8 +119,8 @@ async function loadSessions(page) {
       <td class="py-2 px-3">${s.project_name || '-'}</td>
       <td class="py-2 px-3">${statusBadge(s.status)}</td>
       <td class="py-2 px-3" title="${s.started_at || ''}${s.ended_at ? ' → ' + s.ended_at : ''}">${formatDuration(s.started_at, s.ended_at, s.status)}</td>
-      <td class="py-2 px-3 text-right">${s.avg_power != null ? s.avg_power.toFixed(2) + ' W' : '-'}</td>
-      <td class="py-2 px-3 text-right">${formatEnergy(s.total_energy)}</td>
+      <td class="py-2 px-3 text-right">${fmtPower(s.avg_power)}</td>
+      <td class="py-2 px-3 text-right">${fmtEnergy(s.total_energy)}</td>
       <td class="py-2 px-3 text-right">
         ${s.status === 'draft' ? `<button class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-600 text-white hover:bg-green-500 transition-colors${startDisabled ? ' opacity-50 cursor-not-allowed' : ''}" onclick="${startDisabled ? '' : 'startSession(' + s.id + ')'}"${startDisabled ? ' title="Another session is already running"' : ''}>Start</button>` : ''}
         ${s.status === 'running' ? `<button class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-500 text-white hover:bg-yellow-400 transition-colors" onclick="stopSession(${s.id})">Stop</button>` : ''}

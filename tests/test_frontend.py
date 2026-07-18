@@ -30,7 +30,7 @@ class TestFrontend:
         resp = client.get('/')
         html = resp.content.decode()
         assert 'id="readings-body"' in html
-        for header in ['Timestamp', 'Bus V', 'Shunt V', 'Load V', 'Current', 'Power', 'Energy']:
+        for header in ['Time', 'Session', 'Voltage', 'Current', 'Power', 'Energy']:
             assert header in html
 
     def test_dashboard_has_static_links(self, client):
@@ -99,7 +99,7 @@ class TestPageStructure:
     def test_measurements_page_has_columns(self, client):
         resp = client.get('/measurements')
         html = resp.content.decode()
-        for col in ['Bus V', 'Shunt V', 'Load V', 'Current', 'Power', 'Energy', 'Timestamp']:
+        for col in ['Device', 'Session', 'Voltage', 'Current', 'Power', 'Energy', 'Timestamp']:
             assert col in html
 
     def test_measurements_page_has_pagination(self, client):

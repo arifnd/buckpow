@@ -113,17 +113,29 @@ class SessionService:
         rows = db.query(
             Measurement.session_id,
             func.avg(Measurement.power).label('avg_power'),
-            func.max(Measurement.energy).label('last_energy'),
-            func.min(Measurement.energy).label('first_energy'),
         ).filter(
             Measurement.session_id.in_(session_ids),
             Measurement.session_id.isnot(None),
         ).group_by(Measurement.session_id).all()
+
+        last_rows = db.query(
+            Measurement.session_id,
+            Measurement.energy.label('last_energy'),
+        ).filter(
+            Measurement.session_id.in_(session_ids),
+            Measurement.session_id.isnot(None),
+        ).order_by(Measurement.session_id, Measurement.created_at.desc()).all()
+
+        last_energy_map = {}
+        for r in last_rows:
+            if r.session_id not in last_energy_map:
+                last_energy_map[r.session_id] = r.last_energy
+
         result = {}
         for r in rows:
-            total = (r.last_energy or 0) - (r.first_energy or 0)
+            energy = last_energy_map.get(r.session_id) or 0
             result[r.session_id] = {
                 'avg_power': round(r.avg_power, 2) if r.avg_power is not None else None,
-                'total_energy': round(total, 2) if total > 0 else 0.0,
+                'total_energy': round(energy, 2) if energy > 0 else 0.0,
             }
         return result

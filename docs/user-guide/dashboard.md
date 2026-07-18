@@ -167,9 +167,9 @@ A table displays the 10 most recent measurements for the selected session:
 | Bus Voltage | Bus voltage in V |
 | Shunt Voltage | Shunt voltage in V |
 | Load Voltage | Load voltage in V |
-| Current | Current in mA |
-| Power | Power in mW |
-| Energy | Cumulative energy in Wh |
+| Current | Current (auto-scaled: µA, mA, or A) |
+| Power | Power (auto-scaled: µW, mW, W, or kW) |
+| Energy | Cumulative energy (auto-scaled: Wh or kWh) |
 
 ## Navigation
 

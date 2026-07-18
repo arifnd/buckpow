@@ -43,9 +43,7 @@
         <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
           <th class="text-left py-2 px-2 font-medium">Device</th>
           <th class="text-left py-2 px-2 font-medium">Session</th>
-          <th class="text-right py-2 px-2 font-medium">Bus V</th>
-          <th class="text-right py-2 px-2 font-medium">Shunt V</th>
-          <th class="text-right py-2 px-2 font-medium">Load V</th>
+          <th class="text-right py-2 px-2 font-medium">Voltage</th>
           <th class="text-right py-2 px-2 font-medium">Current</th>
           <th class="text-right py-2 px-2 font-medium">Power</th>
           <th class="text-right py-2 px-2 font-medium">Energy</th>
@@ -91,12 +89,10 @@ async function loadMeasurements(page) {
   tbody.innerHTML = data.measurements.map(m => `<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">
     <td class="py-2 px-2">${m.device_name || m.device_id}</td>
     <td class="py-2 px-2">${m.session_name || '—'}</td>
-    <td class="py-2 px-2 text-right">${m.bus_voltage.toFixed(3)}</td>
-    <td class="py-2 px-2 text-right">${m.shunt_voltage.toFixed(3)}</td>
-    <td class="py-2 px-2 text-right">${m.load_voltage.toFixed(3)}</td>
-    <td class="py-2 px-2 text-right">${(m.current * 1000).toFixed(2)} mA</td>
-    <td class="py-2 px-2 text-right">${(m.power * 1000).toFixed(2)} mW</td>
-    <td class="py-2 px-2 text-right">${m.energy.toFixed(6)}</td>
+    <td class="py-2 px-2 text-right">${m.bus_voltage.toFixed(3)} V</td>
+    <td class="py-2 px-2 text-right">${fmtCurrent(m.current)}</td>
+    <td class="py-2 px-2 text-right">${fmtPower(m.power)}</td>
+    <td class="py-2 px-2 text-right">${fmtEnergy(m.energy)}</td>
     <td class="py-2 px-2">${formatTimestamp(m.created_at)}</td>
   </tr>`).join('');
 

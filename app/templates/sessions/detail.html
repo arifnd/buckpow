@@ -98,7 +98,7 @@
     <div class="flex items-center justify-between mb-3">
       <h6 class="text-base text-gray-500 dark:text-gray-400 font-medium">Current</h6>
       <span class="text-sm text-gray-900 dark:text-gray-300">
-        <span class="font-semibold" id="chart-val-current">-</span> A
+        <span class="font-semibold" id="chart-val-current">-</span>
       </span>
     </div>
     <div class="chart-container"><canvas id="currentChart"></canvas></div>
@@ -107,7 +107,7 @@
     <div class="flex items-center justify-between mb-3">
       <h6 class="text-base text-gray-500 dark:text-gray-400 font-medium">Power</h6>
       <span class="text-sm text-gray-900 dark:text-gray-300">
-        <span class="font-semibold" id="chart-val-power">-</span> W
+        <span class="font-semibold" id="chart-val-power">-</span>
       </span>
     </div>
     <div class="chart-container"><canvas id="powerChart"></canvas></div>
@@ -116,7 +116,7 @@
     <div class="flex items-center justify-between mb-3">
       <h6 class="text-base text-gray-500 dark:text-gray-400 font-medium">Cumulative Energy</h6>
       <span class="text-sm text-gray-900 dark:text-gray-300">
-        <span class="font-semibold" id="chart-val-energy">-</span> Wh
+        <span class="font-semibold" id="chart-val-energy">-</span>
       </span>
     </div>
     <div class="chart-container"><canvas id="energyChart"></canvas></div>
@@ -190,8 +190,7 @@
       <thead>
         <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
           <th class="text-left py-2 px-2 font-medium">Time</th>
-          <th class="text-right py-2 px-2 font-medium">Bus V</th>
-          <th class="text-right py-2 px-2 font-medium">Load V</th>
+          <th class="text-right py-2 px-2 font-medium">Voltage</th>
           <th class="text-right py-2 px-2 font-medium">Current</th>
           <th class="text-right py-2 px-2 font-medium">Power</th>
           <th class="text-right py-2 px-2 font-medium">Energy</th>
@@ -268,12 +267,6 @@ function formatDurationSec(seconds) {
   return d + 'd ' + h + 'h ' + m + 'm';
 }
 
-function formatEnergy(wh) {
-  if (wh == null) return '-';
-  if (Math.abs(wh) >= 1000) return (wh / 1000).toFixed(2) + ' kWh';
-  return wh.toFixed(2) + ' Wh';
-}
-
 function formatTime(isoString) {
   if (!isoString) return '';
   var d = new Date(isoString);
@@ -309,10 +302,10 @@ function renderActions(status) {
 function updateStats(data) {
   document.getElementById('stat-duration').textContent = formatDurationSec(data.duration);
   document.getElementById('stat-count').textContent = data.measurement_count != null ? data.measurement_count : '-';
-  document.getElementById('stat-avg-power').textContent = data.avg_power != null ? data.avg_power.toFixed(3) + ' W' : '-';
-  document.getElementById('stat-peak-power').textContent = data.peak_power != null ? data.peak_power.toFixed(3) + ' W' : '-';
-  document.getElementById('stat-avg-current').textContent = data.avg_current != null ? data.avg_current.toFixed(3) + ' A' : '-';
-  document.getElementById('stat-total-energy').textContent = formatEnergy(data.total_energy);
+  document.getElementById('stat-avg-power').textContent = data.avg_power != null ? fmtPower(data.avg_power) : '-';
+  document.getElementById('stat-peak-power').textContent = data.peak_power != null ? fmtPower(data.peak_power) : '-';
+  document.getElementById('stat-avg-current').textContent = data.avg_current != null ? fmtCurrent(data.avg_current) : '-';
+  document.getElementById('stat-total-energy').textContent = fmtEnergy(data.total_energy);
 }
 
 function updateCharts(cd) {
@@ -336,11 +329,11 @@ function updateCharts(cd) {
   el = document.getElementById('chart-val-voltage');
   if (el && cd.voltage && cd.voltage[lastIdx] != null) el.textContent = toFixedSafe(cd.voltage[lastIdx], 3);
   el = document.getElementById('chart-val-current');
-  if (el && cd.current && cd.current[lastIdx] != null) el.textContent = toFixedSafe(cd.current[lastIdx], 3);
+  if (el && cd.current && cd.current[lastIdx] != null) el.textContent = fmtCurrent(cd.current[lastIdx]);
   el = document.getElementById('chart-val-power');
-  if (el && cd.power && cd.power[lastIdx] != null) el.textContent = toFixedSafe(cd.power[lastIdx], 3);
+  if (el && cd.power && cd.power[lastIdx] != null) el.textContent = fmtPower(cd.power[lastIdx]);
   el = document.getElementById('chart-val-energy');
-  if (el && cd.energy && cd.energy[lastIdx] != null) el.textContent = toFixedSafe(cd.energy[lastIdx], 6);
+  if (el && cd.energy && cd.energy[lastIdx] != null) el.textContent = fmtEnergy(cd.energy[lastIdx]);
 
   var slice = function(arr) { return arr.slice(-MAX_POINTS); };
   var labels = slice(cd.labels).map(formatTime);
@@ -449,10 +442,9 @@ async function loadMeasurements(page) {
     return '<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">' +
       '<td class="py-2 px-2 text-xs">' + formatTimestamp(m.created_at) + '</td>' +
       '<td class="py-2 px-2 text-right text-xs">' + m.bus_voltage.toFixed(3) + ' V</td>' +
-      '<td class="py-2 px-2 text-right text-xs">' + m.load_voltage.toFixed(3) + ' V</td>' +
-      '<td class="py-2 px-2 text-right text-xs">' + m.current.toFixed(3) + ' A</td>' +
-      '<td class="py-2 px-2 text-right text-xs">' + m.power.toFixed(3) + ' W</td>' +
-      '<td class="py-2 px-2 text-right text-xs">' + m.energy.toFixed(6) + ' Wh</td>' +
+      '<td class="py-2 px-2 text-right text-xs">' + fmtCurrent(m.current) + '</td>' +
+      '<td class="py-2 px-2 text-right text-xs">' + fmtPower(m.power) + '</td>' +
+      '<td class="py-2 px-2 text-right text-xs">' + fmtEnergy(m.energy) + '</td>' +
     '</tr>';
   }).join('');
 

@@ -353,6 +353,7 @@ class DeviceService:
 
 | File | Purpose |
 |------|---------|
+| `format.js` | Unit formatting (`fmtCurrent`, `fmtPower`, `fmtEnergy`) |
 | `dashboard.js` | Dashboard polling, charts, session selector |
 | `benchmark.js` | Benchmark comparison, overlay chart |
 | `charts.js` | Chart.js factory and options |

@@ -661,6 +661,52 @@ class TestMeasurementService:
         assert m2.energy > m1.energy
         db.close()
 
+    def test_pzem_create_no_shunt(self, app):
+        db = self._db(app)
+        m = MeasurementService.create(db, 'pzem-svc', bus_voltage=230.5,
+                                      shunt_voltage=0.0, current=4500, power=1035000)
+        assert m.bus_voltage == 230.5
+        assert m.shunt_voltage == 0.0
+        assert m.load_voltage == 230.5
+        assert m.current == 4.5
+        assert m.power == 1035.0
+        db.close()
+
+    def test_pzem_create_default_shunt(self, app):
+        db = self._db(app)
+        m = MeasurementService.create(db, 'pzem-default', bus_voltage=220.0,
+                                      current=10000, power=2200000)
+        assert m.shunt_voltage == 0.0
+        assert m.load_voltage == 220.0
+        db.close()
+
+    def test_pzem_energy_accumulation(self, app):
+        db = self._db(app)
+        DeviceService.create(db, 'pzem-energy')
+        m1 = MeasurementService.create(db, 'pzem-energy', bus_voltage=230.0,
+                                       current=5000, power=1150000)
+        m2 = MeasurementService.create(db, 'pzem-energy', bus_voltage=230.0,
+                                       current=5000, power=1150000)
+        assert m2.energy > m1.energy
+        db.close()
+
+    def test_pzem_chart_data(self, app):
+        db = self._db(app)
+        MeasurementService.create(db, 'pzem-chart', bus_voltage=230.0,
+                                  current=5000, power=1150000)
+        data = MeasurementService.get_chart_data(db, limit=10)
+        assert len(data['labels']) >= 1
+        assert data['voltage'][0] == 230.0
+        db.close()
+
+    def test_pzem_stats(self, app):
+        db = self._db(app)
+        MeasurementService.create(db, 'pzem-stats', bus_voltage=230.0,
+                                  current=5000, power=1150000)
+        stats = MeasurementService.get_stats(db)
+        assert stats['voltage']['avg'] == 230.0
+        db.close()
+
 
 class TestAlertService:
     def _db(self, app):

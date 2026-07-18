@@ -11,6 +11,59 @@ class TestAPI:
         data = resp.json()
         assert data['status'] == 'success'
 
+    def test_post_pzem_measurement_no_shunt(self, client, device_auth_header):
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-auth',
+            'bus_voltage': 230.5,
+            'current': 4500,
+            'power': 1035000,
+        }, headers=device_auth_header)
+        assert resp.status_code == 201
+        data = resp.json()
+        assert data['status'] == 'success'
+
+    def test_post_pzem_ac_voltage_range(self, client, device_auth_header):
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-auth',
+            'bus_voltage': 220.0,
+            'current': 10000,
+            'power': 2200000,
+        }, headers=device_auth_header)
+        assert resp.status_code == 201
+
+    def test_post_pzem_load_voltage_equals_bus(self, client, device_auth_header):
+        resp = client.post('/api/v1/measurements', json={
+            'device_id': 'esp32-auth',
+            'bus_voltage': 230.0,
+            'current': 5000,
+            'power': 1150000,
+        }, headers=device_auth_header)
+        assert resp.status_code == 201
+        from app.database import SessionLocal
+        from app.models import Measurement
+        db = SessionLocal()
+        m = db.query(Measurement).order_by(Measurement.id.desc()).first()
+        assert m.load_voltage == 230.0
+        assert m.shunt_voltage == 0.0
+        db.close()
+
+    def test_post_pzem_multiple_readings_energy_accumulates(self, client, device_auth_header):
+        for i in range(3):
+            resp = client.post('/api/v1/measurements', json={
+                'device_id': 'esp32-auth',
+                'bus_voltage': 230.0 + i,
+                'current': 5000,
+                'power': 1150000,
+            }, headers=device_auth_header)
+            assert resp.status_code == 201
+        from app.database import SessionLocal
+        from app.models import Measurement
+        db = SessionLocal()
+        rows = db.query(Measurement).filter_by(device_id=1).order_by(Measurement.id).all()
+        assert len(rows) >= 3
+        assert rows[-1].energy >= rows[0].energy
+        db.close()
+
     def test_post_measurement_missing_fields(self, client, device_auth_header):
         resp = client.post('/api/v1/measurements', json={'device_id': 'esp32-auth'},
                            headers=device_auth_header)
@@ -1005,3 +1058,16 @@ class TestApiExtras:
         resp = client.get(f'/api/v1/measurements/export/csv?session_id={sid}')
         assert resp.status_code == 200
         assert 'Export_Session_report.csv' in resp.headers['content-disposition']
+
+    def test_post_measurement_service_error(self, client, device_auth_header):
+        from unittest.mock import patch
+        with patch('app.api.measurements.MeasurementService.create', side_effect=RuntimeError('db error')):
+            resp = client.post('/api/v1/measurements', json={
+                'device_id': 'esp32-auth',
+                'bus_voltage': 5.0,
+                'shunt_voltage': 80,
+                'current': 200,
+                'power': 1000,
+            }, headers=device_auth_header)
+        assert resp.status_code == 500
+        assert resp.json()['error'] == 'db error'

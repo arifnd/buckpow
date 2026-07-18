@@ -52,8 +52,8 @@ function updateSummaryCards(data) {
 
   if (data.latest) {
     var r = data.latest;
-    document.getElementById('val-current').textContent = toFixedSafe(r.current, 3);
-    document.getElementById('val-power').textContent = toFixedSafe(r.power, 3);
+    document.getElementById('val-current').textContent = fmtCurrent(r.current);
+    document.getElementById('val-power').textContent = fmtPower(r.power);
   }
 }
 
@@ -86,7 +86,7 @@ function updateStats(dashboard) {
   var container = document.getElementById('stats-cards');
   var totalFields = [];
   if (stats.total_energy != null) {
-    totalFields.push({ label: 'Energy', val: toFixedSafe(stats.total_energy, 6) });
+    totalFields.push({ label: 'Energy', val: fmtEnergy(stats.total_energy) });
   }
   if (stats.session_started_at) {
     totalFields.push({ label: 'Running', val: formatDuration(stats.session_started_at) });
@@ -97,16 +97,16 @@ function updateStats(dashboard) {
       { label: 'Max', val: toFixedSafe(stats.voltage.max, 3) },
       { label: 'Avg', val: toFixedSafe(stats.voltage.avg, 3) },
     ]) +
-    statCard('Current', 'A', 'success', [
-      { label: 'Min', val: toFixedSafe(stats.current.min, 3) },
-      { label: 'Max', val: toFixedSafe(stats.current.max, 3) },
-      { label: 'Avg', val: toFixedSafe(stats.current.avg, 3) },
+    statCard('Current', '', 'success', [
+      { label: 'Min', val: fmtCurrent(stats.current.min) },
+      { label: 'Max', val: fmtCurrent(stats.current.max) },
+      { label: 'Avg', val: fmtCurrent(stats.current.avg) },
     ]) +
-    statCard('Power', 'W', 'warning', [
-      { label: 'Min', val: toFixedSafe(stats.power.min, 3) },
-      { label: 'Max', val: toFixedSafe(stats.power.max, 3) },
-      { label: 'Avg', val: toFixedSafe(stats.power.avg, 3) },
-      { label: 'Peak', val: toFixedSafe(stats.power.peak, 3) },
+    statCard('Power', '', 'warning', [
+      { label: 'Min', val: fmtPower(stats.power.min) },
+      { label: 'Max', val: fmtPower(stats.power.max) },
+      { label: 'Avg', val: fmtPower(stats.power.avg) },
+      { label: 'Peak', val: fmtPower(stats.power.peak) },
     ]) +
     (totalFields.length ? statCard('TOTAL', '', 'purple', totalFields) : '');
 }
@@ -130,7 +130,7 @@ function updateEnergyBreakdown(stats) {
 function updateTable(measurements) {
   const tbody = document.getElementById('readings-body');
   tbody.innerHTML = measurements.slice(0, 10).map(function(r) {
-    return '<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">\n    <td class="py-2 px-2 text-left">' + formatRelativeTime(r.created_at) + '</td>\n    <td class="py-2 px-2 text-left">' + (r.session_name || '\u2014') + '</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.bus_voltage, 3) + '</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.shunt_voltage, 3) + '</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.load_voltage, 3) + '</td>\n    <td class="py-2 px-2 text-right">' + (toFixedSafe(r.current, 3) * 1000).toFixed(2) + ' mA</td>\n    <td class="py-2 px-2 text-right">' + (toFixedSafe(r.power, 3) * 1000).toFixed(2) + ' mW</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.energy, 6) + '</td>\n  </tr>';
+    return '<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">\n    <td class="py-2 px-2 text-left">' + formatRelativeTime(r.created_at) + '</td>\n    <td class="py-2 px-2 text-left">' + (r.session_name || '\u2014') + '</td>\n    <td class="py-2 px-2 text-right">' + toFixedSafe(r.bus_voltage, 3) + ' V</td>\n    <td class="py-2 px-2 text-right">' + fmtCurrent(r.current) + '</td>\n    <td class="py-2 px-2 text-right">' + fmtPower(r.power) + '</td>\n    <td class="py-2 px-2 text-right">' + fmtEnergy(r.energy) + '</td>\n  </tr>';
   }).join('');
 }
 
@@ -157,13 +157,13 @@ function updateCharts(chartData) {
   if (el && chartData.voltage && chartData.voltage[lastIdx] != null) el.textContent = toFixedSafe(chartData.voltage[lastIdx], 3);
 
   el = document.getElementById('chart-val-current');
-  if (el && chartData.current && chartData.current[lastIdx] != null) el.textContent = toFixedSafe(chartData.current[lastIdx], 3);
+  if (el && chartData.current && chartData.current[lastIdx] != null) el.textContent = fmtCurrent(chartData.current[lastIdx]);
 
   el = document.getElementById('chart-val-power');
-  if (el && chartData.power && chartData.power[lastIdx] != null) el.textContent = toFixedSafe(chartData.power[lastIdx], 3);
+  if (el && chartData.power && chartData.power[lastIdx] != null) el.textContent = fmtPower(chartData.power[lastIdx]);
 
   el = document.getElementById('chart-val-energy');
-  if (el && chartData.energy && chartData.energy[lastIdx] != null) el.textContent = toFixedSafe(chartData.energy[lastIdx], 6);
+  if (el && chartData.energy && chartData.energy[lastIdx] != null) el.textContent = fmtEnergy(chartData.energy[lastIdx]);
 
   const slice = function(arr) { return arr.slice(-MAX_POINTS); };
   const labels = slice(chartData.labels).map(formatTime);

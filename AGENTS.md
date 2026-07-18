@@ -20,13 +20,13 @@ Power monitoring dashboard built with FastAPI + SQLAlchemy + SQLite. Receives po
 | `app/dashboard/` | Server-rendered page routes (Jinja2) |
 | `app/templates/` | Jinja2 templates (Tailwind CSS, HTMX) |
 | `app/templates/_partials/` | Reusable template fragments (confirm modal, etc.) |
-| `app/static/` | CSS, JS (Chart.js, dashboard, theme) |
+| `app/static/` | CSS, JS (format, Chart.js, dashboard, theme) |
 | `app/utils/` | Utility functions (calculations, errors, validators, hash, pagination) |
 | `instance/buckpow.db` | SQLite database (auto-created) |
 | `migrations/` | Alembic migration files (Flask-Migrate) |
 | `scripts/send_dummy.py` | Dummy data generator |
 | `firmware/` | Arduino sketches for ESP32/ESP8266 + INA219 |
-| `tests/` | Pytest suite (607 tests) |
+| `tests/` | Pytest suite (659 tests) |
 | `.env` | Config via env vars |
 | `Dockerfile` | `CMD ["fastapi", "run", "app/main.py", "--port", "8000", "--proxy-headers"]` |
 | `docker-compose.yml` | PostgreSQL + Nginx production stack |
