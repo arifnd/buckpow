@@ -50,7 +50,7 @@ jobs:
             -e SECRET_KEY=test-secret-key-that-is-long-enough-for-hmac-sha256 \
             ${{ env.IMAGE_NAME }}:test
           sleep 5
-          docker exec test-container curl -sf http://localhost:8000/api/v1/health || exit 1
+          curl -sf http://localhost:8000/api/v1/health || exit 1
           docker stop test-container
 
   build-and-push:
