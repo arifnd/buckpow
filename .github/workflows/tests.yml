@@ -2,8 +2,9 @@ name: Tests
 
 on:
   push:
-    tags-ignore:
+    branches:
       - '**'
+  pull_request:
 
 jobs:
   test:
