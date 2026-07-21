@@ -8,8 +8,10 @@ from app.utils.pagination import PaginatedResult
 
 class AuditService:
 
-    @staticmethod
-    def log(db: Session, action, user_id=None, target_type=None, target_id=None, details=None, ip_address=None):
+    def __init__(self, db: Session):
+        self.db = db
+
+    def log(self, action, user_id=None, target_type=None, target_id=None, details=None, ip_address=None):
         entry = AuditLog(
             user_id=user_id,
             action=action,
@@ -18,13 +20,12 @@ class AuditService:
             details=details,
             ip_address=ip_address,
         )
-        db.add(entry)
-        db.commit()
+        self.db.add(entry)
+        self.db.commit()
         return entry
 
-    @staticmethod
-    def get_paginated(db: Session, page=1, per_page=10, action=None, target_type=None):
-        q = db.query(AuditLog)
+    def get_paginated(self, page=1, per_page=10, action=None, target_type=None):
+        q = self.db.query(AuditLog)
         if action:
             q = q.filter_by(action=action)
         if target_type:
@@ -36,7 +37,6 @@ class AuditService:
         pages = (total + per_page - 1) // per_page if total > 0 else 1
         return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
 
-    @staticmethod
-    def get_actions(db: Session):
-        rows = db.query(AuditLog.action).distinct().order_by(AuditLog.action).all()
+    def get_actions(self):
+        rows = self.db.query(AuditLog.action).distinct().order_by(AuditLog.action).all()
         return [r[0] for r in rows]

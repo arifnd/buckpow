@@ -11,9 +11,9 @@ router = APIRouter()
 
 @router.get('/dashboard')
 def dashboard_data(db: Session = Depends(get_db)):
-    measurements = MeasurementService.get_recent(db, limit=1)
-    stats = MeasurementService.get_stats(db)
-    devices = DeviceService.get_all(db)
+    measurements = MeasurementService(db).get_recent(limit=1)
+    stats = MeasurementService(db).get_stats()
+    devices = DeviceService(db).get_all()
     devices_data = [d.to_dict() for d in devices]
     latest = measurements[0].to_dict() if measurements else None
     return {
@@ -25,7 +25,7 @@ def dashboard_data(db: Session = Depends(get_db)):
 
 @router.get('/dashboard/summary')
 def dashboard_summary(db: Session = Depends(get_db)):
-    return DashboardService.get_summary(db)
+    return DashboardService(db).get_summary()
 
 
 @router.get('/dashboard/statistics')
@@ -36,7 +36,6 @@ def dashboard_statistics(
     end_date: str | None = Query(None),
     db: Session = Depends(get_db),
 ):
-    return DashboardService.get_statistics(
-        db, device_id=device_id, session_id=session_id,
+    return DashboardService(db).get_statistics(device_id=device_id, session_id=session_id,
         start_date=start_date, end_date=end_date,
     )

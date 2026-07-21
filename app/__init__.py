@@ -46,8 +46,7 @@ async def lifespan(app: FastAPI):
         if not db.query(User).first():
             if settings.ADMIN_EMAIL and settings.ADMIN_PASSWORD:
                 from app.services.user_service import UserService
-                UserService.create(
-                    db=db,
+                UserService(db).create(
                     name='Admin',
                     email=settings.ADMIN_EMAIL,
                     password=settings.ADMIN_PASSWORD,

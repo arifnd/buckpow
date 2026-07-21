@@ -31,9 +31,9 @@ def list_devices(
     _current_user: User = Depends(require_user),
 ):
     if page == 0:
-        devices = DeviceService.get_all(db)
+        devices = DeviceService(db).get_all()
         return [d.to_dict() for d in devices]
-    pagination = DeviceService.get_paginated(db, page=page, per_page=per_page)
+    pagination = DeviceService(db).get_paginated(page=page, per_page=per_page)
     return {
         'devices': [d.to_dict() for d in pagination.items],
         'page': pagination.page,
@@ -45,9 +45,7 @@ def list_devices(
 
 @router.post('/devices', status_code=201)
 def create_device(body: DeviceCreate, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
-    device = DeviceService.create(
-        db,
-        device_id=body.device_id,
+    device = DeviceService(db).create(device_id=body.device_id,
         alias=body.alias,
         description=body.description,
         sampling_interval=body.sampling_interval,
@@ -58,13 +56,13 @@ def create_device(body: DeviceCreate, request: Request, db: Session = Depends(ge
         low_voltage_threshold=body.low_voltage_threshold,
     )
     ip = get_client_ip(request)
-    AuditService.log(db, 'device.create', user_id=_current_user.id, target_type='device', target_id=device.id, ip_address=ip)
+    AuditService(db).log('device.create', user_id=_current_user.id, target_type='device', target_id=device.id, ip_address=ip)
     return device.to_dict()
 
 
 @router.get('/devices/{device_id}')
 def get_device(device_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
-    device = DeviceService.get_by_id(db, device_id)
+    device = DeviceService(db).get_by_id(device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
     return device.to_dict()
@@ -82,11 +80,11 @@ def update_device(device_id: int, body: DeviceUpdate, request: Request, db: Sess
             kwargs[key] = val
     if body.enabled is not None:
         kwargs['enabled'] = body.enabled
-    device = DeviceService.update(db, device_id, **kwargs)
+    device = DeviceService(db).update(device_id, **kwargs)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
     ip = get_client_ip(request)
-    AuditService.log(db, 'device.update', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
+    AuditService(db).log('device.update', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
     return device.to_dict()
 
 
@@ -102,11 +100,11 @@ def get_device_key(device_id: int, db: Session = Depends(get_db), _current_user:
 def toggle_device(device_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(status_code=403, detail='Not authorized to toggle this device')
-    device = DeviceService.toggle_enabled(db, device_id)
+    device = DeviceService(db).toggle_enabled(device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
     ip = get_client_ip(request)
-    AuditService.log(db, f'device.{"enable" if device.enabled else "disable"}', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
+    AuditService(db).log(f'device.{"enable" if device.enabled else "disable"}', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
     return device.to_dict()
 
 
@@ -114,11 +112,11 @@ def toggle_device(device_id: int, request: Request, db: Session = Depends(get_db
 def regenerate_key(device_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(status_code=403, detail='Not authorized to regenerate key for this device')
-    device = DeviceService.regenerate_api_key(db, device_id)
+    device = DeviceService(db).regenerate_api_key(device_id)
     if not device:
         raise HTTPException(status_code=404, detail='Device not found')
     ip = get_client_ip(request)
-    AuditService.log(db, 'api_key.regenerate', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
+    AuditService(db).log('api_key.regenerate', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
     return {'api_key': device.api_key, 'id': device.id}
 
 
@@ -126,8 +124,8 @@ def regenerate_key(device_id: int, request: Request, db: Session = Depends(get_d
 def delete_device(device_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(status_code=403, detail='Not authorized to delete this device')
-    if DeviceService.delete(db, device_id):
+    if DeviceService(db).delete(device_id):
         ip = get_client_ip(request)
-        AuditService.log(db, 'device.delete', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
+        AuditService(db).log('device.delete', user_id=_current_user.id, target_type='device', target_id=device_id, ip_address=ip)
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Device not found')

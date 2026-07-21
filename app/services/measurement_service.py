@@ -8,26 +8,29 @@ from app.utils.calculations import calc_load_voltage, calc_energy_increment
 from app.utils.dates import utc_iso
 from app.utils.pagination import PaginatedResult
 from app.utils.query import FilterBuilder
-from app.services.device_service import DeviceService
-from app.services.session_service import SessionService
-from app.services.alert_service import AlertService
 
 
 class MeasurementService:
 
-    @staticmethod
-    def create(db: DBSession, device_id_str, bus_voltage, shunt_voltage=0.0, current=0.0, power=0.0):
-        device = DeviceService.get_or_create(db, device_id_str)
-        DeviceService.touch(db, device_id_str)
+    def __init__(self, db: DBSession):
+        self.db = db
+
+    def create(self, device_id_str, bus_voltage, shunt_voltage=0.0, current=0.0, power=0.0):
+        from app.services.device_service import DeviceService
+        from app.services.session_service import SessionService
+        from app.services.alert_service import AlertService
+
+        device = DeviceService(self.db).get_or_create(device_id_str)
+        DeviceService(self.db).touch(device_id_str)
 
         load_voltage = calc_load_voltage(bus_voltage, shunt_voltage)
         power_w = power / 1000.0
         current_a = current / 1000.0
 
-        session = SessionService.get_active_session(db, device.id)
+        session = SessionService(self.db).get_active_session(device.id)
         session_id = session.id if session else None
 
-        last = db.query(Measurement).filter_by(device_id=device.id).order_by(
+        last = self.db.query(Measurement).filter_by(device_id=device.id).order_by(
             Measurement.created_at.desc()
         ).first()
 
@@ -50,23 +53,21 @@ class MeasurementService:
             power=power_w,
             energy=energy,
         )
-        db.add(measurement)
-        db.commit()
+        self.db.add(measurement)
+        self.db.commit()
 
-        AlertService.generate_alerts(db, device, bus_voltage, current_a, power_w)
+        AlertService(self.db).generate_alerts(device, bus_voltage, current_a, power_w)
 
         return measurement
 
-    @staticmethod
-    def get_recent(db: DBSession, limit=50, device_id=None):
-        fb = FilterBuilder(Measurement, db.query(Measurement))
+    def get_recent(self, limit=50, device_id=None):
+        fb = FilterBuilder(Measurement, self.db.query(Measurement))
         fb.eq(device_id=device_id).order('created_at').limit(limit)
         return fb.query.all()
 
-    @staticmethod
-    def get_chart_data(db: DBSession, limit=500, device_id=None, session_id=None, granularity=None,
+    def get_chart_data(self, limit=500, device_id=None, session_id=None, granularity=None,
                        start_date=None, end_date=None):
-        fb = FilterBuilder(Measurement, db.query(Measurement))
+        fb = FilterBuilder(Measurement, self.db.query(Measurement))
         fb.eq(device_id=device_id, session_id=session_id).date_range('created_at', start_date, end_date)
 
         if granularity and granularity in ('s', 'm', 'h', 'd'):
@@ -124,9 +125,8 @@ class MeasurementService:
             'energy': [r.energy for r in rows],
         }
 
-    @staticmethod
-    def get_stats(db: DBSession, device_id=None):
-        fb = FilterBuilder(Measurement, db.query(Measurement))
+    def get_stats(self, device_id=None):
+        fb = FilterBuilder(Measurement, self.db.query(Measurement))
         fb.eq(device_id=device_id)
 
         rows = fb.query.order_by(Measurement.created_at.desc()).limit(500).all()
@@ -139,10 +139,18 @@ class MeasurementService:
                 'energy': {'total': 0},
             }
 
+        return {
+            **self._compute_field_stats(rows),
+            'energy': {
+                'total': round(rows[0].energy, 6) if rows else 0,
+            },
+        }
+
+    @staticmethod
+    def _compute_field_stats(rows):
         voltages = [r.bus_voltage for r in rows]
         currents = [r.current for r in rows]
         powers = [r.power for r in rows]
-
         return {
             'voltage': {
                 'min': round(min(voltages), 3),
@@ -159,9 +167,6 @@ class MeasurementService:
                 'max': round(max(powers), 3),
                 'avg': round(sum(powers) / len(powers), 3),
                 'peak': round(max(powers), 3),
-            },
-            'energy': {
-                'total': round(rows[0].energy, 6) if rows else 0,
             },
         }
 
@@ -232,14 +237,12 @@ class MeasurementService:
             'ended_at': utc_iso(session.ended_at) if session.ended_at else None,
         }
 
-    @staticmethod
-    def get_paginated(db: DBSession, page=1, per_page=50, device_id=None, session_id=None, start_date=None, end_date=None):
-        fb = FilterBuilder(Measurement, db.query(Measurement))
+    def get_paginated(self, page=1, per_page=50, device_id=None, session_id=None, start_date=None, end_date=None):
+        fb = FilterBuilder(Measurement, self.db.query(Measurement))
         fb.eq(device_id=device_id, session_id=session_id).date_range('created_at', start_date, end_date).order('created_at')
         return fb.paginate(page, per_page)
 
-    @staticmethod
-    def get_all_filtered(db: DBSession, device_id=None, session_id=None, start_date=None, end_date=None):
-        fb = FilterBuilder(Measurement, db.query(Measurement))
+    def get_all_filtered(self, device_id=None, session_id=None, start_date=None, end_date=None):
+        fb = FilterBuilder(Measurement, self.db.query(Measurement))
         fb.eq(device_id=device_id, session_id=session_id).date_range('created_at', start_date, end_date).order('created_at', desc=False)
         return fb.query.all()

@@ -18,8 +18,7 @@ def list_audit_logs(
     db: Session = Depends(get_db),
     _current_user: User = Depends(require_user),
 ):
-    pagination = AuditService.get_paginated(
-        db, page=page, per_page=per_page,
+    pagination = AuditService(db).get_paginated(page=page, per_page=per_page,
         action=action, target_type=target_type,
     )
     return {
@@ -28,5 +27,5 @@ def list_audit_logs(
         'pages': pagination.pages,
         'total': pagination.total,
         'per_page': pagination.per_page,
-        'actions': AuditService.get_actions(db),
+        'actions': AuditService(db).get_actions(),
     }

@@ -58,7 +58,7 @@ class TestAuthAPI:
         from app.database import SessionLocal
         from app.services.user_service import UserService
         db = SessionLocal()
-        UserService.create(db, name='Other', email='other@example.com', password='x')
+        UserService(db).create(name='Other', email='other@example.com', password='x')
         db.close()
         resp = client.put('/api/v1/auth/profile', json={
             'email': 'other@example.com',

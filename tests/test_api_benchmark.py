@@ -22,14 +22,14 @@ class TestBenchmarkAPI:
         from app.services.session_service import SessionService
         from app.services.measurement_service import MeasurementService
         db = SessionLocal()
-        d = DeviceService.create(db, 'esp32-bench')
-        s1 = SessionService.create(db, d.id, 'Bench 1')
-        s2 = SessionService.create(db, d.id, 'Bench 2')
-        SessionService.start(db, s1.id)
-        SessionService.start(db, s2.id)
-        MeasurementService.create(db, 'esp32-bench', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-bench')
+        s1 = SessionService(db).create(d.id, 'Bench 1')
+        s2 = SessionService(db).create(d.id, 'Bench 2')
+        SessionService(db).start(s1.id)
+        SessionService(db).start(s2.id)
+        MeasurementService(db).create('esp32-bench', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        MeasurementService.create(db, 'esp32-bench', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-bench', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
         s1_id, s2_id = s1.id, s2.id
         db.close()
@@ -44,18 +44,18 @@ class TestBenchmarkAPI:
         from app.services.session_service import SessionService
         from app.services.measurement_service import MeasurementService
         db = SessionLocal()
-        d = DeviceService.create(db, 'esp32-bench3')
-        s1 = SessionService.create(db, d.id, 'Bench A')
-        s2 = SessionService.create(db, d.id, 'Bench B')
-        s3 = SessionService.create(db, d.id, 'Bench C')
-        SessionService.start(db, s1.id)
-        SessionService.start(db, s2.id)
-        SessionService.start(db, s3.id)
-        MeasurementService.create(db, 'esp32-bench3', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-bench3')
+        s1 = SessionService(db).create(d.id, 'Bench A')
+        s2 = SessionService(db).create(d.id, 'Bench B')
+        s3 = SessionService(db).create(d.id, 'Bench C')
+        SessionService(db).start(s1.id)
+        SessionService(db).start(s2.id)
+        SessionService(db).start(s3.id)
+        MeasurementService(db).create('esp32-bench3', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        MeasurementService.create(db, 'esp32-bench3', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-bench3', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        MeasurementService.create(db, 'esp32-bench3', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-bench3', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
         s1_id, s2_id, s3_id = s1.id, s2.id, s3.id
         db.close()
@@ -70,12 +70,12 @@ class TestBenchmarkAPI:
         from app.services.session_service import SessionService
         from app.services.measurement_service import MeasurementService
         db = SessionLocal()
-        d = DeviceService.create(db, 'esp32-bench2')
-        s1 = SessionService.create(db, d.id, 'Bench A')
-        s2 = SessionService.create(db, d.id, 'Bench B')
-        SessionService.start(db, s1.id)
-        SessionService.start(db, s2.id)
-        MeasurementService.create(db, 'esp32-bench2', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-bench2')
+        s1 = SessionService(db).create(d.id, 'Bench A')
+        s2 = SessionService(db).create(d.id, 'Bench B')
+        SessionService(db).start(s1.id)
+        SessionService(db).start(s2.id)
+        MeasurementService(db).create('esp32-bench2', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
         s1_id, s2_id = s1.id, s2.id
         db.close()

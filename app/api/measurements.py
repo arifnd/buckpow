@@ -38,9 +38,9 @@ def receive_measurement(
     device=Depends(get_api_key_device),
 ):
     if device is None:
-        device = DeviceService.get_by_device_id(db, body.device_id)
+        device = DeviceService(db).get_by_device_id(body.device_id)
         if not device:
-            device = DeviceService.get_or_create(db, body.device_id)
+            device = DeviceService(db).get_or_create(body.device_id)
         if not device.enabled:
             raise HTTPException(status_code=403, detail='Device is disabled')
     else:
@@ -62,8 +62,7 @@ def receive_measurement(
         db.commit()
 
     try:
-        measurement = MeasurementService.create(
-            db,
+        measurement = MeasurementService(db).create(
             device_id_str=body.device_id,
             bus_voltage=float(body.bus_voltage),
             shunt_voltage=float(body.shunt_voltage),
@@ -92,8 +91,7 @@ def get_measurements(
     db: Session = Depends(get_db),
     _current_user: User = Depends(require_user),
 ):
-    pagination = MeasurementService.get_paginated(
-        db, page=page, per_page=per_page,
+    pagination = MeasurementService(db).get_paginated(page=page, per_page=per_page,
         device_id=device_id, session_id=session_id,
         start_date=start_date, end_date=end_date,
     )
@@ -116,8 +114,7 @@ def export_csv(
     db: Session = Depends(get_db),
     _current_user: User = Depends(require_user),
 ):
-    rows = MeasurementService.get_all_filtered(
-        db, device_id=device_id, session_id=session_id,
+    rows = MeasurementService(db).get_all_filtered(device_id=device_id, session_id=session_id,
         start_date=start_date, end_date=end_date,
     )
     output = io.StringIO()
@@ -133,7 +130,7 @@ def export_csv(
             m.created_at.isoformat() if m.created_at else '',
         ])
     ip = get_client_ip(request)
-    AuditService.log(db, 'export.csv', user_id=_current_user.id, target_type='export', ip_address=ip, details={'rows': len(rows)})
+    AuditService(db).log('export.csv', user_id=_current_user.id, target_type='export', ip_address=ip, details={'rows': len(rows)})
     filename = 'measurements.csv'
     if session_id:
         session = db.get(SessionModel, session_id)
@@ -157,8 +154,7 @@ def export_xlsx(
     db: Session = Depends(get_db),
     _current_user: User = Depends(require_user),
 ):
-    rows = MeasurementService.get_all_filtered(
-        db, device_id=device_id, session_id=session_id,
+    rows = MeasurementService(db).get_all_filtered(device_id=device_id, session_id=session_id,
         start_date=start_date, end_date=end_date,
     )
     wb = Workbook()
@@ -195,7 +191,7 @@ def export_xlsx(
     output.seek(0)
 
     ip = get_client_ip(request)
-    AuditService.log(db, 'export.xlsx', user_id=_current_user.id, target_type='export', ip_address=ip, details={'rows': len(rows)})
+    AuditService(db).log('export.xlsx', user_id=_current_user.id, target_type='export', ip_address=ip, details={'rows': len(rows)})
     return Response(
         content=output.read(),
         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -227,8 +223,7 @@ def chart_data(
     elif range == '30d':
         start_date = datetime.now(timezone.utc) - timedelta(days=30)
 
-    data = MeasurementService.get_chart_data(
-        db, limit=limit, device_id=device_id, session_id=session_id,
+    data = MeasurementService(db).get_chart_data(limit=limit, device_id=device_id, session_id=session_id,
         granularity=granularity, start_date=start_date, end_date=end_date,
     )
     return data

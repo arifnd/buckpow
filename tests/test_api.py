@@ -369,7 +369,7 @@ class TestAPI:
         from app.models import Device, Session as SessionModel
         from app.services.device_service import DeviceService
         db = SessionLocal()
-        device = DeviceService.create(db, 'esp32-sess-page')
+        device = DeviceService(db).create('esp32-sess-page')
         db.execute(insert(SessionModel), [
             {'device_id': device.id, 'name': f'Session {i}'} for i in range(15)
         ])
@@ -388,7 +388,7 @@ class TestAPI:
         from app.models import Device, Session as SessionModel
         from app.services.device_service import DeviceService
         db = SessionLocal()
-        device = DeviceService.create(db, 'esp32-sess-all')
+        device = DeviceService(db).create('esp32-sess-all')
         db.execute(insert(SessionModel), [
             {'device_id': device.id, 'name': f'Sess {i}'} for i in range(3)
         ])
@@ -413,8 +413,8 @@ class TestAPI:
         from app.database import SessionLocal
         from app.services.device_service import DeviceService
         db = SessionLocal()
-        da = DeviceService.create(db, 'esp32-filt-a')
-        db_ = DeviceService.create(db, 'esp32-filt-b')
+        da = DeviceService(db).create('esp32-filt-a')
+        db_ = DeviceService(db).create('esp32-filt-b')
         ka = da.api_key
         kb = db_.api_key
         db.close()
@@ -453,7 +453,7 @@ class TestAPI:
         from app.database import SessionLocal
         from app.services.device_service import DeviceService
         db = SessionLocal()
-        d = DeviceService.create(db, 'esp32-chart')
+        d = DeviceService(db).create('esp32-chart')
         key = d.api_key
         db.close()
         client.post('/api/v1/measurements', json={
@@ -550,7 +550,7 @@ class TestAPI:
         from app.database import SessionLocal
         from app.services.device_service import DeviceService
         db = SessionLocal()
-        d = DeviceService.create(db, 'esp32-disabled')
+        d = DeviceService(db).create('esp32-disabled')
         d.enabled = False
         db.commit()
         key = d.api_key
@@ -713,7 +713,7 @@ class TestFirmwareCompatibility:
         from app.database import SessionLocal
         from app.services.device_service import DeviceService
         db = SessionLocal()
-        d = DeviceService.create(db, 'esp32-fw')
+        d = DeviceService(db).create('esp32-fw')
         key = d.api_key
         d.firmware_version = ''
         db.commit()
@@ -762,7 +762,7 @@ class TestOwnerChecks:
         from app.auth import create_access_token
         from fastapi.testclient import TestClient
         db = SessionLocal()
-        user = UserService.create(db, name='Other', email='other@example.com', password='otherpass')
+        user = UserService(db).create(name='Other', email='other@example.com', password='otherpass')
         token = create_access_token(data={'sub': user.id})
         db.close()
         client = TestClient(app)
@@ -827,7 +827,7 @@ class TestOwnerChecks:
         from app.database import SessionLocal
         from app.services.device_service import DeviceService
         db = SessionLocal()
-        d = DeviceService.create(db, 'esp32-fw')
+        d = DeviceService(db).create('esp32-fw')
         key = d.api_key
         d.firmware_version = ''
         db.commit()
@@ -847,7 +847,7 @@ class TestOwnerChecks:
         from app.database import SessionLocal
         from app.services.device_service import DeviceService
         db = SessionLocal()
-        d = DeviceService.create(db, 'esp32-fw')
+        d = DeviceService(db).create('esp32-fw')
         key = d.api_key
         d.firmware_version = ''
         db.commit()
@@ -893,7 +893,7 @@ class TestDeviceAuthDisabled:
         settings.DEVICE_AUTH_ENABLED = False
         try:
             db = SessionLocal()
-            d = DeviceService.create(db, 'esp32-disabled-off')
+            d = DeviceService(db).create('esp32-disabled-off')
             d.enabled = False
             db.commit()
             db.close()

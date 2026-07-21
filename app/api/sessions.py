@@ -22,7 +22,7 @@ def list_sessions(
     _current_user: User = Depends(require_user),
 ):
     if page == 0:
-        sessions = SessionService.get_all(db)
+        sessions = SessionService(db).get_all()
         session_ids = [s.id for s in sessions]
         stats = SessionService.get_stats_for_sessions(db, session_ids)
         result = []
@@ -33,7 +33,7 @@ def list_sessions(
             d['total_energy'] = st.get('total_energy')
             result.append(d)
         return result
-    pagination = SessionService.get_paginated(db, page=page, per_page=per_page)
+    pagination = SessionService(db).get_paginated(page=page, per_page=per_page)
     session_ids = [s.id for s in pagination.items]
     stats = SessionService.get_stats_for_sessions(db, session_ids)
     sessions = []
@@ -56,9 +56,7 @@ def list_sessions(
 def create_session(body: SessionCreate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
     if not body.name or not body.device_id:
         raise HTTPException(status_code=400, detail='name and device_id are required')
-    session = SessionService.create(
-        db,
-        device_id=body.device_id,
+    session = SessionService(db).create(device_id=body.device_id,
         name=body.name,
         target_device=body.target_device,
         description=body.description,
@@ -69,7 +67,7 @@ def create_session(body: SessionCreate, db: Session = Depends(get_db), _current_
 
 @router.get('/sessions/{session_id}')
 def get_session(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
-    session = SessionService.get_by_id(db, session_id)
+    session = SessionService(db).get_by_id(session_id)
     if not session:
         raise HTTPException(status_code=404, detail='Session not found')
     return session.to_dict()
@@ -77,8 +75,7 @@ def get_session(session_id: int, db: Session = Depends(get_db), _current_user: U
 
 @router.put('/sessions/{session_id}')
 def update_session(session_id: int, body: SessionUpdate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
-    session = SessionService.update(
-        db, session_id,
+    session = SessionService(db).update(session_id,
         name=body.name,
         target_device=body.target_device,
         description=body.description,
@@ -91,7 +88,7 @@ def update_session(session_id: int, body: SessionUpdate, db: Session = Depends(g
 
 @router.delete('/sessions/{session_id}')
 def delete_session(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
-    if SessionService.delete(db, session_id):
+    if SessionService(db).delete(session_id):
         return {'status': 'deleted'}
     raise HTTPException(status_code=404, detail='Session not found')
 
@@ -106,19 +103,19 @@ def session_stats(session_id: int, db: Session = Depends(get_db), _current_user:
 
 @router.post('/sessions/{session_id}/start')
 def start_session(session_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
-    session, error = SessionService.start(db, session_id)
+    session, error = SessionService(db).start(session_id)
     if error:
         raise HTTPException(status_code=400, detail=error)
     ip = get_client_ip(request)
-    AuditService.log(db, 'session.start', user_id=_current_user.id, target_type='session', target_id=session_id, ip_address=ip)
+    AuditService(db).log('session.start', user_id=_current_user.id, target_type='session', target_id=session_id, ip_address=ip)
     return session.to_dict()
 
 
 @router.post('/sessions/{session_id}/stop')
 def stop_session(session_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
-    session, error = SessionService.stop(db, session_id)
+    session, error = SessionService(db).stop(session_id)
     if error:
         raise HTTPException(status_code=400, detail=error)
     ip = get_client_ip(request)
-    AuditService.log(db, 'session.stop', user_id=_current_user.id, target_type='session', target_id=session_id, ip_address=ip)
+    AuditService(db).log('session.stop', user_id=_current_user.id, target_type='session', target_id=session_id, ip_address=ip)
     return session.to_dict()

@@ -87,7 +87,7 @@ def devices_new_page(
     redir = _require_dashboard_user(current_user)
     if isinstance(redir, RedirectResponse):
         return redir
-    projects = ProjectService.get_all(db)
+    projects = ProjectService(db).get_all()
     return HTMLResponse(_render('devices/form.html', current_user=current_user, active_page='devices', device=None, projects=projects))
 
 
@@ -100,8 +100,8 @@ def devices_edit_page(
     redir = _require_dashboard_user(current_user)
     if isinstance(redir, RedirectResponse):
         return redir
-    device = DeviceService.get_by_id(db, device_id)
-    projects = ProjectService.get_all(db)
+    device = DeviceService(db).get_by_id(device_id)
+    projects = ProjectService(db).get_all()
     return HTMLResponse(_render('devices/form.html', current_user=current_user, active_page='devices', device=device, projects=projects))
 
 
@@ -121,9 +121,9 @@ def sessions_new_page(
     redir = _require_dashboard_user(current_user)
     if isinstance(redir, RedirectResponse):
         return redir
-    all_devices = DeviceService.get_all(db)
-    devices = [d for d in all_devices if not SessionService.get_active_session(db, d.id)]
-    projects = ProjectService.get_all(db)
+    all_devices = DeviceService(db).get_all()
+    devices = [d for d in all_devices if not SessionService(db).get_active_session(d.id)]
+    projects = ProjectService(db).get_all()
     return HTMLResponse(_render('sessions/form.html', current_user=current_user, active_page='sessions', session=None, devices=devices, projects=projects))
 
 
@@ -136,9 +136,9 @@ def sessions_edit_page(
     redir = _require_dashboard_user(current_user)
     if isinstance(redir, RedirectResponse):
         return redir
-    session = SessionService.get_by_id(db, session_id)
-    devices = DeviceService.get_all(db)
-    projects = ProjectService.get_all(db)
+    session = SessionService(db).get_by_id(session_id)
+    devices = DeviceService(db).get_all()
+    projects = ProjectService(db).get_all()
     return HTMLResponse(_render('sessions/form.html', current_user=current_user, active_page='sessions', session=session, devices=devices, projects=projects))
 
 
@@ -151,7 +151,7 @@ def sessions_detail_page(
     redir = _require_dashboard_user(current_user)
     if isinstance(redir, RedirectResponse):
         return redir
-    session = SessionService.get_by_id(db, session_id)
+    session = SessionService(db).get_by_id(session_id)
     if not session:
         return RedirectResponse(url='/sessions', status_code=302)
     return HTMLResponse(_render('sessions/detail.html', current_user=current_user, active_page='sessions', session=session))

@@ -17,7 +17,7 @@ class TestUserService:
 
     def test_create_user(self, app):
         db = self._db(app)
-        u = UserService.create(db, name='Test', email='test@example.com', password='secret')
+        u = UserService(db).create(name='Test', email='test@example.com', password='secret')
         assert u.id is not None
         assert u.name == 'Test'
         assert u.email == 'test@example.com'
@@ -27,36 +27,36 @@ class TestUserService:
     def test_create_duplicate_email(self, app):
         import pytest
         db = self._db(app)
-        UserService.create(db, name='A', email='dup@example.com', password='x')
+        UserService(db).create(name='A', email='dup@example.com', password='x')
         with pytest.raises(ValueError, match='already exists'):
-            UserService.create(db, name='B', email='dup@example.com', password='y')
+            UserService(db).create(name='B', email='dup@example.com', password='y')
         db.close()
 
     def test_authenticate_success(self, app):
         db = self._db(app)
-        UserService.create(db, name='Auth', email='auth@example.com', password='pass')
-        u = UserService.authenticate(db, 'auth@example.com', 'pass')
+        UserService(db).create(name='Auth', email='auth@example.com', password='pass')
+        u = UserService(db).authenticate('auth@example.com', 'pass')
         assert u is not None
         assert u.name == 'Auth'
         db.close()
 
     def test_authenticate_wrong_password(self, app):
         db = self._db(app)
-        UserService.create(db, name='Auth', email='auth2@example.com', password='pass')
-        u = UserService.authenticate(db, 'auth2@example.com', 'wrong')
+        UserService(db).create(name='Auth', email='auth2@example.com', password='pass')
+        u = UserService(db).authenticate('auth2@example.com', 'wrong')
         assert u is None
         db.close()
 
     def test_authenticate_nonexistent(self, app):
         db = self._db(app)
-        u = UserService.authenticate(db, 'nobody@example.com', 'pass')
+        u = UserService(db).authenticate('nobody@example.com', 'pass')
         assert u is None
         db.close()
 
     def test_update_user(self, app):
         db = self._db(app)
-        u = UserService.create(db, name='Old', email='old@example.com', password='x')
-        updated = UserService.update(db, u.id, name='New', email='new@example.com')
+        u = UserService(db).create(name='Old', email='old@example.com', password='x')
+        updated = UserService(db).update(u.id, name='New', email='new@example.com')
         assert updated.name == 'New'
         assert updated.email == 'new@example.com'
         db.close()
@@ -64,37 +64,37 @@ class TestUserService:
     def test_update_email_already_in_use(self, app):
         import pytest
         db = self._db(app)
-        UserService.create(db, name='A', email='a@example.com', password='x')
-        b = UserService.create(db, name='B', email='b@example.com', password='x')
+        UserService(db).create(name='A', email='a@example.com', password='x')
+        b = UserService(db).create(name='B', email='b@example.com', password='x')
         with pytest.raises(ValueError, match='already in use'):
-            UserService.update(db, b.id, email='a@example.com')
+            UserService(db).update(b.id, email='a@example.com')
         db.close()
 
     def test_update_nonexistent(self, app):
         db = self._db(app)
-        result = UserService.update(db, 99999, name='Ghost')
+        result = UserService(db).update(99999, name='Ghost')
         assert result is None
         db.close()
 
     def test_update_password(self, app):
         db = self._db(app)
-        u = UserService.create(db, name='Pwd', email='pwd@example.com', password='old')
-        UserService.update(db, u.id, password='new')
+        u = UserService(db).create(name='Pwd', email='pwd@example.com', password='old')
+        UserService(db).update(u.id, password='new')
         assert u.check_password('new')
         db.close()
 
     def test_get_by_id(self, app):
         db = self._db(app)
-        u = UserService.create(db, name='ByID', email='byid@example.com', password='x')
-        found = UserService.get_by_id(db, u.id)
+        u = UserService(db).create(name='ByID', email='byid@example.com', password='x')
+        found = UserService(db).get_by_id(u.id)
         assert found is not None
         assert found.email == 'byid@example.com'
         db.close()
 
     def test_get_by_email(self, app):
         db = self._db(app)
-        UserService.create(db, name='ByEmail', email='byemail@example.com', password='x')
-        found = UserService.get_by_email(db, 'byemail@example.com')
+        UserService(db).create(name='ByEmail', email='byemail@example.com', password='x')
+        found = UserService(db).get_by_email('byemail@example.com')
         assert found is not None
         db.close()
 
@@ -105,7 +105,7 @@ class TestDeviceService:
 
     def test_create_device(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-svc-1', alias='Svc Device')
+        d = DeviceService(db).create('esp32-svc-1', alias='Svc Device')
         assert d.id is not None
         assert d.device_id == 'esp32-svc-1'
         assert d.alias == 'Svc Device'
@@ -115,124 +115,124 @@ class TestDeviceService:
 
     def test_get_by_device_id(self, app):
         db = self._db(app)
-        DeviceService.create(db, 'esp32-find')
-        d = DeviceService.get_by_device_id(db, 'esp32-find')
+        DeviceService(db).create('esp32-find')
+        d = DeviceService(db).get_by_device_id('esp32-find')
         assert d is not None
         db.close()
 
     def test_get_by_device_id_not_found(self, app):
         db = self._db(app)
-        d = DeviceService.get_by_device_id(db, 'nonexistent')
+        d = DeviceService(db).get_by_device_id('nonexistent')
         assert d is None
         db.close()
 
     def test_get_by_api_key(self, app):
         db = self._db(app)
-        device = DeviceService.create(db, 'esp32-key')
-        found = DeviceService.get_by_api_key(db, device.api_key)
+        device = DeviceService(db).create('esp32-key')
+        found = DeviceService(db).get_by_api_key(device.api_key)
         assert found is not None
         assert found.id == device.id
         db.close()
 
     def test_get_by_api_key_invalid(self, app):
         db = self._db(app)
-        found = DeviceService.get_by_api_key(db, 'invalid-key')
+        found = DeviceService(db).get_by_api_key('invalid-key')
         assert found is None
         db.close()
 
     def test_get_or_create_existing(self, app):
         db = self._db(app)
-        DeviceService.create(db, 'esp32-goc')
-        d = DeviceService.get_or_create(db, 'esp32-goc')
+        DeviceService(db).create('esp32-goc')
+        d = DeviceService(db).get_or_create('esp32-goc')
         assert d.device_id == 'esp32-goc'
         db.close()
 
     def test_get_or_create_new(self, app):
         db = self._db(app)
-        d = DeviceService.get_or_create(db, 'esp32-new')
+        d = DeviceService(db).get_or_create('esp32-new')
         assert d.device_id == 'esp32-new'
         db.close()
 
     def test_touch(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-touch')
+        d = DeviceService(db).create('esp32-touch')
         assert d.last_seen is None
-        DeviceService.touch(db, 'esp32-touch')
+        DeviceService(db).touch('esp32-touch')
         assert d.last_seen is not None
         db.close()
 
     def test_touch_nonexistent(self, app):
         db = self._db(app)
-        result = DeviceService.touch(db, 'nonexistent')
+        result = DeviceService(db).touch('nonexistent')
         assert result is None
         db.close()
 
     def test_regenerate_api_key(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-reg')
+        d = DeviceService(db).create('esp32-reg')
         old_key = d.api_key
-        DeviceService.regenerate_api_key(db, d.id)
+        DeviceService(db).regenerate_api_key(d.id)
         assert d.api_key != old_key
         db.close()
 
     def test_regenerate_api_key_nonexistent(self, app):
         db = self._db(app)
-        result = DeviceService.regenerate_api_key(db, 99999)
+        result = DeviceService(db).regenerate_api_key(99999)
         assert result is None
         db.close()
 
     def test_toggle_enabled(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-toggle')
+        d = DeviceService(db).create('esp32-toggle')
         assert d.enabled is True
-        DeviceService.toggle_enabled(db, d.id)
+        DeviceService(db).toggle_enabled(d.id)
         assert d.enabled is False
-        DeviceService.toggle_enabled(db, d.id)
+        DeviceService(db).toggle_enabled(d.id)
         assert d.enabled is True
         db.close()
 
     def test_toggle_enabled_nonexistent(self, app):
         db = self._db(app)
-        result = DeviceService.toggle_enabled(db, 99999)
+        result = DeviceService(db).toggle_enabled(99999)
         assert result is None
         db.close()
 
     def test_delete(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-del')
+        d = DeviceService(db).create('esp32-del')
         did = d.id
-        assert DeviceService.delete(db, did) is True
-        assert DeviceService.get_by_id(db, did) is None
+        assert DeviceService(db).delete(did) is True
+        assert DeviceService(db).get_by_id(did) is None
         db.close()
 
     def test_delete_nonexistent(self, app):
         db = self._db(app)
-        assert DeviceService.delete(db, 99999) is False
+        assert DeviceService(db).delete(99999) is False
         db.close()
 
     def test_get_online_status_offline_no_last_seen(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-stat')
+        d = DeviceService(db).create('esp32-stat')
         assert DeviceService.get_online_status(d) == 'offline'
         db.close()
 
     def test_get_online_status_online(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-stat-on')
+        d = DeviceService(db).create('esp32-stat-on')
         d.last_seen = datetime.now(timezone.utc)
         assert DeviceService.get_online_status(d) == 'online'
         db.close()
 
     def test_get_online_status_expired(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-stat-off')
+        d = DeviceService(db).create('esp32-stat-off')
         d.last_seen = datetime.now(timezone.utc) - timedelta(seconds=180)
         assert DeviceService.get_online_status(d) == 'offline'
         db.close()
 
     def test_get_online_status_naive_datetime(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-stat-naive')
+        d = DeviceService(db).create('esp32-stat-naive')
         d.last_seen = datetime.now()
         d.last_seen = d.last_seen.replace(tzinfo=None)
         db.commit()
@@ -247,23 +247,23 @@ class TestDeviceService:
 
     def test_update(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-upd')
-        DeviceService.update(db, d.id, alias='Updated', description='Desc')
+        d = DeviceService(db).create('esp32-upd')
+        DeviceService(db).update(d.id, alias='Updated', description='Desc')
         assert d.alias == 'Updated'
         assert d.description == 'Desc'
         db.close()
 
     def test_update_nonexistent(self, app):
         db = self._db(app)
-        result = DeviceService.update(db, 99999, alias='Ghost')
+        result = DeviceService(db).update(99999, alias='Ghost')
         assert result is None
         db.close()
 
     def test_get_all(self, app):
         db = self._db(app)
-        DeviceService.create(db, 'esp32-all-a')
-        DeviceService.create(db, 'esp32-all-b')
-        assert len(DeviceService.get_all(db)) >= 2
+        DeviceService(db).create('esp32-all-a')
+        DeviceService(db).create('esp32-all-b')
+        assert len(DeviceService(db).get_all()) >= 2
         db.close()
 
     def test_get_paginated(self, app):
@@ -275,7 +275,7 @@ class TestDeviceService:
             for i in range(5)
         ])
         db.commit()
-        p = DeviceService.get_paginated(db, page=1, per_page=2)
+        p = DeviceService(db).get_paginated(page=1, per_page=2)
         assert len(p.items) == 2
         assert p.total >= 5
         db.close()
@@ -287,16 +287,16 @@ class TestSessionService:
 
     def test_create_session(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-sess-svc')
-        s = SessionService.create(db, device_id=d.id, name='Test Session')
+        d = DeviceService(db).create('esp32-sess-svc')
+        s = SessionService(db).create(device_id=d.id, name='Test Session')
         assert s.id is not None
         assert s.status == 'draft'
         db.close()
 
     def test_create_with_all_fields(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-sess-full')
-        s = SessionService.create(db, device_id=d.id, name='Full', target_device='t1',
+        d = DeviceService(db).create('esp32-sess-full')
+        s = SessionService(db).create(device_id=d.id, name='Full', target_device='t1',
                                   description='desc')
         assert s.target_device == 't1'
         assert s.description == 'desc'
@@ -304,74 +304,74 @@ class TestSessionService:
 
     def test_start_session(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-start')
-        s = SessionService.create(db, d.id, 'Start')
-        session, error = SessionService.start(db, s.id)
+        d = DeviceService(db).create('esp32-start')
+        s = SessionService(db).create(d.id, 'Start')
+        session, error = SessionService(db).start(s.id)
         assert error is None
         assert session.status == 'running'
         db.close()
 
     def test_start_nonexistent(self, app):
         db = self._db(app)
-        session, error = SessionService.start(db, 99999)
+        session, error = SessionService(db).start(99999)
         assert session is None
         assert error == 'Session not found'
         db.close()
 
     def test_start_already_running(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-already')
-        s = SessionService.create(db, d.id, 'Running')
-        SessionService.start(db, s.id)
-        session, error = SessionService.start(db, s.id)
+        d = DeviceService(db).create('esp32-already')
+        s = SessionService(db).create(d.id, 'Running')
+        SessionService(db).start(s.id)
+        session, error = SessionService(db).start(s.id)
         assert session is None
         assert error == 'Session is already running'
         db.close()
 
     def test_stop_session(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-stop')
-        s = SessionService.create(db, d.id, 'Stop')
-        SessionService.start(db, s.id)
-        session, error = SessionService.stop(db, s.id)
+        d = DeviceService(db).create('esp32-stop')
+        s = SessionService(db).create(d.id, 'Stop')
+        SessionService(db).start(s.id)
+        session, error = SessionService(db).stop(s.id)
         assert error is None
         assert session.status == 'finished'
         db.close()
 
     def test_stop_nonexistent(self, app):
         db = self._db(app)
-        session, error = SessionService.stop(db, 99999)
+        session, error = SessionService(db).stop(99999)
         assert session is None
         assert error == 'Session not found'
         db.close()
 
     def test_stop_not_running(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-stop2')
-        s = SessionService.create(db, d.id, 'Draft')
-        session, error = SessionService.stop(db, s.id)
+        d = DeviceService(db).create('esp32-stop2')
+        s = SessionService(db).create(d.id, 'Draft')
+        session, error = SessionService(db).stop(s.id)
         assert session is None
         assert error == 'Session is not running'
         db.close()
 
     def test_get_active_session(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-act')
-        s = SessionService.create(db, d.id, 'Active')
-        SessionService.start(db, s.id)
-        active = SessionService.get_active_session(db, d.id)
+        d = DeviceService(db).create('esp32-act')
+        s = SessionService(db).create(d.id, 'Active')
+        SessionService(db).start(s.id)
+        active = SessionService(db).get_active_session(d.id)
         assert active is not None
         assert active.id == s.id
         db.close()
 
     def test_auto_stop_other_on_start(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-auto')
-        a = SessionService.create(db, d.id, 'Session A')
-        b = SessionService.create(db, d.id, 'Session B')
-        SessionService.start(db, a.id)
+        d = DeviceService(db).create('esp32-auto')
+        a = SessionService(db).create(d.id, 'Session A')
+        b = SessionService(db).create(d.id, 'Session B')
+        SessionService(db).start(a.id)
         assert a.status == 'running'
-        result, err = SessionService.start(db, b.id)
+        result, err = SessionService(db).start(b.id)
         assert result is None
         assert err == 'A session is already running for this device'
         assert a.status == 'running'
@@ -379,70 +379,70 @@ class TestSessionService:
 
     def test_multiple_devices_can_run_concurrently(self, app):
         db = self._db(app)
-        d1 = DeviceService.create(db, 'esp32-d1')
-        d2 = DeviceService.create(db, 'esp32-d2')
-        a = SessionService.create(db, d1.id, 'Session A')
-        b = SessionService.create(db, d2.id, 'Session B')
-        SessionService.start(db, a.id)
+        d1 = DeviceService(db).create('esp32-d1')
+        d2 = DeviceService(db).create('esp32-d2')
+        a = SessionService(db).create(d1.id, 'Session A')
+        b = SessionService(db).create(d2.id, 'Session B')
+        SessionService(db).start(a.id)
         assert a.status == 'running'
-        SessionService.start(db, b.id)
+        SessionService(db).start(b.id)
         assert b.status == 'running'
         assert a.status == 'running'
         db.close()
 
     def test_get_for_device(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-gfd')
-        SessionService.create(db, d.id, 'S1')
-        SessionService.create(db, d.id, 'S2')
-        sessions = SessionService.get_for_device(db, d.id)
+        d = DeviceService(db).create('esp32-gfd')
+        SessionService(db).create(d.id, 'S1')
+        SessionService(db).create(d.id, 'S2')
+        sessions = SessionService(db).get_for_device(d.id)
         assert len(sessions) == 2
         db.close()
 
     def test_update(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-up')
-        s = SessionService.create(db, d.id, 'Original')
-        SessionService.update(db, s.id, name='Updated')
+        d = DeviceService(db).create('esp32-up')
+        s = SessionService(db).create(d.id, 'Original')
+        SessionService(db).update(s.id, name='Updated')
         assert s.name == 'Updated'
         db.close()
 
     def test_update_nonexistent(self, app):
         db = self._db(app)
-        result = SessionService.update(db, 99999, name='Ghost')
+        result = SessionService(db).update(99999, name='Ghost')
         assert result is None
         db.close()
 
     def test_delete(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-del-s')
-        s = SessionService.create(db, d.id, 'To Delete')
+        d = DeviceService(db).create('esp32-del-s')
+        s = SessionService(db).create(d.id, 'To Delete')
         sid = s.id
-        assert SessionService.delete(db, sid) is True
-        assert SessionService.get_by_id(db, sid) is None
+        assert SessionService(db).delete(sid) is True
+        assert SessionService(db).get_by_id(sid) is None
         db.close()
 
     def test_delete_nonexistent(self, app):
         db = self._db(app)
-        assert SessionService.delete(db, 99999) is False
+        assert SessionService(db).delete(99999) is False
         db.close()
 
     def test_get_all(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-all-s')
-        SessionService.create(db, d.id, 'A')
-        SessionService.create(db, d.id, 'B')
-        assert len(SessionService.get_all(db)) >= 2
+        d = DeviceService(db).create('esp32-all-s')
+        SessionService(db).create(d.id, 'A')
+        SessionService(db).create(d.id, 'B')
+        assert len(SessionService(db).get_all()) >= 2
         db.close()
 
     def test_get_stats_for_sessions_with_measurements(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-sts')
-        s = SessionService.create(db, d.id, 'Stats Session')
-        SessionService.start(db, s.id)
-        MeasurementService.create(db, 'esp32-sts', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-sts')
+        s = SessionService(db).create(d.id, 'Stats Session')
+        SessionService(db).start(s.id)
+        MeasurementService(db).create('esp32-sts', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        MeasurementService.create(db, 'esp32-sts', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-sts', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
         stats = SessionService.get_stats_for_sessions(db, [s.id])
         assert s.id in stats
@@ -461,7 +461,7 @@ class TestMeasurementService:
 
     def test_create_measurement(self, app):
         db = self._db(app)
-        m = MeasurementService.create(db, 'esp32-meas-svc', bus_voltage=5.0,
+        m = MeasurementService(db).create('esp32-meas-svc', bus_voltage=5.0,
                                       shunt_voltage=80.0, current=200, power=1000)
         assert m.id is not None
         assert m.load_voltage == 5.08
@@ -471,84 +471,84 @@ class TestMeasurementService:
 
     def test_create_auto_registers_device(self, app):
         db = self._db(app)
-        m = MeasurementService.create(db, 'esp32-auto-reg', bus_voltage=5.0,
+        m = MeasurementService(db).create('esp32-auto-reg', bus_voltage=5.0,
                                       shunt_voltage=80.0, current=200, power=1000)
-        device = DeviceService.get_by_device_id(db, 'esp32-auto-reg')
+        device = DeviceService(db).get_by_device_id('esp32-auto-reg')
         assert device is not None
         assert m.device_id == device.id
         db.close()
 
     def test_create_with_session(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-sess-m')
-        s = SessionService.create(db, d.id, 'Meas Session')
-        SessionService.start(db, s.id)
-        m = MeasurementService.create(db, 'esp32-sess-m', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-sess-m')
+        s = SessionService(db).create(d.id, 'Meas Session')
+        SessionService(db).start(s.id)
+        m = MeasurementService(db).create('esp32-sess-m', bus_voltage=5.0,
                                       shunt_voltage=80.0, current=200, power=1000)
         assert m.session_id == s.id
         db.close()
 
     def test_energy_accumulation_same_session(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-energy')
-        s = SessionService.create(db, d.id, 'Energy')
-        SessionService.start(db, s.id)
-        m1 = MeasurementService.create(db, 'esp32-energy', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-energy')
+        s = SessionService(db).create(d.id, 'Energy')
+        SessionService(db).start(s.id)
+        m1 = MeasurementService(db).create('esp32-energy', bus_voltage=5.0,
                                        shunt_voltage=80.0, current=200, power=1000)
-        m2 = MeasurementService.create(db, 'esp32-energy', bus_voltage=5.0,
+        m2 = MeasurementService(db).create('esp32-energy', bus_voltage=5.0,
                                        shunt_voltage=80.0, current=200, power=1000)
         assert m2.energy > m1.energy
         db.close()
 
     def test_energy_no_session_starts_at_zero(self, app):
         db = self._db(app)
-        m = MeasurementService.create(db, 'esp32-no-sess', bus_voltage=5.0,
+        m = MeasurementService(db).create('esp32-no-sess', bus_voltage=5.0,
                                       shunt_voltage=80.0, current=200, power=1000)
         assert m.energy == 0.0
         db.close()
 
     def test_get_recent(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-recent', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-recent', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        recent = MeasurementService.get_recent(db, limit=10)
+        recent = MeasurementService(db).get_recent(limit=10)
         assert len(recent) >= 1
         db.close()
 
     def test_get_stats_empty(self, app):
         db = self._db(app)
-        stats = MeasurementService.get_stats(db)
+        stats = MeasurementService(db).get_stats()
         assert stats['energy']['total'] == 0
         db.close()
 
     def test_get_stats_with_data(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-stats', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-stats', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        stats = MeasurementService.get_stats(db)
+        stats = MeasurementService(db).get_stats()
         assert stats['voltage']['avg'] > 0
         db.close()
 
     def test_get_chart_data_no_granularity(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-chart-svc', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-chart-svc', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        data = MeasurementService.get_chart_data(db, limit=10)
+        data = MeasurementService(db).get_chart_data(limit=10)
         assert len(data['labels']) >= 1
         db.close()
 
     def test_get_chart_data_with_granularity_hour(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-gran', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-gran', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        data = MeasurementService.get_chart_data(db, limit=10, granularity='h')
+        data = MeasurementService(db).get_chart_data(limit=10, granularity='h')
         assert len(data['labels']) >= 1
         db.close()
 
     def test_get_session_stats_empty(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-ss-empty')
-        s = SessionService.create(db, d.id, 'Empty Session')
+        d = DeviceService(db).create('esp32-ss-empty')
+        s = SessionService(db).create(d.id, 'Empty Session')
         stats = MeasurementService.get_session_stats(db, s.id)
         assert stats is not None
         assert stats['measurement_count'] == 0
@@ -556,10 +556,10 @@ class TestMeasurementService:
 
     def test_get_session_stats_with_data(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-ss-data')
-        s = SessionService.create(db, d.id, 'Data Session')
-        SessionService.start(db, s.id)
-        MeasurementService.create(db, 'esp32-ss-data', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-ss-data')
+        s = SessionService(db).create(d.id, 'Data Session')
+        SessionService(db).start(s.id)
+        MeasurementService(db).create('esp32-ss-data', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
         stats = MeasurementService.get_session_stats(db, s.id)
         assert stats['measurement_count'] == 1
@@ -575,95 +575,95 @@ class TestMeasurementService:
     def test_get_paginated(self, app):
         db = self._db(app)
         for i in range(3):
-            MeasurementService.create(db, f'esp32-pag-{i}', bus_voltage=5.0,
+            MeasurementService(db).create(f'esp32-pag-{i}', bus_voltage=5.0,
                                       shunt_voltage=80.0, current=200, power=1000)
-        p = MeasurementService.get_paginated(db, page=1, per_page=2)
+        p = MeasurementService(db).get_paginated(page=1, per_page=2)
         assert len(p.items) == 2
         db.close()
 
     def test_get_all_filtered(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-filt', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-filt', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        rows = MeasurementService.get_all_filtered(db)
+        rows = MeasurementService(db).get_all_filtered()
         assert len(rows) >= 1
         db.close()
 
     def test_get_recent_with_device_filter(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-rec-filt')
-        MeasurementService.create(db, 'esp32-rec-filt', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-rec-filt')
+        MeasurementService(db).create('esp32-rec-filt', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        recent = MeasurementService.get_recent(db, limit=10, device_id=d.id)
+        recent = MeasurementService(db).get_recent(limit=10, device_id=d.id)
         assert len(recent) >= 1
         db.close()
 
     def test_get_chart_data_granularity_second(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-g-s', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-g-s', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        data = MeasurementService.get_chart_data(db, limit=10, granularity='s')
+        data = MeasurementService(db).get_chart_data(limit=10, granularity='s')
         assert len(data['labels']) >= 1
         db.close()
 
     def test_get_chart_data_granularity_minute(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-g-m', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-g-m', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        data = MeasurementService.get_chart_data(db, limit=10, granularity='m')
+        data = MeasurementService(db).get_chart_data(limit=10, granularity='m')
         assert len(data['labels']) >= 1
         db.close()
 
     def test_get_chart_data_granularity_day(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-g-d', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-g-d', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        data = MeasurementService.get_chart_data(db, limit=10, granularity='d')
+        data = MeasurementService(db).get_chart_data(limit=10, granularity='d')
         assert len(data['labels']) >= 1
         db.close()
 
     def test_get_chart_data_device_filter(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-cd-filt')
-        MeasurementService.create(db, 'esp32-cd-filt', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-cd-filt')
+        MeasurementService(db).create('esp32-cd-filt', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        data = MeasurementService.get_chart_data(db, limit=10, device_id=d.id)
+        data = MeasurementService(db).get_chart_data(limit=10, device_id=d.id)
         assert len(data['labels']) >= 1
         db.close()
 
     def test_get_chart_data_session_filter(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-cs-filt')
-        s = SessionService.create(db, d.id, 'Chart Session')
-        SessionService.start(db, s.id)
-        MeasurementService.create(db, 'esp32-cs-filt', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-cs-filt')
+        s = SessionService(db).create(d.id, 'Chart Session')
+        SessionService(db).start(s.id)
+        MeasurementService(db).create('esp32-cs-filt', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        data = MeasurementService.get_chart_data(db, limit=10, session_id=s.id)
+        data = MeasurementService(db).get_chart_data(limit=10, session_id=s.id)
         assert len(data['labels']) >= 1
         db.close()
 
     def test_get_stats_device_filter(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-stats-filt')
-        MeasurementService.create(db, 'esp32-stats-filt', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-stats-filt')
+        MeasurementService(db).create('esp32-stats-filt', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        stats = MeasurementService.get_stats(db, device_id=d.id)
+        stats = MeasurementService(db).get_stats(device_id=d.id)
         assert stats['voltage']['avg'] > 0
         db.close()
 
     def test_energy_no_session_existing_device(self, app):
         db = self._db(app)
-        DeviceService.create(db, 'esp32-ens-exist')
-        m1 = MeasurementService.create(db, 'esp32-ens-exist', bus_voltage=5.0,
+        DeviceService(db).create('esp32-ens-exist')
+        m1 = MeasurementService(db).create('esp32-ens-exist', bus_voltage=5.0,
                                        shunt_voltage=80.0, current=200, power=1000)
-        m2 = MeasurementService.create(db, 'esp32-ens-exist', bus_voltage=5.0,
+        m2 = MeasurementService(db).create('esp32-ens-exist', bus_voltage=5.0,
                                        shunt_voltage=80.0, current=200, power=1000)
         assert m2.energy > m1.energy
         db.close()
 
     def test_pzem_create_no_shunt(self, app):
         db = self._db(app)
-        m = MeasurementService.create(db, 'pzem-svc', bus_voltage=230.5,
+        m = MeasurementService(db).create('pzem-svc', bus_voltage=230.5,
                                       shunt_voltage=0.0, current=4500, power=1035000)
         assert m.bus_voltage == 230.5
         assert m.shunt_voltage == 0.0
@@ -674,7 +674,7 @@ class TestMeasurementService:
 
     def test_pzem_create_default_shunt(self, app):
         db = self._db(app)
-        m = MeasurementService.create(db, 'pzem-default', bus_voltage=220.0,
+        m = MeasurementService(db).create('pzem-default', bus_voltage=220.0,
                                       current=10000, power=2200000)
         assert m.shunt_voltage == 0.0
         assert m.load_voltage == 220.0
@@ -682,28 +682,28 @@ class TestMeasurementService:
 
     def test_pzem_energy_accumulation(self, app):
         db = self._db(app)
-        DeviceService.create(db, 'pzem-energy')
-        m1 = MeasurementService.create(db, 'pzem-energy', bus_voltage=230.0,
+        DeviceService(db).create('pzem-energy')
+        m1 = MeasurementService(db).create('pzem-energy', bus_voltage=230.0,
                                        current=5000, power=1150000)
-        m2 = MeasurementService.create(db, 'pzem-energy', bus_voltage=230.0,
+        m2 = MeasurementService(db).create('pzem-energy', bus_voltage=230.0,
                                        current=5000, power=1150000)
         assert m2.energy > m1.energy
         db.close()
 
     def test_pzem_chart_data(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'pzem-chart', bus_voltage=230.0,
+        MeasurementService(db).create('pzem-chart', bus_voltage=230.0,
                                   current=5000, power=1150000)
-        data = MeasurementService.get_chart_data(db, limit=10)
+        data = MeasurementService(db).get_chart_data(limit=10)
         assert len(data['labels']) >= 1
         assert data['voltage'][0] == 230.0
         db.close()
 
     def test_pzem_stats(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'pzem-stats', bus_voltage=230.0,
+        MeasurementService(db).create('pzem-stats', bus_voltage=230.0,
                                   current=5000, power=1150000)
-        stats = MeasurementService.get_stats(db)
+        stats = MeasurementService(db).get_stats()
         assert stats['voltage']['avg'] == 230.0
         db.close()
 
@@ -714,7 +714,7 @@ class TestAlertService:
 
     def test_create_alert(self, app, sample_device_id):
         db = self._db(app)
-        a = AlertService.create(db, device_id=sample_device_id, level='critical',
+        a = AlertService(db).create(device_id=sample_device_id, level='critical',
                                 message='Test alert')
         assert a.id is not None
         assert a.level == 'critical'
@@ -722,93 +722,93 @@ class TestAlertService:
 
     def test_get_paginated(self, app, sample_device_id):
         db = self._db(app)
-        AlertService.create(db, device_id=sample_device_id, level='warning', message='A1')
-        AlertService.create(db, device_id=sample_device_id, level='info', message='A2')
-        p = AlertService.get_paginated(db, page=1, per_page=10)
+        AlertService(db).create(device_id=sample_device_id, level='warning', message='A1')
+        AlertService(db).create(device_id=sample_device_id, level='info', message='A2')
+        p = AlertService(db).get_paginated(page=1, per_page=10)
         assert len(p.items) >= 2
         db.close()
 
     def test_get_paginated_filter_device(self, app, sample_device_id):
         db = self._db(app)
-        AlertService.create(db, device_id=sample_device_id, level='warning', message='F1')
-        p = AlertService.get_paginated(db, page=1, per_page=10, device_id=sample_device_id)
+        AlertService(db).create(device_id=sample_device_id, level='warning', message='F1')
+        p = AlertService(db).get_paginated(page=1, per_page=10, device_id=sample_device_id)
         assert len(p.items) == 1
         db.close()
 
     def test_get_paginated_filter_level(self, app, sample_device_id):
         db = self._db(app)
-        AlertService.create(db, device_id=sample_device_id, level='warning', message='W')
-        AlertService.create(db, device_id=sample_device_id, level='info', message='I')
-        p = AlertService.get_paginated(db, page=1, per_page=10, level='info')
+        AlertService(db).create(device_id=sample_device_id, level='warning', message='W')
+        AlertService(db).create(device_id=sample_device_id, level='info', message='I')
+        p = AlertService(db).get_paginated(page=1, per_page=10, level='info')
         assert len(p.items) == 1
         db.close()
 
     def test_get_paginated_filter_unresolved(self, app, sample_device_id):
         db = self._db(app)
-        AlertService.create(db, device_id=sample_device_id, level='warning', message='Unres')
-        p = AlertService.get_paginated(db, page=1, per_page=10, resolved=False)
+        AlertService(db).create(device_id=sample_device_id, level='warning', message='Unres')
+        p = AlertService(db).get_paginated(page=1, per_page=10, resolved=False)
         assert len(p.items) >= 1
         db.close()
 
     def test_resolve(self, app, sample_device_id):
         db = self._db(app)
-        a = AlertService.create(db, device_id=sample_device_id, level='warning', message='Resolve me')
+        a = AlertService(db).create(device_id=sample_device_id, level='warning', message='Resolve me')
         assert a.resolved_at is None
-        resolved = AlertService.resolve(db, a.id)
+        resolved = AlertService(db).resolve(a.id)
         assert resolved.resolved_at is not None
         db.close()
 
     def test_resolve_nonexistent(self, app):
         db = self._db(app)
-        result = AlertService.resolve(db, 99999)
+        result = AlertService(db).resolve(99999)
         assert result is None
         db.close()
 
     def test_resolve_all(self, app, sample_device_id):
         db = self._db(app)
-        AlertService.create(db, device_id=sample_device_id, level='warning', message='A')
-        AlertService.create(db, device_id=sample_device_id, level='info', message='B')
-        AlertService.resolve_all(db)
-        count = AlertService.get_unresolved_count(db)
+        AlertService(db).create(device_id=sample_device_id, level='warning', message='A')
+        AlertService(db).create(device_id=sample_device_id, level='info', message='B')
+        AlertService(db).resolve_all()
+        count = AlertService(db).get_unresolved_count()
         assert count == 0
         db.close()
 
     def test_get_unresolved_count(self, app, sample_device_id):
         db = self._db(app)
-        AlertService.create(db, device_id=sample_device_id, level='warning', message='Urgent')
-        assert AlertService.get_unresolved_count(db) >= 1
+        AlertService(db).create(device_id=sample_device_id, level='warning', message='Urgent')
+        assert AlertService(db).get_unresolved_count() >= 1
         db.close()
 
     def test_generate_alerts_high_power(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-alert-hp', high_power_threshold=1.0)
-        AlertService.generate_alerts(db, d, bus_voltage=5.0, current=0.1, power=2.0)
-        unresolved = AlertService.get_unresolved_count(db, device_id=d.id)
+        d = DeviceService(db).create('esp32-alert-hp', high_power_threshold=1.0)
+        AlertService(db).generate_alerts( d, bus_voltage=5.0, current=0.1, power=2.0)
+        unresolved = AlertService(db).get_unresolved_count(device_id=d.id)
         assert unresolved >= 1
         db.close()
 
     def test_generate_alerts_high_current(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-alert-hc', high_current_threshold=0.3)
-        AlertService.generate_alerts(db, d, bus_voltage=5.0, current=0.5, power=0.5)
-        unresolved = AlertService.get_unresolved_count(db, device_id=d.id)
+        d = DeviceService(db).create('esp32-alert-hc', high_current_threshold=0.3)
+        AlertService(db).generate_alerts( d, bus_voltage=5.0, current=0.5, power=0.5)
+        unresolved = AlertService(db).get_unresolved_count(device_id=d.id)
         assert unresolved >= 1
         db.close()
 
     def test_generate_alerts_low_voltage(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-alert-lv', low_voltage_threshold=4.0)
-        AlertService.generate_alerts(db, d, bus_voltage=3.5, current=0.1, power=0.5)
-        unresolved = AlertService.get_unresolved_count(db, device_id=d.id)
+        d = DeviceService(db).create('esp32-alert-lv', low_voltage_threshold=4.0)
+        AlertService(db).generate_alerts( d, bus_voltage=3.5, current=0.1, power=0.5)
+        unresolved = AlertService(db).get_unresolved_count(device_id=d.id)
         assert unresolved >= 1
         db.close()
 
     def test_generate_alerts_no_duplicates(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-alert-nd', high_power_threshold=1.0)
-        AlertService.generate_alerts(db, d, bus_voltage=5.0, current=0.1, power=2.0)
-        AlertService.generate_alerts(db, d, bus_voltage=5.0, current=0.1, power=2.0)
-        unresolved = AlertService.get_unresolved_count(db, device_id=d.id)
+        d = DeviceService(db).create('esp32-alert-nd', high_power_threshold=1.0)
+        AlertService(db).generate_alerts( d, bus_voltage=5.0, current=0.1, power=2.0)
+        AlertService(db).generate_alerts( d, bus_voltage=5.0, current=0.1, power=2.0)
+        unresolved = AlertService(db).get_unresolved_count(device_id=d.id)
         alerts = db.query(Alert).filter_by(device_id=d.id, resolved_at=None).all()
         high_power_count = sum(1 for a in alerts if 'High power' in a.message)
         assert high_power_count == 1
@@ -816,23 +816,23 @@ class TestAlertService:
 
     def test_resolve_all_with_device_filter(self, app, sample_device_id):
         db = self._db(app)
-        AlertService.create(db, device_id=sample_device_id, level='warning', message='Filtered')
-        AlertService.resolve_all(db, device_id=sample_device_id)
-        count = AlertService.get_unresolved_count(db, device_id=sample_device_id)
+        AlertService(db).create(device_id=sample_device_id, level='warning', message='Filtered')
+        AlertService(db).resolve_all(device_id=sample_device_id)
+        count = AlertService(db).get_unresolved_count(device_id=sample_device_id)
         assert count == 0
         db.close()
 
     def test_get_paginated_resolved_true(self, app, sample_device_id):
         db = self._db(app)
-        a = AlertService.create(db, device_id=sample_device_id, level='info', message='Resolved alert')
-        AlertService.resolve(db, a.id)
-        p = AlertService.get_paginated(db, page=1, per_page=10, resolved=True)
+        a = AlertService(db).create(device_id=sample_device_id, level='info', message='Resolved alert')
+        AlertService(db).resolve(a.id)
+        p = AlertService(db).get_paginated(page=1, per_page=10, resolved=True)
         assert len(p.items) >= 1
         db.close()
 
     def test_owner_settings_with_exception(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-own-err')
+        d = DeviceService(db).create('esp32-own-err')
         d.project_id = 99999
         db.commit()
         result = AlertService._owner_settings(db, d)
@@ -846,7 +846,7 @@ class TestProjectService:
 
     def test_create_project(self, app):
         db = self._db(app)
-        p = ProjectService.create(db, name='Test Project', description='Desc')
+        p = ProjectService(db).create(name='Test Project', description='Desc')
         assert p.id is not None
         assert p.name == 'Test Project'
         db.close()
@@ -854,28 +854,28 @@ class TestProjectService:
     def test_create_with_owner(self, app):
         db = self._db(app)
         user = db.query(User).first()
-        p = ProjectService.create(db, name='Owned', owner_id=user.id)
+        p = ProjectService(db).create(name='Owned', owner_id=user.id)
         assert p.owner_id == user.id
         db.close()
 
     def test_get_by_id(self, app):
         db = self._db(app)
-        p = ProjectService.create(db, name='Find Me')
-        found = ProjectService.get_by_id(db, p.id)
+        p = ProjectService(db).create(name='Find Me')
+        found = ProjectService(db).get_by_id(p.id)
         assert found is not None
         db.close()
 
     def test_get_by_id_nonexistent(self, app):
         db = self._db(app)
-        p = ProjectService.get_by_id(db, 99999)
+        p = ProjectService(db).get_by_id(99999)
         assert p is None
         db.close()
 
     def test_get_all(self, app):
         db = self._db(app)
-        ProjectService.create(db, name='A')
-        ProjectService.create(db, name='B')
-        assert len(ProjectService.get_all(db)) >= 2
+        ProjectService(db).create(name='A')
+        ProjectService(db).create(name='B')
+        assert len(ProjectService(db).get_all()) >= 2
         db.close()
 
     def test_get_paginated(self, app):
@@ -884,36 +884,36 @@ class TestProjectService:
         db = self._db(app)
         db.execute(insert(Project), [{'name': f'Project {i}'} for i in range(5)])
         db.commit()
-        p = ProjectService.get_paginated(db, page=1, per_page=2)
+        p = ProjectService(db).get_paginated(page=1, per_page=2)
         assert len(p.items) == 2
         assert p.total >= 5
         db.close()
 
     def test_update(self, app):
         db = self._db(app)
-        p = ProjectService.create(db, name='Original')
-        ProjectService.update(db, p.id, name='Updated', description='New desc')
+        p = ProjectService(db).create(name='Original')
+        ProjectService(db).update(p.id, name='Updated', description='New desc')
         assert p.name == 'Updated'
         assert p.description == 'New desc'
         db.close()
 
     def test_update_nonexistent(self, app):
         db = self._db(app)
-        result = ProjectService.update(db, 99999, name='Ghost')
+        result = ProjectService(db).update(99999, name='Ghost')
         assert result is None
         db.close()
 
     def test_delete(self, app):
         db = self._db(app)
-        p = ProjectService.create(db, name='To Delete')
+        p = ProjectService(db).create(name='To Delete')
         pid = p.id
-        assert ProjectService.delete(db, pid) is True
-        assert ProjectService.get_by_id(db, pid) is None
+        assert ProjectService(db).delete(pid) is True
+        assert ProjectService(db).get_by_id(pid) is None
         db.close()
 
     def test_delete_nonexistent(self, app):
         db = self._db(app)
-        assert ProjectService.delete(db, 99999) is False
+        assert ProjectService(db).delete(99999) is False
         db.close()
 
 
@@ -923,7 +923,7 @@ class TestDashboardService:
 
     def test_get_summary_empty(self, app):
         db = self._db(app)
-        summary = DashboardService.get_summary(db)
+        summary = DashboardService(db).get_summary()
         assert summary['online_devices'] == 0
         assert summary['offline_devices'] == 0
         assert summary['total_projects'] == 0
@@ -934,13 +934,13 @@ class TestDashboardService:
 
     def test_get_summary_with_data(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-dash')
+        d = DeviceService(db).create('esp32-dash')
         d.last_seen = datetime.now(timezone.utc)
-        s = SessionService.create(db, d.id, 'Dash Sess')
-        SessionService.start(db, s.id)
-        MeasurementService.create(db, 'esp32-dash', bus_voltage=5.0,
+        s = SessionService(db).create(d.id, 'Dash Sess')
+        SessionService(db).start(s.id)
+        MeasurementService(db).create('esp32-dash', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        summary = DashboardService.get_summary(db)
+        summary = DashboardService(db).get_summary()
         assert summary['online_devices'] >= 1
         assert summary['active_sessions'] >= 1
         assert summary['current_power'] > 0
@@ -948,83 +948,83 @@ class TestDashboardService:
 
     def test_get_statistics_empty(self, app):
         db = self._db(app)
-        stats = DashboardService.get_statistics(db)
+        stats = DashboardService(db).get_statistics()
         assert stats['energy']['hourly'] == []
         assert stats['energy']['daily'] == []
         db.close()
 
     def test_get_statistics_with_data(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-dash-stats', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-dash-stats', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        stats = DashboardService.get_statistics(db)
+        stats = DashboardService(db).get_statistics()
         assert stats['voltage']['avg'] > 0
         db.close()
 
     def test_get_statistics_with_device_filter(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-filter-dev')
-        MeasurementService.create(db, 'esp32-filter-dev', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-filter-dev')
+        MeasurementService(db).create('esp32-filter-dev', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        stats = DashboardService.get_statistics(db, device_id=d.id)
+        stats = DashboardService(db).get_statistics(device_id=d.id)
         assert stats['voltage']['avg'] > 0
         db.close()
 
     def test_get_statistics_with_session_filter(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-filter-sess')
-        s = SessionService.create(db, d.id, 'Filter Sess')
-        SessionService.start(db, s.id)
-        MeasurementService.create(db, 'esp32-filter-sess', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-filter-sess')
+        s = SessionService(db).create(d.id, 'Filter Sess')
+        SessionService(db).start(s.id)
+        MeasurementService(db).create('esp32-filter-sess', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        stats = DashboardService.get_statistics(db, session_id=s.id)
+        stats = DashboardService(db).get_statistics(session_id=s.id)
         assert stats['voltage']['avg'] > 0
         assert stats['session_started_at'] is not None
         db.close()
 
     def test_get_statistics_with_date_filter(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-filter-date', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-filter-date', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
         from datetime import datetime, timezone, timedelta
         start = datetime.now(timezone.utc) - timedelta(hours=1)
         end = datetime.now(timezone.utc) + timedelta(hours=1)
-        stats = DashboardService.get_statistics(db, start_date=start, end_date=end)
+        stats = DashboardService(db).get_statistics(start_date=start, end_date=end)
         assert stats['voltage']['avg'] > 0
         db.close()
 
     def test_get_statistics_outside_date_range(self, app):
         db = self._db(app)
-        MeasurementService.create(db, 'esp32-filter-date2', bus_voltage=5.0,
+        MeasurementService(db).create('esp32-filter-date2', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
         from datetime import datetime, timezone, timedelta
         start = datetime.now(timezone.utc) + timedelta(hours=10)
         end = datetime.now(timezone.utc) + timedelta(hours=11)
-        stats = DashboardService.get_statistics(db, start_date=start, end_date=end)
+        stats = DashboardService(db).get_statistics(start_date=start, end_date=end)
         assert stats['voltage']['avg'] == 0
         db.close()
 
     def test_get_energy_breakdown_with_device_filter(self, app):
         db = self._db(app)
-        d = DeviceService.create(db, 'esp32-energy-filter')
-        MeasurementService.create(db, 'esp32-energy-filter', bus_voltage=5.0,
+        d = DeviceService(db).create('esp32-energy-filter')
+        MeasurementService(db).create('esp32-energy-filter', bus_voltage=5.0,
                                   shunt_voltage=80.0, current=200, power=1000)
-        energy = DashboardService._get_energy_breakdown(db, device_id=d.id)
+        energy = DashboardService(db)._get_energy_breakdown(device_id=d.id)
         assert 'hourly' in energy
         db.close()
 
     def test_get_energy_breakdown_empty(self, app):
         db = self._db(app)
-        energy = DashboardService._get_energy_breakdown(db)
+        energy = DashboardService(db)._get_energy_breakdown()
         assert energy == {'hourly': [], 'daily': [], 'weekly': [], 'monthly': []}
         db.close()
 
     def test_get_energy_breakdown_session_boundary(self, app):
         db = self._db(app)
-        d1 = DeviceService.create(db, 'esp32-boundary1')
-        d2 = DeviceService.create(db, 'esp32-boundary2')
-        sess1 = SessionService.create(db, d1.id, 'Boundary S1')
-        sess2 = SessionService.create(db, d2.id, 'Boundary S2')
+        d1 = DeviceService(db).create('esp32-boundary1')
+        d2 = DeviceService(db).create('esp32-boundary2')
+        sess1 = SessionService(db).create(d1.id, 'Boundary S1')
+        sess2 = SessionService(db).create(d2.id, 'Boundary S2')
         from app.models import Measurement as M
         from datetime import datetime, timezone, timedelta
         now = datetime.now(timezone.utc)
@@ -1036,7 +1036,7 @@ class TestDashboardService:
                 created_at=now)
         db.add_all([m1, m2])
         db.commit()
-        energy = DashboardService._get_energy_breakdown(db)
+        energy = DashboardService(db)._get_energy_breakdown()
         assert isinstance(energy['hourly'], list)
         assert isinstance(energy['daily'], list)
         db.close()

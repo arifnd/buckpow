@@ -20,7 +20,7 @@ def login(body: LoginRequest, request: Request, response: Response, db: Session 
     password = body.password
     if not email or not password:
         raise HTTPException(status_code=400, detail='Email and password are required')
-    user = UserService.authenticate(db, email, password)
+    user = UserService(db).authenticate(email, password)
     if not user:
         raise HTTPException(status_code=401, detail='Invalid email or password')
     token = create_access_token(data={'sub': user.id})
@@ -32,7 +32,7 @@ def login(body: LoginRequest, request: Request, response: Response, db: Session 
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
     ip = get_client_ip(request)
-    AuditService.log(db, 'login', user_id=user.id, ip_address=ip)
+    AuditService(db).log('login', user_id=user.id, ip_address=ip)
     return {'status': 'ok', 'user': user.to_dict(), 'token': token}
 
 
@@ -45,8 +45,7 @@ def logout(response: Response):
 @router.put('/auth/profile')
 def update_profile(body: ProfileUpdate, db: Session = Depends(get_db), current_user: User = Depends(require_user)):
     try:
-        user = UserService.update(
-            db, current_user.id,
+        user = UserService(db).update(current_user.id,
             name=body.name,
             email=body.email,
             password=body.password or None,

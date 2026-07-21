@@ -24,8 +24,7 @@ def list_alerts(
     resolved_bool = None
     if resolved is not None:
         resolved_bool = resolved.lower() in ('true', '1')
-    pagination = AlertService.get_paginated(
-        db, page=page, per_page=per_page,
+    pagination = AlertService(db).get_paginated(page=page, per_page=per_page,
         device_id=device_id, level=level, resolved=resolved_bool,
     )
     return {
@@ -34,19 +33,19 @@ def list_alerts(
         'pages': pagination.pages,
         'total': pagination.total,
         'per_page': pagination.per_page,
-        'unresolved_count': AlertService.get_unresolved_count(db),
+        'unresolved_count': AlertService(db).get_unresolved_count(),
     }
 
 
 @router.post('/alerts', status_code=201)
 def create_alert(body: AlertCreate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
-    alert = AlertService.create(db, body.device_id, body.level, body.message)
+    alert = AlertService(db).create(body.device_id, body.level, body.message)
     return alert.to_dict()
 
 
 @router.patch('/alerts/{alert_id}/resolve')
 def resolve_alert(alert_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
-    alert = AlertService.resolve(db, alert_id)
+    alert = AlertService(db).resolve(alert_id)
     if not alert:
         raise HTTPException(status_code=404, detail='Alert not found')
     return alert.to_dict()
@@ -58,5 +57,5 @@ def resolve_all(
     db: Session = Depends(get_db),
     _current_user: User = Depends(require_user),
 ):
-    AlertService.resolve_all(db, device_id=device_id)
+    AlertService(db).resolve_all(device_id=device_id)
     return {'status': 'ok'}

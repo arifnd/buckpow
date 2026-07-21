@@ -9,16 +9,18 @@ from app.utils.query import FilterBuilder
 
 class DashboardService:
 
-    @staticmethod
-    def get_summary(db: Session):
-        devices = db.query(Device).all()
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_summary(self):
+        devices = self.db.query(Device).all()
         online = sum(1 for d in devices if d._compute_status() == 'online')
         offline = len(devices) - online
-        total_projects = db.query(Project).count()
-        active_sessions = db.query(Session).filter_by(status='running').count()
+        total_projects = self.db.query(Project).count()
+        active_sessions = self.db.query(Session).filter_by(status='running').count()
 
         today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        today_ms = db.query(Measurement).filter(
+        today_ms = self.db.query(Measurement).filter(
             Measurement.created_at >= today_start
         ).order_by(Measurement.created_at.asc()).all()
 
@@ -30,7 +32,7 @@ class DashboardService:
                     seen_sessions[m.session_id] = m.energy
             today_energy = sum(seen_sessions.values()) if seen_sessions else 0.0
 
-        latest = db.query(Measurement).order_by(Measurement.created_at.desc()).first()
+        latest = self.db.query(Measurement).order_by(Measurement.created_at.desc()).first()
         current_power = round(latest.power, 3) if latest else 0.0
 
         return {
@@ -42,14 +44,13 @@ class DashboardService:
             'current_power': current_power,
         }
 
-    @staticmethod
-    def get_statistics(db: Session, device_id=None, session_id=None, start_date=None, end_date=None):
-        fb = FilterBuilder(Measurement, db.query(Measurement))
+    def get_statistics(self, device_id=None, session_id=None, start_date=None, end_date=None):
+        fb = FilterBuilder(Measurement, self.db.query(Measurement))
         fb.eq(device_id=device_id, session_id=session_id).date_range('created_at', start_date, end_date).order('created_at').limit(500)
 
         session_started_at = None
         if session_id:
-            sess = db.query(Session).filter_by(id=session_id, status='running').first()
+            sess = self.db.query(Session).filter_by(id=session_id, status='running').first()
             if sess:
                 session_started_at = utc_iso(sess.started_at)
 
@@ -64,29 +65,12 @@ class DashboardService:
                 'session_started_at': session_started_at,
             }
 
-        voltages = [r.bus_voltage for r in rows]
-        currents = [r.current for r in rows]
-        powers = [r.power for r in rows]
+        from app.services.measurement_service import MeasurementService
 
         stats = {
-            'voltage': {
-                'min': round(min(voltages), 3),
-                'max': round(max(voltages), 3),
-                'avg': round(sum(voltages) / len(voltages), 3),
-            },
-            'current': {
-                'min': round(min(currents), 3),
-                'max': round(max(currents), 3),
-                'avg': round(sum(currents) / len(currents), 3),
-            },
-            'power': {
-                'min': round(min(powers), 3),
-                'max': round(max(powers), 3),
-                'avg': round(sum(powers) / len(powers), 3),
-                'peak': round(max(powers), 3),
-            },
-            'energy': DashboardService._get_energy_breakdown(
-                db, device_id=device_id, session_id=session_id,
+            **MeasurementService._compute_field_stats(rows),
+            'energy': self._get_energy_breakdown(
+                device_id=device_id, session_id=session_id,
                 start_date=start_date, end_date=end_date
             ),
             'total_energy': round(rows[0].energy, 6) if rows else 0,
@@ -94,10 +78,9 @@ class DashboardService:
         }
         return stats
 
-    @staticmethod
-    def _get_energy_breakdown(db: Session, device_id=None, session_id=None,
-                               start_date=None, end_date=None):
-        fb = FilterBuilder(Measurement, db.query(Measurement))
+    def _get_energy_breakdown(self, device_id=None, session_id=None,
+                              start_date=None, end_date=None):
+        fb = FilterBuilder(Measurement, self.db.query(Measurement))
         fb.eq(device_id=device_id, session_id=session_id).date_range('created_at', start_date, end_date).order('created_at', desc=False)
         rows = fb.query.all()
         if not rows:

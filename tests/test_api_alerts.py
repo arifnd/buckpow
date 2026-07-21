@@ -27,7 +27,7 @@ class TestAlertsAPI:
         from app.models import Device
         from app.services.device_service import DeviceService
         db = SessionLocal()
-        d2 = DeviceService.create(db, 'esp32-alert-other')
+        d2 = DeviceService(db).create('esp32-alert-other')
         d2_id = d2.id
         db.close()
         client.post('/api/v1/alerts', json={'device_id': sample_device_id, 'message': 'Dev1'})
