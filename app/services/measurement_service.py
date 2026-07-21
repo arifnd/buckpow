@@ -197,7 +197,6 @@ class MeasurementService:
                 'measurement_count': 0,
                 'started_at': utc_iso(session.started_at) if session.started_at else None,
                 'ended_at': utc_iso(session.ended_at) if session.ended_at else None,
-                'chart_data': {'labels': [], 'power': [], 'voltage': [], 'current': []},
             }
 
         powers = [m.power for m in measurements]
@@ -239,13 +238,6 @@ class MeasurementService:
             'measurement_count': n,
             'started_at': utc_iso(session.started_at) if session.started_at else None,
             'ended_at': utc_iso(session.ended_at) if session.ended_at else None,
-            'chart_data': {
-                'labels': [utc_iso(m.created_at) if m.created_at else '' for m in measurements],
-                'power': [m.power for m in measurements],
-                'voltage': [m.bus_voltage for m in measurements],
-                'current': [m.current for m in measurements],
-                'energy': [m.energy for m in measurements],
-            },
         }
 
     @staticmethod

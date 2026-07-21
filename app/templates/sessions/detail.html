@@ -123,7 +123,7 @@
   </div>
 </div>
 
-<div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 mb-4">
+<div id="energy-breakdown-section" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4 mb-4">
   <div class="flex items-center gap-2 mb-3">
     <iconify-icon class="w-4 h-4 text-gray-500 dark:text-gray-400" icon="heroicons-outline:chart-bar-square"></iconify-icon>
     <h6 class="text-base text-gray-500 dark:text-gray-400 font-medium">Energy Breakdown</h6>
@@ -571,8 +571,20 @@ function initDetail() {
 
   loadStats();
   loadCharts();
-  loadStatistics();
   loadMeasurements();
+
+  var energySection = document.getElementById('energy-breakdown-section');
+  if (energySection) {
+    var statsLoaded = false;
+    var observer = new IntersectionObserver(function(entries) {
+      if (entries[0].isIntersecting && !statsLoaded) {
+        statsLoaded = true;
+        observer.disconnect();
+        loadStatistics();
+      }
+    }, { rootMargin: '200px' });
+    observer.observe(energySection);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', initDetail);
