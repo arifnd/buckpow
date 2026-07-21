@@ -1,7 +1,12 @@
 from datetime import datetime, timezone
 
+
 from src.database import SessionLocal
-from src.models import Alert, Device
+
+
+from src.alerts.models import Alert
+
+from src.devices.models import Device
 
 
 class TestAlertModel:

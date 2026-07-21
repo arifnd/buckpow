@@ -7,9 +7,9 @@ from src.database import get_db
 from src.auth.service import UserService
 from src.audit.service import AuditService
 from src.utils.client_ip import get_client_ip
-from src.models import User
+from src.auth.models import User
 from src.config import settings
-from src.schemas import LoginRequest, ProfileUpdate
+from src.auth.schemas import LoginRequest, ProfileUpdate
 
 router = APIRouter()
 

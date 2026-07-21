@@ -41,7 +41,7 @@ class TestMeasurementsAPI:
         }, headers=device_auth_header)
         assert resp.status_code == 201
         from src.database import SessionLocal
-        from src.models import Measurement
+        from src.measurements.models import Measurement
         db = SessionLocal()
         m = db.query(Measurement).order_by(Measurement.id.desc()).first()
         assert m.load_voltage == 230.0
@@ -58,7 +58,7 @@ class TestMeasurementsAPI:
             }, headers=device_auth_header)
             assert resp.status_code == 201
         from src.database import SessionLocal
-        from src.models import Measurement
+        from src.measurements.models import Measurement
         db = SessionLocal()
         rows = db.query(Measurement).filter_by(device_id=1).order_by(Measurement.id).all()
         assert len(rows) >= 3
@@ -255,7 +255,9 @@ class TestMeasurementsExtra:
 
     def test_device_owner_mismatch_forbidden(self, client, sample_device, sample_project):
         from src.database import SessionLocal
-        from src.models import Device, Project, User
+        from src.devices.models import Device
+        from src.projects.models import Project
+        from src.auth.models import User
         db = SessionLocal()
         other_user = User(name='Other', email='other2@example.com', password='x')
         db.add(other_user)

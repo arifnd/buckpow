@@ -4,7 +4,7 @@ from jinja2 import Environment, FileSystemLoader
 from src import APP_VERSION
 
 
-templates = Environment(loader=FileSystemLoader('src/templates'), autoescape=True)
+templates = Environment(loader=FileSystemLoader('templates'), autoescape=True)
 
 
 def _url_for(endpoint, **kwargs):

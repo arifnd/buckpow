@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
 from src.dependencies import get_current_user, get_db
-from src.models import User
+from src.auth.models import User
 from src.template_helpers import _render, _render_or_redirect, _require_dashboard_user
 from src.devices.service import DeviceService
 from src.sessions.service import SessionService

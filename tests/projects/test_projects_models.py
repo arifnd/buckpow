@@ -1,7 +1,18 @@
 from datetime import datetime, timezone
 
+
 from src.database import SessionLocal
-from src.models import Project, User, Device, Session
+
+
+from src.projects.models import Project
+
+
+from src.auth.models import User
+
+
+from src.devices.models import Device
+
+from src.sessions.models import Session
 
 
 class TestProjectModel:

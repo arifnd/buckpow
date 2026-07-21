@@ -34,7 +34,8 @@ class TestDashboardRoutes:
 
     def test_session_detail_page(self, client, app):
         from src.database import SessionLocal
-        from src.models import Device, Session
+        from src.devices.models import Device
+        from src.sessions.models import Session
         db = SessionLocal()
         d = Device(device_id='esp32-detail', alias='Detail Device', sampling_interval=1)
         db.add(d)
@@ -205,7 +206,8 @@ class TestAuthRedirects:
 
     def test_authenticated_session_detail_returns_200(self, client, app):
         from src.database import SessionLocal
-        from src.models import Device, Session
+        from src.devices.models import Device
+        from src.sessions.models import Session
         db = SessionLocal()
         d = Device(device_id='esp32-auth-detail', alias='Auth Detail Device', sampling_interval=1)
         db.add(d)

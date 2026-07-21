@@ -58,7 +58,7 @@ class TestDevicesAPI:
     def test_device_pagination(self, client, app):
         from sqlalchemy import insert
         from src.database import SessionLocal
-        from src.models import Device
+        from src.devices.models import Device
         from src.devices.service import DeviceService
         db = SessionLocal()
         db.execute(insert(Device), [
@@ -77,7 +77,7 @@ class TestDevicesAPI:
     def test_device_page_zero_returns_all(self, client, app):
         from sqlalchemy import insert
         from src.database import SessionLocal
-        from src.models import Device
+        from src.devices.models import Device
         from src.devices.service import DeviceService
         db = SessionLocal()
         db.execute(insert(Device), [
@@ -344,7 +344,7 @@ class TestDevicesExtra:
         }, headers=device_auth_header)
         assert resp.status_code == 201
         from src.database import SessionLocal
-        from src.models import Device
+        from src.devices.models import Device
         db = SessionLocal()
         d = db.query(Device).filter_by(device_id='esp32-auth').first()
         assert d.firmware_version == 'unknown'
@@ -357,7 +357,7 @@ class TestDevicesExtra:
         }, headers=device_auth_header)
         assert resp.status_code == 201
         from src.database import SessionLocal
-        from src.models import Device
+        from src.devices.models import Device
         db = SessionLocal()
         d = db.query(Device).filter_by(device_id='esp32-auth').first()
         assert d.firmware_version == 'unknown'
@@ -397,7 +397,9 @@ class TestDevicesExtra:
 
     def test_device_owner_mismatch_forbidden(self, client, sample_device, sample_project):
         from src.database import SessionLocal
-        from src.models import Device, Project, User
+        from src.devices.models import Device
+        from src.projects.models import Project
+        from src.auth.models import User
         db = SessionLocal()
         other_user = User(name='Other', email='other2@example.com', password='x')
         db.add(other_user)
@@ -446,7 +448,7 @@ class TestFirmwareCompatibility:
         assert resp.status_code == 201
         assert resp.headers.get('x-firmware-outdated') is None
         from src.database import SessionLocal
-        from src.models import Device
+        from src.devices.models import Device
         db = SessionLocal()
         d = db.query(Device).filter_by(device_id='esp32-fw').first()
         assert d.firmware_version == '1.0.0'
@@ -461,7 +463,7 @@ class TestFirmwareCompatibility:
         assert resp.status_code == 201
         assert resp.headers.get('x-firmware-outdated') == 'true'
         from src.database import SessionLocal
-        from src.models import Device
+        from src.devices.models import Device
         db = SessionLocal()
         d = db.query(Device).filter_by(device_id='esp32-fw').first()
         assert d.firmware_version == '0.9.0'

@@ -8,11 +8,12 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.config import settings
+from src.config import settings as config
 from src.database import engine, Base
 from src.middleware import RateLimiterMiddleware, bearer_token_key
 
 APP_VERSION = '0.1.0-beta.1'
+MIN_FIRMWARE_VERSION = '1.0.0'
 
 
 @asynccontextmanager
@@ -25,7 +26,7 @@ async def lifespan(app: FastAPI):
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
 
-    if 'sqlite' in settings.DATABASE_URL:
+    if 'sqlite' in config.DATABASE_URL:
         db_path = engine.url.database
         if db_path:
             db_dir = os.path.dirname(db_path)
@@ -39,20 +40,20 @@ async def lifespan(app: FastAPI):
             command.stamp(alembic_cfg, 'head')
         except Exception:
             logger.warning("Could not stamp alembic revision (non-fatal)")
-    from src.models import User
+    from src.auth.models import User
     from src.database import SessionLocal
     db = SessionLocal()
     try:
         if not db.query(User).first():
-            if settings.ADMIN_EMAIL and settings.ADMIN_PASSWORD:
+            if config.ADMIN_EMAIL and config.ADMIN_PASSWORD:
                 from src.auth.service import UserService
                 UserService(db).create(
                     name='Admin',
-                    email=settings.ADMIN_EMAIL,
-                    password=settings.ADMIN_PASSWORD,
+                    email=config.ADMIN_EMAIL,
+                    password=config.ADMIN_PASSWORD,
                     commit=True,
                 )
-                logger.info("Admin user created (%s).", settings.ADMIN_EMAIL)
+                logger.info("Admin user created (%s).", config.ADMIN_EMAIL)
             else:
                 logger.info("No users found and ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping auto-create.")
         db.commit()
@@ -66,9 +67,9 @@ app = FastAPI(
     title='BuckPow',
     version=APP_VERSION,
     lifespan=lifespan,
-    docs_url=None if settings.DISABLE_API_DOCS else '/docs',
-    redoc_url=None if settings.DISABLE_API_DOCS else '/redoc',
-    openapi_url=None if settings.DISABLE_API_DOCS else '/openapi.json',
+    docs_url=None if config.DISABLE_API_DOCS else '/docs',
+    redoc_url=None if config.DISABLE_API_DOCS else '/redoc',
+    openapi_url=None if config.DISABLE_API_DOCS else '/openapi.json',
 )
 
 app.add_middleware(
@@ -91,7 +92,7 @@ app.add_middleware(
 
 app.mount('/static', StaticFiles(directory='src/static'), name='static')
 
-from src.api import api_router
+from src.router import api_router
 from src.dashboard import dashboard_router
 
 app.include_router(api_router, prefix='/api/v1')

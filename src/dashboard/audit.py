@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from src.dependencies import get_current_user
-from src.models import User
+from src.auth.models import User
 from src.template_helpers import _render_or_redirect
 
 router = APIRouter()

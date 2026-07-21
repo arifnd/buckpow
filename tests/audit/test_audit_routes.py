@@ -41,7 +41,7 @@ class TestAuditExtra:
         }, headers=device_auth_header)
         assert resp.status_code == 201
         from src.database import SessionLocal
-        from src.models import Device
+        from src.devices.models import Device
         db = SessionLocal()
         d = db.query(Device).filter_by(device_id='esp32-auth').first()
         assert d.firmware_version == 'unknown'
@@ -54,7 +54,7 @@ class TestAuditExtra:
         }, headers=device_auth_header)
         assert resp.status_code == 201
         from src.database import SessionLocal
-        from src.models import Device
+        from src.devices.models import Device
         db = SessionLocal()
         d = db.query(Device).filter_by(device_id='esp32-auth').first()
         assert d.firmware_version == 'unknown'
@@ -94,7 +94,9 @@ class TestAuditExtra:
 
     def test_device_owner_mismatch_forbidden(self, client, sample_device, sample_project):
         from src.database import SessionLocal
-        from src.models import Device, Project, User
+        from src.devices.models import Device
+        from src.projects.models import Project
+        from src.auth.models import User
         db = SessionLocal()
         other_user = User(name='Other', email='other2@example.com', password='x')
         db.add(other_user)

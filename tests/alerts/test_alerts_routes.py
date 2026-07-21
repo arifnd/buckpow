@@ -24,7 +24,7 @@ class TestAlertsAPI:
 
     def test_list_alerts_filter_device(self, client, sample_device_id, app):
         from src.database import SessionLocal
-        from src.models import Device
+        from src.devices.models import Device
         from src.devices.service import DeviceService
         db = SessionLocal()
         d2 = DeviceService(db).create('esp32-alert-other')

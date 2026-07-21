@@ -1,7 +1,17 @@
 from datetime import datetime, timezone, timedelta
 
+
 from src.database import SessionLocal
-from src.models import Device, Session, Measurement
+
+
+from src.devices.models import Device
+
+
+from src.sessions.models import Session
+
+
+from src.measurements.models import Measurement
+
 from src.utils.calculations import calc_load_voltage, calc_energy_increment
 
 class TestDeviceModel:

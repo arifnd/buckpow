@@ -71,7 +71,8 @@ class TestDeadLinks:
 
     def test_session_detail_has_no_broken_links(self, client):
         from src.database import SessionLocal
-        from src.models import Device, Session
+        from src.devices.models import Device
+        from src.sessions.models import Session
         db = SessionLocal()
         d = Device(device_id='esp32-link-detail', alias='Link Detail Device', sampling_interval=1)
         db.add(d)

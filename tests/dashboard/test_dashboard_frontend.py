@@ -119,7 +119,8 @@ class TestPageStructure:
 
     def _create_session(self, client):
         from src.database import SessionLocal
-        from src.models import Device, Session
+        from src.devices.models import Device
+        from src.sessions.models import Session
         db = SessionLocal()
         d = Device(device_id='esp32-fe-detail', alias='FE Detail Device', sampling_interval=1)
         db.add(d)

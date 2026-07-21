@@ -3,10 +3,10 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.database import get_db
-from src.models import User
+from src.auth.models import User
 from src.alerts.service import AlertService
 from src.dependencies import require_user
-from src.schemas import AlertCreate
+from src.alerts.schemas import AlertCreate
 
 router = APIRouter()
 

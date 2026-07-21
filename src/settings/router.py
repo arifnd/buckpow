@@ -12,9 +12,9 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db, engine
 from src.dependencies import require_user
-from src.models import User
+from src.auth.models import User
 from src.config import settings
-from src.schemas import SettingsUpdate
+from src.settings.schemas import SettingsUpdate
 
 router = APIRouter()
 

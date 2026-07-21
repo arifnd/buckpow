@@ -61,7 +61,7 @@ class TestProjectsAPI:
     def test_list_page_zero(self, client, app):
         from sqlalchemy import insert
         from src.database import SessionLocal
-        from src.models import Project
+        from src.projects.models import Project
         db = SessionLocal()
         db.execute(insert(Project), [{'name': f'Project {i}'} for i in range(3)])
         db.commit()
@@ -74,7 +74,7 @@ class TestProjectsAPI:
     def test_pagination(self, client, app):
         from sqlalchemy import insert
         from src.database import SessionLocal
-        from src.models import Project
+        from src.projects.models import Project
         db = SessionLocal()
         db.execute(insert(Project), [{'name': f'Pagination {i}'} for i in range(15)])
         db.commit()
@@ -166,7 +166,7 @@ class TestOwnerChecks:
             'bus_voltage': 5.0, 'shunt_voltage': 80, 'current': 200, 'power': 1000,
         }, headers={'Authorization': f'Bearer {key}'})
         assert resp.status_code == 201
-        from src.models import Device
+        from src.devices.models import Device
         db = SessionLocal()
         d = db.query(Device).filter_by(device_id='esp32-fw').first()
         assert d.firmware_version == 'unknown'
@@ -191,7 +191,7 @@ class TestOwnerChecks:
         }, headers={'Authorization': f'Bearer {key}'})
         assert resp.status_code == 201
         assert resp.headers.get('x-firmware-outdated') is None
-        from src.models import Device
+        from src.devices.models import Device
         db = SessionLocal()
         d = db.query(Device).filter_by(device_id='esp32-fw').first()
         assert d.firmware_version == '1.0.0'

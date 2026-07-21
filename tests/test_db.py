@@ -1,6 +1,11 @@
 from sqlalchemy import inspect
 from src.database import SessionLocal, engine
-from src.models import Device, Session, Measurement, User, Project, Alert
+from src.auth.models import User
+from src.devices.models import Device
+from src.sessions.models import Session
+from src.measurements.models import Measurement
+from src.projects.models import Project
+from src.alerts.models import Alert
 
 
 def test_init_db_creates_tables(app):

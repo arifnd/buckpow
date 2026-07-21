@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.dependencies import require_user
-from src.models import User
+from src.auth.models import User
 from src.projects.service import ProjectService
 from src.audit.service import AuditService
 from src.utils.client_ip import get_client_ip
-from src.schemas import ProjectCreate, ProjectUpdate
+from src.projects.schemas import ProjectCreate, ProjectUpdate
 
 router = APIRouter()
 

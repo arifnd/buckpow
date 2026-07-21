@@ -11,15 +11,15 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.database import get_db
-from src.models import User
+from src.auth.models import User
 from src.sessions.models import Session as SessionModel
 from src.measurements.service import MeasurementService
 from src.devices.service import DeviceService
 from src.audit.service import AuditService
 from src.utils.client_ip import get_client_ip
 from src.dependencies import get_api_key_device, require_user
-from src.api.health import MIN_FIRMWARE_VERSION
-from src.schemas import MeasurementCreate
+from src import MIN_FIRMWARE_VERSION
+from src.measurements.schemas import MeasurementCreate
 
 router = APIRouter()
 

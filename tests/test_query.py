@@ -1,5 +1,6 @@
 from src.database import SessionLocal
-from src.models import Device, Alert
+from src.devices.models import Device
+from src.alerts.models import Alert
 from src.utils.query import FilterBuilder
 from src.utils.pagination import PaginatedResult
 
@@ -40,7 +41,7 @@ class TestFilterBuilder:
 
     def test_date_range_start_only(self, app):
         from datetime import datetime, timezone, timedelta
-        from src.models import Measurement
+        from src.measurements.models import Measurement
         db = SessionLocal()
         from src.measurements.service import MeasurementService
         ms = MeasurementService(db)
@@ -53,7 +54,7 @@ class TestFilterBuilder:
 
     def test_date_range_end_only(self, app):
         from datetime import datetime, timezone, timedelta
-        from src.models import Measurement
+        from src.measurements.models import Measurement
         db = SessionLocal()
         from src.measurements.service import MeasurementService
         ms = MeasurementService(db)
@@ -66,7 +67,7 @@ class TestFilterBuilder:
 
     def test_date_range_both(self, app):
         from datetime import datetime, timezone, timedelta
-        from src.models import Measurement
+        from src.measurements.models import Measurement
         db = SessionLocal()
         from src.measurements.service import MeasurementService
         ms = MeasurementService(db)

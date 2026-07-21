@@ -3,12 +3,14 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.database import get_db
-from src.models import Device, Project, User
+from src.devices.models import Device
+from src.projects.models import Project
+from src.auth.models import User
 from src.devices.service import DeviceService
 from src.audit.service import AuditService
 from src.utils.client_ip import get_client_ip
 from src.dependencies import require_user
-from src.schemas import DeviceCreate, DeviceUpdate
+from src.devices.schemas import DeviceCreate, DeviceUpdate
 
 router = APIRouter()
 

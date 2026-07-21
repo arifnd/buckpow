@@ -1,5 +1,5 @@
 from src.database import SessionLocal
-from src.models import User
+from src.auth.models import User
 
 
 class TestUserModel:

@@ -17,7 +17,13 @@ from fastapi.testclient import TestClient
 # These imports trigger app init, must come after env var is set
 from src.database import engine, Base, SessionLocal, get_db
 from src.config import settings
-from src.models import Device, Measurement, Session, User, Project, Alert, AuditLog
+from src.devices.models import Device
+from src.measurements.models import Measurement
+from src.sessions.models import Session
+from src.auth.models import User
+from src.projects.models import Project
+from src.alerts.models import Alert
+from src.audit.models import AuditLog
 from src.auth.service import UserService
 from src.devices.service import DeviceService
 from src.projects.service import ProjectService

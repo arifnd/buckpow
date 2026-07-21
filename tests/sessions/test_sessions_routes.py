@@ -157,7 +157,8 @@ class TestSessionsAPI:
     def test_session_pagination(self, client, app):
         from sqlalchemy import insert
         from src.database import SessionLocal
-        from src.models import Device, Session as SessionModel
+        from src.devices.models import Device
+        from src.sessions.models import Session as SessionModel
         from src.devices.service import DeviceService
         db = SessionLocal()
         device = DeviceService(db).create('esp32-sess-page')
@@ -176,7 +177,8 @@ class TestSessionsAPI:
     def test_session_page_zero_returns_all(self, client, app):
         from sqlalchemy import insert
         from src.database import SessionLocal
-        from src.models import Device, Session as SessionModel
+        from src.devices.models import Device
+        from src.sessions.models import Session as SessionModel
         from src.devices.service import DeviceService
         db = SessionLocal()
         device = DeviceService(db).create('esp32-sess-all')
@@ -228,7 +230,9 @@ class TestSessionsExtra:
 
     def test_device_owner_mismatch_forbidden(self, client, sample_device, sample_project):
         from src.database import SessionLocal
-        from src.models import Device, Project, User
+        from src.devices.models import Device
+        from src.projects.models import Project
+        from src.auth.models import User
         db = SessionLocal()
         other_user = User(name='Other', email='other2@example.com', password='x')
         db.add(other_user)

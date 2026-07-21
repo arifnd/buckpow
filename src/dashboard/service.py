@@ -2,7 +2,10 @@ from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
-from src.models import Device, Session, Project, Measurement
+from src.devices.models import Device
+from src.sessions.models import Session
+from src.projects.models import Project
+from src.measurements.models import Measurement
 from src.utils.dates import utc_iso
 from src.utils.query import FilterBuilder
 
