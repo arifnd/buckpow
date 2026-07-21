@@ -67,7 +67,7 @@ const char* WIFI_PASSWORD = "your-password";
 ```cpp
 const char* API_BASE   = "http://192.168.100.16:8000";
 const char* API_PATH   = "/api/v1/measurements";
-const char* DEVICE_ID  = "esp32-ina219-01";
+const char* NODE_ID   = "esp32-ina219-01";
 const char* API_KEY    = "";
 const bool  USE_HTTPS  = false;
 ```
@@ -76,7 +76,7 @@ const bool  USE_HTTPS  = false;
 |---------|-------------|
 | `API_BASE` | BuckPow server URL (e.g. `http://192.168.1.100:8000`) |
 | `API_PATH` | API endpoint (default: `/api/v1/measurements`) |
-| `DEVICE_ID` | Unique device ID (auto-registers on first reading) |
+| `NODE_ID` | Unique node ID (auto-registers on first reading) |
 | `API_KEY` | API key for authentication; leave empty for dev mode |
 | `USE_HTTPS` | Set `true` for HTTPS (uses `setInsecure()` — no cert verification) |
 

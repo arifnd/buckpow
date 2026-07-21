@@ -12,7 +12,7 @@
       <thead>
         <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
           <th class="text-left py-2 px-3 font-medium">Name</th>
-          <th class="text-left py-2 px-3 font-medium">Device ID</th>
+          <th class="text-left py-2 px-3 font-medium">Node ID</th>
           <th class="text-left py-2 px-3 font-medium">Target Device</th>
           <th class="text-left py-2 px-3 font-medium">Project</th>
           <th class="text-left py-2 px-3 font-medium">Status</th>
@@ -41,10 +41,10 @@
                class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
       </div>
       <div class="mb-4">
-        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Device</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Node</label>
         <select name="device_id" id="field-session-device"
                 class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
-          <option value="">Select device</option>
+          <option value="">Select node</option>
         </select>
       </div>
       <div class="mb-4">
@@ -174,7 +174,7 @@ async function populateSessionProjectSelect(selectedId) {
 
 async function populateDeviceSelect(selectedId) {
   const sel = document.getElementById('field-session-device');
-  sel.innerHTML = '<option value="">Select device</option>';
+  sel.innerHTML = '<option value="">Select node</option>';
   if (allDeviceOpts.length === 0) {
     const [devRes, sessRes] = await Promise.all([
       fetch('/api/v1/devices?page=0'),

@@ -89,7 +89,7 @@ ID,Device,Session,Bus Voltage,Shunt Voltage,Load Voltage,Current (A),Power (W),E
 | Column | Unit | Description |
 |--------|------|-------------|
 | `ID` | — | Measurement ID |
-| `Device` | — | Device ID string |
+| `Node` | — | Node ID string |
 | `Session` | — | Session name (empty if none) |
 | `Bus Voltage` | V | Bus voltage from INA219 |
 | `Shunt Voltage` | V | Shunt voltage from INA219 |

@@ -122,7 +122,7 @@ def export_csv(
     )
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(['ID', 'Device', 'Session', 'Bus Voltage', 'Shunt Voltage', 'Load Voltage', 'Current (A)', 'Power (W)', 'Energy (Wh)', 'Timestamp'])
+    writer.writerow(['ID', 'Node', 'Session', 'Bus Voltage', 'Shunt Voltage', 'Load Voltage', 'Current (A)', 'Power (W)', 'Energy (Wh)', 'Timestamp'])
     for m in rows:
         writer.writerow([
             m.id,
@@ -165,7 +165,7 @@ def export_xlsx(
     ws = wb.active
     ws.title = 'Measurements'
 
-    headers = ['ID', 'Device', 'Session', 'Bus Voltage', 'Shunt Voltage', 'Load Voltage', 'Current (A)', 'Power (W)', 'Energy (Wh)', 'Timestamp']
+    headers = ['ID', 'Node', 'Session', 'Bus Voltage', 'Shunt Voltage', 'Load Voltage', 'Current (A)', 'Power (W)', 'Energy (Wh)', 'Timestamp']
     bold = Font(bold=True)
     for col, h in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=h)

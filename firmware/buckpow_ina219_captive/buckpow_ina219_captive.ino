@@ -2,9 +2,9 @@
  * BuckPow INA219 - Captive Portal Firmware
  * Supports ESP32 and ESP8266 with INA219 sensor.
  *
- * Custom captive portal for WiFi and device configuration.
+ * Custom captive portal for WiFi and node configuration.
  * No external WiFi manager library required.
- * EEPROM stores WiFi credentials and device config.
+ * EEPROM stores WiFi credentials and node config.
  *
  * Wiring (INA219 → ESP32/ESP8266):
  *   VCC  → 3.3V
@@ -92,7 +92,7 @@ struct Config {
   uint16_t magic;
   char wifiSsid[33];
   char wifiPassword[65];
-  char deviceName[33];
+  char nodeId[33];
   char location[65];
   char serverUrl[129];
   char apiKey[65];
@@ -136,7 +136,7 @@ void loadConfig() {
     config.magic = EEPROM_MAGIC;
     strlcpy(config.wifiSsid, "", sizeof(config.wifiSsid));
     strlcpy(config.wifiPassword, "", sizeof(config.wifiPassword));
-    strlcpy(config.deviceName, "esp32-ina219", sizeof(config.deviceName));
+    strlcpy(config.nodeId, "esp32-ina219", sizeof(config.nodeId));
     strlcpy(config.location, "", sizeof(config.location));
     strlcpy(config.serverUrl, "http://192.168.1.10:8000", sizeof(config.serverUrl));
     strlcpy(config.apiKey, "", sizeof(config.apiKey));
@@ -231,7 +231,7 @@ void handleWifiScan() {
 void handleSaveConfig() {
   strlcpy(config.wifiSsid, statusServer.arg("ssid").c_str(), sizeof(config.wifiSsid));
   strlcpy(config.wifiPassword, statusServer.arg("password").c_str(), sizeof(config.wifiPassword));
-  strlcpy(config.deviceName, statusServer.arg("deviceName").c_str(), sizeof(config.deviceName));
+  strlcpy(config.nodeId, statusServer.arg("nodeId").c_str(), sizeof(config.nodeId));
   strlcpy(config.location, statusServer.arg("location").c_str(), sizeof(config.location));
   strlcpy(config.serverUrl, statusServer.arg("serverUrl").c_str(), sizeof(config.serverUrl));
   strlcpy(config.apiKey, statusServer.arg("apiKey").c_str(), sizeof(config.apiKey));
@@ -266,7 +266,7 @@ String maskKey(const char* key) {
 
 void handleStatusApi() {
   StaticJsonDocument<1024> doc;
-  doc["device_name"]   = config.deviceName;
+  doc["node_id"]      = config.nodeId;
   doc["location"]      = config.location;
   doc["firmware"]      = FW_VERSION;
   doc["ip"]            = WiFi.localIP().toString();
@@ -289,7 +289,7 @@ void handleStatusApi() {
 
 void handleStatusPage() {
   String html = FPSTR(STATUS_PAGE_HEAD);
-  html += config.deviceName;
+  html += config.nodeId;
   html += FPSTR(STATUS_PAGE_BODY);
   html += FW_VERSION;
   html += FPSTR(STATUS_PAGE_SCRIPT);
@@ -322,7 +322,7 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
   if (millis() - lastApiFail < RETRY_MS) return false;
 
   StaticJsonDocument<256> doc;
-  doc["device_id"]        = config.deviceName;
+  doc["device_id"]        = config.nodeId;
   doc["firmware_version"] = FW_VERSION;
   doc["bus_voltage"]      = busVoltage;
   doc["shunt_voltage"]    = shuntVoltage;
@@ -364,7 +364,7 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
 
   if (code == 201) {
     Serial.print("OK id=");
-    Serial.println(config.deviceName);
+    Serial.println(config.nodeId);
     serverConnected = true;
     lastUpload = millis();
     return true;

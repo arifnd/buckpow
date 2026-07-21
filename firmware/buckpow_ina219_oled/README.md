@@ -36,7 +36,7 @@ Edit near the top of `buckpow_ina219_oled.ino`:
 const char* WIFI_SSID     = "your-ssid";
 const char* WIFI_PASSWORD = "your-password";
 const char* API_BASE      = "http://192.168.1.100:8000";
-const char* DEVICE_ID     = "esp32-ina219-oled";
+const char* NODE_ID      = "esp32-ina219-oled";
 const char* API_KEY       = "";
 ```
 

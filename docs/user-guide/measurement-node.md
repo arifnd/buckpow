@@ -187,7 +187,7 @@ const char* WIFI_PASSWORD = "your-password";
 // BuckPow API
 const char* API_BASE   = "http://192.168.100.16:8000";
 const char* API_PATH   = "/api/v1/measurements";
-const char* DEVICE_ID  = "esp32-ina219-01";
+const char* NODE_ID   = "esp32-ina219-01";
 const char* API_KEY    = "";
 const bool  USE_HTTPS  = false;
 
@@ -201,7 +201,7 @@ const unsigned long INTERVAL_MS = 1000;
 | `WIFI_PASSWORD` | Your WiFi password |
 | `API_BASE` | BuckPow server URL (no trailing slash) |
 | `API_PATH` | API endpoint path |
-| `DEVICE_ID` | Unique device identifier (auto-registers if new) |
+| `NODE_ID` | Unique node identifier (auto-registers if new) |
 | `API_KEY` | Device API key (empty = no auth) |
 | `USE_HTTPS` | `true` for HTTPS (uses `setInsecure()` — no cert verification) |
 | `INTERVAL_MS` | Milliseconds between measurements |

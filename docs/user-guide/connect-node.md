@@ -83,15 +83,15 @@ If this fails:
 ## Step 3 — Get Your API Key
 
 1. Open the BuckPow dashboard at `http://<server-ip>:8000`
-2. Navigate to **Devices**
-3. Click **New Device** or use an existing device
+2. Navigate to **Nodes**
+3. Click **Add Node** or use an existing node
 4. Click the **Key** button to view the full API key
 5. Copy the key
 
 <!-- TODO: Replace with API key screenshot -->
 
 !!! info "No API key?"
-    If `DEVICE_AUTH_ENABLED=false`, you can skip this step. Devices will authenticate by `device_id` only.
+    If `DEVICE_AUTH_ENABLED=false`, you can skip this step. Nodes will authenticate by `device_id` only.
 
 ## Step 4 — Configure Firmware
 
@@ -105,7 +105,7 @@ const char* WIFI_PASSWORD = "your-network-password";
 // ── BuckPow API Configuration ──
 const char* API_BASE   = "http://192.168.1.100";
 const char* API_PATH   = "/api/v1/measurements";
-const char* DEVICE_ID  = "esp32-ina219-01";
+const char* NODE_ID   = "esp32-ina219-01";
 const char* API_KEY    = "your-api-key-here";
 const bool  USE_HTTPS  = false;
 ```
@@ -118,7 +118,7 @@ const bool  USE_HTTPS  = false;
 | `WIFI_PASSWORD` | `"password123"` | Your WiFi password |
 | `API_BASE` | `"http://192.168.1.100"` | BuckPow server URL (no trailing `/`) |
 | `API_PATH` | `"/api/v1/measurements"` | API endpoint path (don't change) |
-| `DEVICE_ID` | `"esp32-ina219-01"` | Unique device identifier |
+| `NODE_ID` | `"esp32-ina219-01"` | Unique node identifier |
 | `API_KEY` | `"a1b2c3..."` | Device API key (empty for no auth) |
 | `USE_HTTPS` | `false` | `true` for HTTPS connections |
 
@@ -155,13 +155,13 @@ OK id=esp32-ina219-01
 OK id=esp32-ina219-01
 ```
 
-4. Open the BuckPow dashboard — your device should appear with status **online**
+4. Open the BuckPow dashboard — your node should appear with status **online**
 
 ## Step 6 — Verify in Dashboard
 
 1. Navigate to **Dashboard** in the sidebar
-2. Check the **Devices** card — your device should show as online
-3. Select the device's session (if running) to view live charts
+2. Check the **Nodes** card — your node should show as online
+3. Select the node's session (if running) to view live charts
 4. Verify measurements are updating every few seconds
 
 <!-- TODO: Replace with dashboard verification screenshot -->
@@ -193,17 +193,17 @@ For self-signed certificates, you may need to add the CA certificate to the firm
 
 ## Multiple Devices
 
-Each device needs a unique `DEVICE_ID`. Configure each node with a different ID:
+Each node needs a unique `NODE_ID`. Configure each node with a different ID:
 
 ```cpp
-// Device 1
-const char* DEVICE_ID = "esp32-lab-01";
+// Node 1
+const char* NODE_ID = "esp32-lab-01";
 
-// Device 2
-const char* DEVICE_ID = "esp32-lab-02";
+// Node 2
+const char* NODE_ID = "esp32-lab-02";
 
-// Device 3
-const char* DEVICE_ID = "esp8266-office-01";
+// Node 3
+const char* NODE_ID = "esp8266-office-01";
 ```
 
 Each device gets its own API key from the BuckPow dashboard.
@@ -214,9 +214,9 @@ If you move your BuckPow server to a new address:
 
 1. Update `API_BASE` in the firmware
 2. Re-upload the firmware
-3. The device will register with the new server automatically
+3. The node will register with the new server automatically
 
-No other changes needed — the `DEVICE_ID` remains the same.
+No other changes needed — the `NODE_ID` remains the same.
 
 ## Connection Troubleshooting
 
@@ -229,10 +229,10 @@ Running offline.
 
 - Verify `WIFI_SSID` and `WIFI_PASSWORD` are correct
 - Ensure the network is 2.4 GHz (ESP8266 doesn't support 5 GHz)
-- Move the device closer to the router
+- Move the node closer to the router
 - Check if MAC filtering is enabled on the router
 
-### Device Not Appearing in Dashboard
+### Node Not Appearing in Dashboard
 
 1. Check Serial Monitor for errors
 2. Verify `API_BASE` points to the correct server
@@ -244,7 +244,7 @@ curl -X POST http://<server-ip>:8000/api/v1/measurements \
   -d '{"device_id":"test","bus_voltage":5.0,"shunt_voltage":50,"current":150,"power":750}'
 ```
 
-4. Check if the device is disabled in the dashboard
+4. Check if the node is disabled in the dashboard
 
 ### HTTP 401 Unauthorized
 
@@ -252,7 +252,7 @@ curl -X POST http://<server-ip>:8000/api/v1/measurements \
 HTTP 401
 ```
 
-- Verify `API_KEY` matches the device in BuckPow
+- Verify `API_KEY` matches the node in BuckPow
 - Ensure `DEVICE_AUTH_ENABLED=true` on the server
 - Check for extra whitespace in the API key
 
@@ -262,9 +262,9 @@ HTTP 401
 HTTP 403
 ```
 
-- The `device_id` in the firmware doesn't match the authenticated device
-- The device is disabled in the dashboard
-- The API key belongs to a different device
+- The `device_id` in the firmware doesn't match the authenticated node
+- The node is disabled in the dashboard
+- The API key belongs to a different node
 
 ### HTTP 400 Bad Request
 
@@ -294,7 +294,7 @@ The API returns a header `X-Firmware-Outdated: true` when the device firmware is
 
 If measurements succeed sometimes but fail other times:
 
-- WiFi signal may be weak — move the device closer to the router
+- WiFi signal may be weak — move the node closer to the router
 - The server may be overloaded — check server logs
 - Network congestion — increase `INTERVAL_MS` to reduce request frequency
 
@@ -303,11 +303,11 @@ If measurements succeed sometimes but fail other times:
 BuckPow limits measurement ingestion to **60 requests per minute** per API key. If you exceed this:
 
 - Increase `INTERVAL_MS` in the firmware
-- The device will receive HTTP 429 responses
+- The node will receive HTTP 429 responses
 - The firmware backs off for 10 seconds after failures
 
 For high-frequency sampling, consider:
 
 - Using a shorter interval (e.g., 2 seconds instead of 1)
 - Sampling locally and sending aggregated data
-- Using multiple devices with separate API keys
+- Using multiple nodes with separate API keys

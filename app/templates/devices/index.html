@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="flex justify-between items-center mb-4">
-  <h2 class="text-xl font-semibold">Devices</h2>
-  <button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors" id="add-device-btn">Add Device</button>
+  <h2 class="text-xl font-semibold">Nodes</h2>
+  <button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors" id="add-device-btn">Add Node</button>
 </div>
 
 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
@@ -11,7 +11,7 @@
     <table class="w-full text-sm">
       <thead>
         <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
-          <th class="text-left py-2 px-3 font-medium">Device ID</th>
+          <th class="text-left py-2 px-3 font-medium">Node ID</th>
           <th class="text-left py-2 px-3 font-medium">Alias</th>
           <th class="text-left py-2 px-3 font-medium">Description</th>
           <th class="text-left py-2 px-3 font-medium">Project</th>
@@ -33,11 +33,11 @@
 
 <div id="device-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
   <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-6 max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto">
-    <h3 class="text-base font-semibold mb-4" id="device-modal-title">Add Device</h3>
+    <h3 class="text-base font-semibold mb-4" id="device-modal-title">Add Node</h3>
     <form id="device-form">
       <input type="hidden" name="id" id="device-id">
       <div class="mb-4">
-        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Device ID</label>
+        <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">Node ID</label>
         <input type="text" name="device_id" id="field-device-id" required
                class="w-full px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Permanent identifier matches the ESP32 firmware.</p>
@@ -191,7 +191,7 @@ function hideDeviceModal() {
 
 async function openDeviceModal(id) {
   editingDeviceId = id;
-  document.getElementById('device-modal-title').textContent = 'Edit Device';
+  document.getElementById('device-modal-title').textContent = 'Edit Node';
   const res = await fetch('/api/v1/devices/' + id);
   const d = await res.json();
   document.getElementById('device-id').value = d.id;
@@ -220,7 +220,7 @@ async function toggleDevice(id) {
 }
 
 async function deleteDevice(id) {
-  if (!await confirmDialog('Delete this device?')) return;
+  if (!await confirmDialog('Delete this node?')) return;
   await fetch('/api/v1/devices/' + id, { method: 'DELETE' });
   loadDevices();
 }
@@ -231,7 +231,7 @@ function initDevices() {
   loadDevices();
   document.getElementById('add-device-btn').addEventListener('click', () => {
     editingDeviceId = null;
-    document.getElementById('device-modal-title').textContent = 'Add Device';
+    document.getElementById('device-modal-title').textContent = 'Add Node';
     document.getElementById('device-form').reset();
     document.getElementById('device-id').value = '';
     document.getElementById('field-device-id').removeAttribute('readonly');

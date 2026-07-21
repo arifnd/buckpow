@@ -64,7 +64,7 @@ const char* WIFI_PASSWORD = "your-password";
 // ── BuckPow API Configuration ──
 const char* API_BASE   = "http://192.168.100.16:8000";
 const char* API_PATH   = "/api/v1/measurements";
-const char* DEVICE_ID  = "esp32-ina219-01";
+const char* NODE_ID  = "esp32-ina219-01";
 const char* API_KEY    = "";
 const bool  USE_HTTPS  = false;  // set true for HTTPS
 
@@ -110,7 +110,7 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
   if (millis() - lastApiFail < RETRY_MS) return false;
 
   StaticJsonDocument<256> doc;
-  doc["device_id"]       = DEVICE_ID;
+  doc["device_id"]       = NODE_ID;
   doc["firmware_version"] = FW_VERSION;
   doc["bus_voltage"]     = busVoltage;
   doc["shunt_voltage"]   = shuntVoltage;
@@ -148,7 +148,7 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
 
   if (code == 201) {
     Serial.print("OK id=");
-    Serial.println(DEVICE_ID);
+    Serial.println(NODE_ID);
     return true;
   }
 
