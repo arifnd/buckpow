@@ -16,7 +16,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-          cache-dependency-glob: "requirements.txt"
+          cache-dependency-glob: "requirements/*.txt"
 
       - name: Set up Python
         run: uv python install 3.12
@@ -25,9 +25,9 @@ jobs:
         run: uv venv
 
       - name: Install dependencies
-        run: uv pip install -r requirements.txt pytest-xdist
+        run: uv pip install -r requirements/dev.txt pytest-xdist
 
       - name: Run Tests
-        run: uv run pytest tests/ -v --tb=short -n auto --durations=5 --cov=app --cov-report=term-missing
+        run: uv run pytest tests/ -v --tb=short -n auto --durations=5 --cov=src --cov-report=term-missing
         env:
-          SECRET_KEY: test-secret-key-that-is-long-enough-for-hmac-sha256
+          JWT_SECRET: test-secret-key-that-is-long-enough-for-hmac-sha256

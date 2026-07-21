@@ -1,20 +1,21 @@
 FROM python:3.12-slim
 
-WORKDIR /code
+WORKDIR /app
 
-COPY requirements-prod.txt /code/requirements.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt && \
+COPY requirements/ /app/requirements/
+RUN pip install --no-cache-dir --upgrade -r /app/requirements/prod.txt && \
     adduser --disabled-password --gecos '' appuser
 
-COPY .env.example /code/.env
-COPY alembic.ini /code/alembic.ini
-COPY ./migrations /code/migrations
-COPY ./app /code/app
+COPY .env.example /app/.env
+COPY alembic.ini /app/alembic.ini
+COPY ./migrations /app/migrations
+COPY ./src /app/src
+COPY ./templates /app/templates
 
-RUN mkdir -p /code/instance && chown -R appuser:appuser /code
+RUN mkdir -p /app/instance && chown -R appuser:appuser /app
 
 USER appuser
 
 EXPOSE 8000
 
-CMD ["fastapi", "run", "app/main.py", "--port", "8000", "--proxy-headers"]
+CMD ["fastapi", "run", "src/main.py", "--port", "8000", "--proxy-headers"]

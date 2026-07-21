@@ -30,45 +30,45 @@ BuckPow uses a server-rendered frontend with:
 ## Directory Structure
 
 ```
-app/
-├── templates/
-│   ├── base.html                    # Base layout
-│   ├── _partials/
-│   │   └── confirm_modal.html       # Reusable modal
-│   ├── auth/
-│   │   ├── login.html               # Login page
-│   │   └── profile.html             # Profile editing
-│   ├── dashboard/
-│   │   └── index.html               # Main dashboard
-│   ├── devices/
-│   │   ├── index.html               # Device list
-│   │   └── form.html                # Create/edit form
-│   ├── sessions/
-│   │   ├── index.html               # Session list
-│   │   ├── form.html                # Create/edit form
-│   │   └── detail.html              # Session details
-│   ├── projects/
-│   │   └── index.html               # Project list
-│   ├── measurements/
-│   │   └── index.html               # Measurements + export
-│   ├── benchmark/
-│   │   └── index.html               # Benchmark comparison
-│   ├── alerts/
-│   │   └── index.html               # Alert management
-│   ├── settings/
-│   │   └── index.html               # User settings
-│   └── audit/
-│       └── index.html               # Audit log viewer
-└── static/
-    ├── css/
-    │   └── style.css                # Custom styles
-    └── js/
-        ├── format.js               # Unit formatting (fmtCurrent, fmtPower, fmtEnergy)
-        ├── dashboard.js             # Dashboard logic
-        ├── benchmark.js             # Benchmark logic
-        ├── charts.js                # Chart.js factory
-        ├── theme.js                 # Theme toggle
-        └── timestamp.js             # Time formatting
+templates/
+├── base.html                    # Base layout
+├── _partials/
+│   └── confirm_modal.html       # Reusable modal
+├── auth/
+│   ├── login.html               # Login page
+│   └── profile.html             # Profile editing
+├── dashboard/
+│   └── index.html               # Main dashboard
+├── devices/
+│   ├── index.html               # Device list
+│   └── form.html                # Create/edit form
+├── sessions/
+│   ├── index.html               # Session list
+│   ├── form.html                # Create/edit form
+│   └── detail.html              # Session details
+├── projects/
+│   └── index.html               # Project list
+├── measurements/
+│   └── index.html               # Measurements + export
+├── benchmark/
+│   └── index.html               # Benchmark comparison
+├── alerts/
+│   └── index.html               # Alert management
+├── settings/
+│   └── index.html               # User settings
+└── audit/
+    └── index.html               # Audit log viewer
+
+src/static/
+├── css/
+│   └── style.css                # Custom styles
+└── js/
+    ├── format.js               # Unit formatting (fmtCurrent, fmtPower, fmtEnergy)
+    ├── dashboard.js             # Dashboard logic
+    ├── benchmark.js             # Benchmark logic
+    ├── charts.js                # Chart.js factory
+    ├── theme.js                 # Theme toggle
+    └── timestamp.js             # Time formatting
 ```
 
 ## Base Template
@@ -328,7 +328,7 @@ function toggleSidebar() {
 
 ## Custom CSS
 
-Minimal custom styles in `app/static/css/style.css`:
+Minimal custom styles in `src/static/css/style.css`:
 
 ```css
 html {
@@ -355,7 +355,7 @@ html {
 ### 1. Create Template
 
 ```html
-<!-- app/templates/my-page/index.html -->
+<!-- templates/my-page/index.html -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -373,7 +373,7 @@ html {
 ### 2. Add Route
 
 ```python
-# app/dashboard/routes.py
+# src/dashboard/ (page route file per domain)
 @dashboard_router.get('/my-page')
 def my_page(current_user: User | None = Depends(get_current_user)):
     redir = _require_dashboard_user(current_user)
@@ -387,7 +387,7 @@ def my_page(current_user: User | None = Depends(get_current_user)):
 ### 3. Add Navigation
 
 ```python
-# app/templates/base.html
+# templates/base.html
 {% set nav_items = [
   ...
   ('/my-page', 'my-page', 'heroicons-outline:icon-name', 'My Page'),

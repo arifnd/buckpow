@@ -23,14 +23,14 @@ Edit `.env`:
 
 ```env title=".env"
 APP_ENV=production
-SECRET_KEY=replace-this-with-a-strong-random-string
+JWT_SECRET=replace-this-with-a-strong-random-string
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=your-secure-password
 DISABLE_API_DOCS=true
 ```
 
 !!! warning "Production"
-    In production mode, `SECRET_KEY` is **required**. The application will not start without it.
+    In production mode, `JWT_SECRET` is **required**. The application will not start without it.
 
 ## Step 2 — Start Services
 

@@ -3,8 +3,8 @@ import subprocess
 import sys
 
 import pytest
-from app import app
-from app.config import settings
+from src import app
+from src.config import settings
 
 
 class TestAPIDocsEnabled:
@@ -36,12 +36,12 @@ import os, sys
 sys.path.insert(0, os.getcwd())
 os.environ['DISABLE_API_DOCS'] = 'true'
 import importlib
-import app.config
-importlib.reload(app.config)
+import src.config as _
+importlib.reload(sys.modules['src.config'])
 for mod in list(sys.modules.keys()):
-    if mod.startswith('app'):
+    if mod.startswith('app') or mod.startswith('src'):
         del sys.modules[mod]
-from app import app as _app
+from src import app as _app
 from fastapi.testclient import TestClient
 c = TestClient(_app)
 r1 = c.get('/docs')

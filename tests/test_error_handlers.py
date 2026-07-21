@@ -37,7 +37,7 @@ class TestErrorHandlers:
         assert resp.status_code == 401
 
     def test_app_error_handler(self, app):
-        from app.utils.errors import AppError
+        from src.utils.errors import AppError
         from starlette.testclient import TestClient
 
         @app.get('/test-app-error')

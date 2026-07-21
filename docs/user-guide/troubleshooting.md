@@ -304,7 +304,7 @@ curl -X POST http://localhost:8000/api/v1/alerts \
 
 1. **Clear browser cache** — Hard refresh with Ctrl+Shift+R
 2. **Check console** — Open browser developer tools (F12)
-3. **Verify JavaScript** — Ensure `app/static/js/` files are accessible
+3. **Verify JavaScript** — Ensure `src/static/js/` files are accessible
 4. **Check HTMX** — Look for HTMX errors in the console
 5. **Restart server** — Restart BuckPow:
 
@@ -326,7 +326,7 @@ curl -X POST http://localhost:8000/api/v1/alerts \
 **Solutions:**
 
 1. **Verify credentials** — Check `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`
-2. **Check SECRET_KEY** — Ensure `SECRET_KEY` is set (required in production)
+2. **Check JWT_SECRET** — Ensure `JWT_SECRET` is set (required in production)
 3. **Clear cookies** — Clear browser cookies for the BuckPow domain
 4. **Check JWT expiry** — Tokens expire after 7 days by default
 

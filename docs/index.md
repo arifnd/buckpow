@@ -108,8 +108,8 @@ Power sensors collect measurements from edge devices and send them to the BuckPo
     cd buckpow
     python3 -m venv venv
     source venv/bin/activate
-    pip install -r requirements.txt
-    fastapi dev app/main.py --port 8000
+    pip install -r requirements/dev.txt
+    fastapi dev src/main.py --port 8000
     ```
 
     Tables auto-create on first run with SQLite.
@@ -119,7 +119,7 @@ Power sensors collect measurements from edge devices and send them to the BuckPo
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `APP_ENV` | `development` | `development` or `production` |
-| `SECRET_KEY` | `buckpow-dev-key-...` | JWT signing key (required in production) |
+| `JWT_SECRET` | `buckpow-dev-key-...` | JWT signing key (required in production) |
 | `APP_HOST` | `0.0.0.0` | Server bind address |
 | `APP_PORT` | `8000` | Server port |
 | `DATABASE_URL` | `sqlite:///instance/buckpow.db` | Database connection string |

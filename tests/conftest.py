@@ -15,15 +15,21 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi.testclient import TestClient
 
 # These imports trigger app init, must come after env var is set
-from app.database import engine, Base, SessionLocal, get_db
-from app.config import settings
-from app.models import Device, Measurement, Session, User, Project, Alert, AuditLog
-from app.services.user_service import UserService
-from app.services.device_service import DeviceService
-from app.services.project_service import ProjectService
-from app.services.alert_service import AlertService
-from app.auth import create_access_token
-from app import app as fastapi_app
+from src.database import engine, Base, SessionLocal, get_db
+from src.config import settings
+from src.devices.models import Device
+from src.measurements.models import Measurement
+from src.sessions.models import Session
+from src.auth.models import User
+from src.projects.models import Project
+from src.alerts.models import Alert
+from src.audit.models import AuditLog
+from src.auth.service import UserService
+from src.devices.service import DeviceService
+from src.projects.service import ProjectService
+from src.alerts.service import AlertService
+from src.auth import create_access_token
+from src import app as fastapi_app
 
 
 def override_get_db():
@@ -55,7 +61,7 @@ def app():
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     if not db.query(User).first():
-        UserService.create(db, name='Admin', email='admin@example.com', password='password')
+        UserService(db).create(name='Admin', email='admin@example.com', password='password')
     db.close()
     return fastapi_app
 
@@ -125,7 +131,7 @@ def device_auth_header(app):
 def sample_project(app):
     db = SessionLocal()
     user = db.query(User).first()
-    p = ProjectService.create(db, name='Test Project', description='A test project', owner_id=user.id)
+    p = ProjectService(db).create(name='Test Project', description='A test project', owner_id=user.id)
     result = {'id': p.id, 'name': p.name}
     db.close()
     return result
@@ -134,7 +140,7 @@ def sample_project(app):
 @pytest.fixture
 def sample_alert(app, sample_device_id):
     db = SessionLocal()
-    alert = AlertService.create(db, device_id=sample_device_id, level='warning', message='Test alert')
+    alert = AlertService(db).create(device_id=sample_device_id, level='warning', message='Test alert')
     result = {'id': alert.id, 'device_id': alert.device_id}
     db.close()
     return result

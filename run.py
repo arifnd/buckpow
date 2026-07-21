@@ -1,11 +1,11 @@
 import os
 import uvicorn
 
-from app.config import settings
+from src.config import settings
 
 if __name__ == '__main__':
     uvicorn.run(
-        'app:app',
+        'src:app',
         host=settings.HOST,
         port=settings.PORT,
         reload=settings.DEBUG,
