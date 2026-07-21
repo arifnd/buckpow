@@ -1,4 +1,4 @@
-class TestBenchmarkAPI:
+class TestBenchmarkCompare:
     def test_compare_missing_sessions(self, client):
         resp = client.get('/api/v1/benchmark/compare')
         assert resp.status_code == 400
@@ -14,7 +14,7 @@ class TestBenchmarkAPI:
 
     def test_compare_invalid_ids(self, client):
         resp = client.get('/api/v1/benchmark/compare?sessions=abc,def')
-        assert resp.status_code == 404
+        assert resp.status_code == 400
 
     def test_compare_valid(self, client, app):
         from src.database import SessionLocal
@@ -37,6 +37,15 @@ class TestBenchmarkAPI:
         assert resp.status_code == 200
         data = resp.json()
         assert len(data['sessions']) == 2
+        for s in data['sessions']:
+            assert 'avg_power' in s
+            assert 'peak_power' in s
+            assert 'total_energy' in s
+            assert 'chart_data' in s
+            assert 'labels' in s['chart_data']
+            assert 'power' in s['chart_data']
+            assert isinstance(s['chart_data']['labels'], list)
+            assert isinstance(s['chart_data']['power'], list)
 
     def test_compare_three_sessions(self, client, app):
         from src.database import SessionLocal
