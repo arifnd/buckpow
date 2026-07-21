@@ -87,6 +87,12 @@ class DeviceService:
         device = self.db.get(Device, device_id)
         if not device:
             return False
+        from src.measurements.models import Measurement
+        from src.sessions.models import Session
+        from src.alerts.models import Alert
+        self.db.query(Measurement).filter(Measurement.device_id == device_id).delete()
+        self.db.query(Session).filter(Session.device_id == device_id).delete()
+        self.db.query(Alert).filter(Alert.device_id == device_id).delete()
         self.db.delete(device)
         self.db.commit()
         return True

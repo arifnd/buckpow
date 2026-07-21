@@ -220,7 +220,7 @@ async function toggleDevice(id) {
 }
 
 async function deleteDevice(id) {
-  if (!await confirmDialog('Delete this node?')) return;
+  if (!await confirmDialog('Delete this node and all its sessions and measurements?')) return;
   await fetch('/api/v1/devices/' + id, { method: 'DELETE' });
   loadDevices();
 }
