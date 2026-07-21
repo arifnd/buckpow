@@ -1,4 +1,4 @@
-from app.utils.pagination import PaginatedResult
+from src.utils.pagination import PaginatedResult
 
 
 class TestPaginatedResult:

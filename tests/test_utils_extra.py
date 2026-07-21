@@ -1,8 +1,8 @@
 from datetime import datetime, timezone, timedelta
 from unittest.mock import MagicMock
 
-from app.utils.dates import utc_iso
-from app.utils.client_ip import get_client_ip
+from src.utils.dates import utc_iso
+from src.utils.client_ip import get_client_ip
 
 
 class TestUtcIso:

@@ -1,17 +1,17 @@
-from app.dependencies import (
+from src.dependencies import (
     create_access_token,
     get_current_user,
     require_user,
     get_api_key_device,
     get_db,
 )
-from app.auth import (
+from src.auth import (
     create_access_token as auth_create,
     get_current_user as auth_current,
     require_user as auth_require,
     get_api_key_device as auth_apikey,
 )
-from app.database import get_db as db_get_db
+from src.database import get_db as db_get_db
 
 
 class TestDependenciesReExports:

@@ -15,15 +15,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi.testclient import TestClient
 
 # These imports trigger app init, must come after env var is set
-from app.database import engine, Base, SessionLocal, get_db
-from app.config import settings
-from app.models import Device, Measurement, Session, User, Project, Alert, AuditLog
-from app.services.user_service import UserService
-from app.services.device_service import DeviceService
-from app.services.project_service import ProjectService
-from app.services.alert_service import AlertService
-from app.auth import create_access_token
-from app import app as fastapi_app
+from src.database import engine, Base, SessionLocal, get_db
+from src.config import settings
+from src.models import Device, Measurement, Session, User, Project, Alert, AuditLog
+from src.auth.service import UserService
+from src.devices.service import DeviceService
+from src.projects.service import ProjectService
+from src.alerts.service import AlertService
+from src.auth import create_access_token
+from src import app as fastapi_app
 
 
 def override_get_db():

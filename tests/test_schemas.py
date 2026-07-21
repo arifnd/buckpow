@@ -1,13 +1,13 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.measurement import MeasurementCreate
-from app.schemas.session import SessionCreate, SessionUpdate
-from app.schemas.device import DeviceCreate, DeviceUpdate
-from app.schemas.alert import AlertCreate
-from app.schemas.project import ProjectCreate, ProjectUpdate
-from app.schemas.auth import LoginRequest, ProfileUpdate
-from app.schemas.settings import SettingsUpdate
+from src.measurements.schemas import MeasurementCreate
+from src.sessions.schemas import SessionCreate, SessionUpdate
+from src.devices.schemas import DeviceCreate, DeviceUpdate
+from src.alerts.schemas import AlertCreate
+from src.projects.schemas import ProjectCreate, ProjectUpdate
+from src.auth.schemas import LoginRequest, ProfileUpdate
+from src.settings.schemas import SettingsUpdate
 
 
 class TestMeasurementCreateSchema:

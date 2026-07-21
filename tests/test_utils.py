@@ -1,8 +1,8 @@
 import pytest
-from app.utils.errors import (AppError, ValidationError, NotFoundError,
+from src.utils.errors import (AppError, ValidationError, NotFoundError,
                                AuthError)
-from app.utils.hash import hash_password, verify_password
-from app.utils.validators import (validate_required, validate_float,
+from src.utils.hash import hash_password, verify_password
+from src.utils.validators import (validate_required, validate_float,
                                    validate_int, validate_string,
                                    validate_email, validate_uuid)
 

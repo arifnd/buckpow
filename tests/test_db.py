@@ -1,6 +1,6 @@
 from sqlalchemy import inspect
-from app.database import SessionLocal, engine
-from app.models import Device, Session, Measurement, User, Project, Alert
+from src.database import SessionLocal, engine
+from src.models import Device, Session, Measurement, User, Project, Alert
 
 
 def test_init_db_creates_tables(app):
