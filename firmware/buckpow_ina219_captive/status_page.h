@@ -35,7 +35,7 @@ const char STATUS_PAGE_HEAD[] PROGMEM = R"rawliteral(
   <div class="container">
     <div class="header">
       <h1>BuckPow Node</h1>
-      <p id="device-name">
+      <p id="node-id">
 )rawliteral";
 
 const char STATUS_PAGE_BODY[] PROGMEM = R"rawliteral(</p>
@@ -103,7 +103,7 @@ const char STATUS_PAGE_SCRIPT[] PROGMEM = R"rawliteral(</span>
       fetch('/api/status')
         .then(r => r.json())
         .then(d => {
-          document.getElementById('device-name').textContent = d.device_name || 'BuckPow Node';
+          document.getElementById('node-id').textContent = d.node_id || 'BuckPow Node';
           document.getElementById('ip').textContent = d.ip || '--';
           document.getElementById('rssi').textContent = d.rssi ? d.rssi + ' dBm' : '--';
 

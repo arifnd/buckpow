@@ -439,7 +439,7 @@ class TestAPI:
         resp = client.get('/api/v1/measurements/export/csv')
         assert resp.status_code == 200
         assert 'text/csv' in resp.headers['content-type']
-        assert b'Device' in resp.content
+        assert b'Node' in resp.content
         assert b'esp32-auth' in resp.content
 
     def test_csv_export_empty(self, client):

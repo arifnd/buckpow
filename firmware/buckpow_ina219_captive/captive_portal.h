@@ -53,7 +53,7 @@ const char CAPTIVE_PAGE_TOP[] PROGMEM = R"rawliteral(
   <div class="container">
     <div class="header">
       <h1>BuckPow Setup</h1>
-      <p>Configure your device</p>
+      <p>Configure your node</p>
     </div>
 
     <form id="setup-form">
@@ -78,10 +78,10 @@ const char CAPTIVE_PAGE_TOP[] PROGMEM = R"rawliteral(
       </div>
 
       <div class="card">
-        <h3>Device</h3>
+        <h3>Node</h3>
         <div class="field">
-          <label for="deviceName">Device Name</label>
-          <input type="text" id="deviceName" name="deviceName" value="esp32-ina219" required>
+          <label for="nodeId">Node ID</label>
+          <input type="text" id="nodeId" name="nodeId" value="esp32-ina219" required>
         </div>
         <div class="field">
           <label for="location">Location</label>
@@ -169,7 +169,7 @@ const char CAPTIVE_PAGE_TOP[] PROGMEM = R"rawliteral(
       var data = new URLSearchParams(new FormData(this));
       fetch('/save', { method: 'POST', body: data }).then(function() {
         document.querySelector('.container').innerHTML =
-          '<div class="msg"><h1>Restarting...</h1><p>Device will connect to WiFi automatically</p></div>';
+          '<div class="msg"><h1>Restarting...</h1><p>Node will connect to WiFi automatically</p></div>';
       });
     });
   </script>

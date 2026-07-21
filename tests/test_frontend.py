@@ -59,7 +59,7 @@ class TestFrontend:
     def test_nav_links(self, client):
         resp = client.get('/')
         html = resp.content.decode()
-        for link in ['Dashboard', 'Devices', 'Sessions', 'Measurements']:
+        for link in ['Dashboard', 'Nodes', 'Sessions', 'Measurements']:
             assert link in html
 
 
@@ -68,12 +68,12 @@ class TestPageStructure:
         resp = client.get('/devices')
         html = resp.content.decode()
         assert 'id="devices-body"' in html
-        assert 'Add Device' in html
+        assert 'Add Node' in html
 
     def test_devices_page_has_columns(self, client):
         resp = client.get('/devices')
         html = resp.content.decode()
-        for col in ['Device ID', 'Alias', 'Description', 'Status', 'Last Seen', 'Actions']:
+        for col in ['Node ID', 'Alias', 'Description', 'Status', 'Last Seen', 'Actions']:
             assert col in html
 
     def test_sessions_page_has_table(self, client):
@@ -85,7 +85,7 @@ class TestPageStructure:
     def test_sessions_page_has_columns(self, client):
         resp = client.get('/sessions')
         html = resp.content.decode()
-        for col in ['Name', 'Device ID', 'Status', 'Duration', 'AVG Power', 'Energy', 'Actions']:
+        for col in ['Name', 'Node ID', 'Status', 'Duration', 'AVG Power', 'Energy', 'Actions']:
             assert col in html
 
     def test_measurements_page_has_table(self, client):
@@ -99,7 +99,7 @@ class TestPageStructure:
     def test_measurements_page_has_columns(self, client):
         resp = client.get('/measurements')
         html = resp.content.decode()
-        for col in ['Device', 'Session', 'Voltage', 'Current', 'Power', 'Energy', 'Timestamp']:
+        for col in ['Node', 'Session', 'Voltage', 'Current', 'Power', 'Energy', 'Timestamp']:
             assert col in html
 
     def test_measurements_page_has_pagination(self, client):
@@ -259,7 +259,7 @@ class TestPageRendering:
         resp = client.get(f'/devices/{sample_device["id"]}/edit')
         assert resp.status_code == 200
         html = resp.content.decode()
-        assert 'Edit Device' in html or 'device_id' in html.lower()
+        assert 'Edit Node' in html or 'device_id' in html.lower()
 
     def test_sessions_edit_page(self, client):
         resp = client.get('/sessions/1/edit')
@@ -270,7 +270,7 @@ class TestNavigationCompleteness:
     def test_sidebar_has_all_items(self, client):
         resp = client.get('/')
         html = resp.content.decode()
-        for label in ['Dashboard', 'Devices', 'Sessions', 'Projects', 'Measurements', 'Benchmark', 'Alerts', 'Audit']:
+        for label in ['Dashboard', 'Nodes', 'Sessions', 'Projects', 'Measurements', 'Benchmark', 'Alerts', 'Audit']:
             assert label in html
 
     def test_sidebar_links_have_correct_href(self, client):

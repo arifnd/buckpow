@@ -26,8 +26,8 @@ Edit these defines near the top of the sketch:
 |--------|---------|-------------|
 | `WIFI_SSID` / `WIFI_PASSWORD` | — | 2.4 GHz WiFi credentials |
 | `API_BASE` | — | BuckPow server address (e.g. `http://192.168.1.100:8000`) |
-| `DEVICE_ID` | — | Unique device ID (auto-registers on first reading) |
-| `API_KEY` | (empty) | API key for device auth; leave empty for dev |
+| `NODE_ID` | — | Unique node ID (auto-registers on first reading) |
+| `API_KEY` | (empty) | API key for node auth; leave empty for dev |
 | `INTERVAL_MS` | 1000 / 5000 | Milliseconds between readings |
 | `FW_VERSION` | 1.0.0 / 1.1.0 | Sent with each reading for compatibility checks |
 

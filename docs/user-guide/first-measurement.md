@@ -266,7 +266,7 @@ Here's a complete workflow for measuring Raspberry Pi power consumption:
 
 - Connect INA219 to ESP32
 - Connect INA219 to Raspberry Pi power rail
-- Upload firmware with correct `DEVICE_ID`
+- Upload firmware with correct `NODE_ID`
 
 ### 2. Create Session
 

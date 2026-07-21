@@ -30,12 +30,12 @@ Edit near the top of `buckpow_ina219.ino`:
 const char* WIFI_SSID     = "your-ssid";
 const char* WIFI_PASSWORD = "your-password";
 const char* API_BASE      = "http://192.168.1.100:8000";
-const char* DEVICE_ID     = "esp32-ina219-01";
+const char* NODE_ID      = "esp32-ina219-01";
 const char* API_KEY       = "";
 ```
 
 - `API_BASE` — BuckPow server address and port (default: `8000`)
-- `DEVICE_ID` — unique identifier, auto-registers on first reading
+- `NODE_ID` — unique identifier, auto-registers on first reading
 - `API_KEY` — optional, leave empty when auth is disabled
 
 ## Data Sent
