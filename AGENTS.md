@@ -98,7 +98,7 @@ Tables auto-create on first run. Default admin: `admin@example.com` / `password`
 | POST | `/api/v1/alerts` | Create alert |
 | PATCH | `/api/v1/alerts/<id>/resolve` | Resolve a single alert |
 | POST | `/api/v1/alerts/resolve-all` | Resolve all unresolved alerts |
-| GET | `/api/v1/benchmark/compare` | Compare 2+ sessions |
+| GET | `/api/v1/benchmark/compare` | Session comparison stats + chart data (2-3 sessions) |
 | POST | `/api/v1/auth/login` | Email/password login |
 | POST | `/api/v1/auth/logout` | Logout |
 | GET | `/api/v1/auth/me` | Current user info |

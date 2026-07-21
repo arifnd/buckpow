@@ -111,18 +111,20 @@ class SessionService:
             Measurement.session_id.isnot(None),
         ).group_by(Measurement.session_id).all()
 
-        last_rows = db.query(
+        subq = db.query(
             Measurement.session_id,
-            Measurement.energy.label('last_energy'),
+            func.max(Measurement.id).label('max_id'),
         ).filter(
             Measurement.session_id.in_(session_ids),
             Measurement.session_id.isnot(None),
-        ).order_by(Measurement.session_id, Measurement.created_at.desc()).all()
+        ).group_by(Measurement.session_id).subquery()
 
-        last_energy_map = {}
-        for r in last_rows:
-            if r.session_id not in last_energy_map:
-                last_energy_map[r.session_id] = r.last_energy
+        last_rows = db.query(
+            subq.c.session_id,
+            Measurement.energy.label('last_energy'),
+        ).join(Measurement, Measurement.id == subq.c.max_id).all()
+
+        last_energy_map = {r.session_id: r.last_energy for r in last_rows}
 
         result = {}
         for r in rows:

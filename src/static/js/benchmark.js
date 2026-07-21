@@ -145,6 +145,9 @@ function renderOverlayChart(sessions) {
     benchmarkChart.destroy();
   }
 
+  if (!sessions || sessions.length === 0) return;
+  if (!sessions[0].chart_data) return;
+
   var labels = sessions[0].chart_data.labels.map(formatBenchTime);
   var colors = ['#58a6ff', '#f85149', '#3fb950'];
   var datasets = sessions.map(function(s, i) {
