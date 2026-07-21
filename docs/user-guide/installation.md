@@ -76,26 +76,26 @@ Full installation guide for BuckPow with all configuration options.
     cd buckpow
     python3 -m venv venv
     source venv/bin/activate
-    pip install -r requirements.txt
-    ```
+pip install -r requirements/dev.txt
+```
 
-    **2. Create environment file (optional)**
+**2. Create environment file (optional)**
 
-    ```bash
-    cp .env.example .env
-    ```
+```bash
+cp .env.example .env
+```
 
-    Edit `.env` to set admin credentials:
+Edit `.env` to set admin credentials:
 
-    ```env
-    ADMIN_EMAIL=admin@example.com
-    ADMIN_PASSWORD=your-secure-password
-    ```
+```env
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=your-secure-password
+```
 
-    **3. Start development server**
+**3. Start development server**
 
-    ```bash
-    fastapi dev app/main.py --port 8000
+```bash
+fastapi dev src/main.py --port 8000
     ```
 
     !!! info "Auto-reload"
@@ -114,35 +114,35 @@ Full installation guide for BuckPow with all configuration options.
     cd buckpow
     python3 -m venv venv
     source venv/bin/activate
-    pip install -r requirements.txt
-    ```
+pip install -r requirements/prod.txt
+```
 
-    **2. Configure environment**
+**2. Configure environment**
 
-    ```bash
-    cp .env.example .env
-    ```
+```bash
+cp .env.example .env
+```
 
-    Edit `.env`:
+Edit `.env`:
 
-    ```env
-    APP_ENV=production
-    JWT_SECRET=your-strong-random-secret-key-min-32-chars
-    ADMIN_EMAIL=admin@example.com
-    ADMIN_PASSWORD=your-secure-password
-    DATABASE_URL=postgresql://user:pass@localhost:5432/buckpow
-    ```
+```env
+APP_ENV=production
+JWT_SECRET=your-strong-random-secret-key-min-32-chars
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=your-secure-password
+DATABASE_URL=postgresql://user:pass@localhost:5432/buckpow
+```
 
-    **3. Run migrations**
+**3. Run migrations**
 
-    ```bash
-    alembic upgrade head
-    ```
+```bash
+alembic upgrade head
+```
 
-    **4. Start production server**
+**4. Start production server**
 
-    ```bash
-    fastapi run app/main.py --proxy-headers
+```bash
+fastapi run src/main.py --proxy-headers
     ```
 
 ## Environment Variables
@@ -181,7 +181,7 @@ DATABASE_URL=mysql+pymysql://user:password@host:3306/dbname
     SQLite requires no configuration. The database file is created automatically at `instance/buckpow.db`.
 
 !!! info "PostgreSQL / MySQL"
-    Requires the corresponding driver. Both are included in `requirements.txt`.
+    Requires the corresponding driver. Both are included in `requirements/base.txt`.
 
 ### Admin Account
 
@@ -396,7 +396,7 @@ curl -X POST http://localhost:8000/api/v1/measurements \
     cd buckpow
     git pull
     source venv/bin/activate
-    pip install -r requirements.txt
+    pip install -r requirements/prod.txt
     alembic upgrade head
     ```
 

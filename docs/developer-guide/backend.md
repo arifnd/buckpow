@@ -7,25 +7,34 @@ FastAPI application structure, middleware, authentication, and service layer.
 ## Application Structure
 
 ```
-app/
+src/
 ├── __init__.py              # App factory, lifespan, middleware, exception handlers
-├── main.py                  # Entrypoint: `fastapi run app/main.py`
+├── main.py                  # Entrypoint: `fastapi run src/main.py`
 ├── config.py                # Settings via pydantic-settings
 ├── database.py              # SQLAlchemy engine, SessionLocal, Base
-├── auth.py                  # JWT creation/verification, dependency functions
+├── router.py                # API router aggregator + health endpoint
 ├── dependencies.py          # Canonical re-export of all FastAPI dependencies
-├── models/                  # SQLAlchemy ORM models (7 tables)
-├── schemas/                 # Pydantic request/response models
-├── services/                # Business logic layer (8 services)
-├── api/                     # FastAPI APIRouters (11 modules)
-├── dashboard/               # Server-rendered page routes (Jinja2)
+├── template_helpers.py      # Jinja2 rendering helpers
+├── auth/                    # Auth domain (models, schemas, router, service, deps)
+├── devices/                 # Device domain (models, schemas, router, service)
+├── sessions/                # Session domain (models, schemas, router, service)
+├── measurements/            # Measurement domain (models, schemas, router, service)
+├── projects/                # Project domain (models, schemas, router, service)
+├── alerts/                  # Alert domain (models, schemas, router, service)
+├── audit/                   # Audit log domain (models, schemas, router, service)
+├── benchmark/               # Benchmark domain (models, schemas, router, service)
+├── settings/                # Settings domain (schemas, router, service)
+├── dashboard/               # Dashboard (page routes per domain, API endpoints, service)
 ├── middleware/               # ASGI middleware (rate limiter)
-└── utils/                   # Utility functions
+├── utils/                   # Utility functions
+├── static/                  # CSS, JS
+├── templates/               # Jinja2 templates
+└── templates/_partials/     # Reusable template fragments
 ```
 
 ## Application Factory
 
-The app is created in `app/__init__.py`:
+The app is created in `src/__init__.py`:
 
 ```python
 app = FastAPI(
@@ -82,7 +91,7 @@ app.add_middleware(
 )
 
 # 3. Static files
-app.mount('/static', StaticFiles(directory='app/static'), name='static')
+app.mount('/static', StaticFiles(directory='src/static'), name='static')
 ```
 
 ### Router Mounting
@@ -94,7 +103,7 @@ app.include_router(dashboard_router)
 
 ## Configuration
 
-Settings via `pydantic-settings` BaseSettings in `app/config.py`:
+Settings via `pydantic-settings` BaseSettings in `src/config.py`:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
@@ -125,7 +134,7 @@ Settings load from `.env` file and environment variables. The `DEBUG` flag is de
 ### Engine & Session
 
 ```python
-# app/database.py
+# src/database.py
 engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -145,7 +154,7 @@ FastAPI uses `Depends(get_db)` for automatic session management:
 ```python
 @router.get('/devices')
 def list_devices(db: Session = Depends(get_db)):
-    devices = DeviceService.get_all(db)
+    devices = DeviceService(db).get_all()
     return devices
 ```
 
@@ -177,7 +186,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 ### Dependency Functions
 
-Three authentication dependencies in `app/auth.py`:
+Three authentication dependencies in `src/auth/dependencies.py`:
 
 | Function | Purpose | Returns |
 |----------|---------|---------|
@@ -213,7 +222,7 @@ def get_api_key_device(
     if not settings.DEVICE_AUTH_ENABLED:
         return None
     api_key = credentials.credentials
-    device = DeviceService.get_by_api_key(db, api_key)
+    device = DeviceService(db).get_by_api_key(api_key)
     if not device:
         raise HTTPException(status_code=401, detail='Invalid API key')
     return device
@@ -221,10 +230,10 @@ def get_api_key_device(
 
 ### Re-exported Dependencies
 
-`app/dependencies.py` re-exports all dependencies for clean imports:
+`src/dependencies.py` re-exports all dependencies for clean imports:
 
 ```python
-from app.dependencies import get_db, require_user, get_current_user, get_api_key_device
+from src.dependencies import get_db, require_user, get_current_user, get_api_key_device
 ```
 
 ## Middleware
@@ -270,7 +279,7 @@ def bearer_token_key(scope):
 
 ## Service Layer
 
-All business logic lives in `app/services/`. Services accept `db: Session` and return domain objects.
+Business logic lives in `src/{domain}/service.py` files. Services accept `db: Session` and return domain objects.
 
 ### Service Classes
 
@@ -289,16 +298,17 @@ All business logic lives in `app/services/`. Services accept `db: Session` and r
 
 ```python
 class AlertService:
-    @staticmethod
-    def create(db: Session, device_id, level, message):
+    def __init__(self, db: Session):
+        self.db = db
+
+    def create(self, device_id, level, message):
         alert = Alert(device_id=device_id, level=level, message=message)
-        db.add(alert)
-        db.commit()
+        self.db.add(alert)
+        self.db.commit()
         return alert
 
-    @staticmethod
-    def get_paginated(db: Session, page=1, per_page=10, **filters):
-        q = db.query(Alert)
+    def get_paginated(self, page=1, per_page=10, **filters):
+        q = self.db.query(Alert)
         # Apply filters
         total = q.count()
         items = q.offset(offset).limit(per_page).all()
@@ -309,7 +319,7 @@ class AlertService:
 
 ### Custom Exceptions
 
-Defined in `app/utils/errors.py`:
+Defined in `src/utils/errors.py`:
 
 ```python
 class AppError(Exception):
@@ -342,7 +352,7 @@ async def http_exception_handler(request, exc):
 
 ## Dashboard Routes
 
-Server-rendered pages in `app/dashboard/routes.py`:
+Server-rendered pages in `src/dashboard/`:
 
 ### Route Pattern
 
@@ -360,7 +370,7 @@ def devices_page(current_user: User | None = Depends(get_current_user)):
 ### Jinja2 Environment
 
 ```python
-templates = Environment(loader=FileSystemLoader('app/templates'), autoescape=True)
+templates = Environment(loader=FileSystemLoader('templates'), autoescape=True)
 templates.globals['url_for'] = _url_for
 templates.globals['app_version'] = APP_VERSION
 ```
@@ -380,7 +390,7 @@ class _AnonymousUser:
 
 ### Router Registration
 
-All 11 API routers in `app/api/__init__.py`:
+All routers in `src/router.py`:
 
 ```python
 api_router = APIRouter()
@@ -400,7 +410,7 @@ api_router.include_router(audit_router)
 ### Route Dependencies
 
 ```python
-from app.dependencies import get_db, require_user, get_api_key_device
+from src.dependencies import get_db, require_user, get_api_key_device
 
 @router.get('/devices')
 def list_devices(
@@ -440,17 +450,19 @@ def get_paginated(db: Session, page=1, per_page=10):
 ### 1. Create Service Method
 
 ```python
-# app/services/my_service.py
+# src/my_domain/service.py
 class MyService:
-    @staticmethod
-    def get_all(db: Session):
-        return db.query(MyModel).all()
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_all(self):
+        return self.db.query(MyModel).all()
 ```
 
 ### 2. Create Schema (if needed)
 
 ```python
-# app/schemas/my_schema.py
+# src/my_domain/schemas.py
 class MyResponse(BaseModel):
     id: int
     name: str
@@ -460,10 +472,10 @@ class MyResponse(BaseModel):
 ### 3. Add Route
 
 ```python
-# app/api/my_endpoint.py
+# src/my_domain/router.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.dependencies import get_db, require_user
+from src.dependencies import get_db, require_user
 
 router = APIRouter()
 
@@ -472,15 +484,14 @@ def my_handler(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
-    items = MyService.get_all(db)
+    items = MyService(db).get_all()
     return items
 ```
 
-### 4. Register Router
+### 4. Register Router in `src/router.py`
 
 ```python
-# app/api/__init__.py
-from .my_endpoint import router as my_router
+from .my_domain.router import router as my_router
 api_router.include_router(my_router)
 ```
 
@@ -489,13 +500,13 @@ api_router.include_router(my_router)
 ### Development
 
 ```bash
-fastapi run app/main.py --reload
+fastapi dev src/main.py --port 8000
 ```
 
 ### Production
 
 ```bash
-fastapi run app/main.py --port 8000 --proxy-headers
+fastapi run src/main.py --port 8000 --proxy-headers
 ```
 
 ### Docker

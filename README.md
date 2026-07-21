@@ -169,8 +169,8 @@ docker compose up -d
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
-fastapi dev app/main.py --port 8000
+pip install -r requirements/dev.txt
+fastapi dev src/main.py --port 8000
 ```
 
 Tables are automatically created on first startup when using SQLite.
@@ -188,7 +188,7 @@ alembic upgrade head
 Start the application.
 
 ```bash
-fastapi run app/main.py --proxy-headers
+fastapi run src/main.py --proxy-headers
 ```
 
 ## API Documentation

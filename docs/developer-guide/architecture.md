@@ -51,60 +51,41 @@ graph TB
 
 ```
 buckpow/
-├── app/
+├── src/
 │   ├── __init__.py          # App factory, lifespan, middleware
-│   ├── main.py              # Entrypoint
+│   ├── main.py              # Entrypoint: `fastapi run src/main.py`
 │   ├── config.py            # Settings (pydantic-settings)
 │   ├── database.py          # SQLAlchemy engine, session
-│   ├── auth.py              # JWT creation/verification
-│   ├── dependencies.py      # FastAPI dependencies
-│   ├── api/                 # API routers
-│   │   ├── __init__.py      # Router aggregation
-│   │   ├── measurements.py  # /measurements, /chart
-│   │   ├── devices.py       # /devices CRUD
-│   │   ├── sessions.py      # /sessions CRUD + start/stop
-│   │   ├── dashboard.py     # /dashboard endpoints
-│   │   ├── alerts.py        # /alerts CRUD
-│   │   ├── projects.py      # /projects CRUD
-│   │   ├── auth.py          # /auth login/logout
-│   │   ├── benchmark.py     # /benchmark/compare
-│   │   ├── settings.py      # /settings
-│   │   ├── audit.py         # /audit/logs
-│   │   └── health.py        # /health
-│   ├── dashboard/           # Server-rendered pages
-│   │   └── routes.py        # Page routes (Jinja2)
-│   ├── models/              # SQLAlchemy models
-│   │   ├── user.py
-│   │   ├── device.py
-│   │   ├── session.py
-│   │   ├── measurement.py
-│   │   ├── alert.py
-│   │   ├── project.py
-│   │   └── audit_log.py
-│   ├── services/            # Business logic
-│   │   ├── user_service.py
-│   │   ├── device_service.py
-│   │   ├── session_service.py
-│   │   ├── measurement_service.py
-│   │   ├── alert_service.py
-│   │   ├── project_service.py
-│   │   ├── dashboard_service.py
-│   │   └── audit_service.py
-│   ├── schemas/             # Pydantic request/response
-│   ├── utils/               # Utility functions
+│   ├── router.py            # Router aggregation + health
+│   ├── dependencies.py      # FastAPI dependencies (re-exports)
+│   ├── template_helpers.py  # Jinja2 rendering helpers
+│   ├── auth/                # Auth domain (models, schemas, router, service, deps)
+│   ├── devices/             # Device domain (models, schemas, router, service)
+│   ├── sessions/            # Session domain (models, schemas, router, service)
+│   ├── measurements/        # Measurement domain (models, schemas, router, service)
+│   ├── projects/            # Project domain (models, schemas, router, service)
+│   ├── alerts/              # Alert domain (models, schemas, router, service)
+│   ├── audit/               # Audit log domain (models, schemas, router, service)
+│   ├── benchmark/           # Benchmark domain (models, schemas, router, service)
+│   ├── settings/            # Settings domain (schemas, router, service)
+│   ├── dashboard/           # Dashboard pages, API, service
 │   ├── middleware/           # ASGI middleware
-│   ├── templates/           # Jinja2 templates
-│   └── static/              # CSS, JS
+│   ├── utils/               # Utility functions
+│   ├── static/              # CSS, JS
+│   └── templates/           # Jinja2 templates
 ├── firmware/                # Arduino sketches
 ├── migrations/              # Alembic migrations
-├── tests/                   # Pytest suite
+├── tests/                   # Pytest suite (by domain)
 ├── scripts/                 # Utility scripts
 ├── mkdocs.yml               # Documentation config
 ├── docs/                    # Documentation source
 ├── Dockerfile               # Container build
 ├── docker-compose.yml       # Production stack
 ├── alembic.ini              # Migration config
-├── requirements.txt         # Dependencies
+├── requirements/            # Split dependencies (base/dev/prod)
+├── requirements/base.txt    # Core dependencies
+├── requirements/dev.txt     # Dev/test dependencies
+├── requirements/prod.txt    # Production dependencies
 └── .env.example             # Environment template
 ```
 
@@ -277,27 +258,26 @@ All services follow the same pattern:
 
 ```python
 class DeviceService:
-    @staticmethod
-    def get_all(db: Session):
-        return db.query(Device).all()
+    def __init__(self, db: Session):
+        self.db = db
 
-    @staticmethod
-    def get_by_id(db: Session, device_id):
-        return db.get(Device, device_id)
+    def get_all(self):
+        return self.db.query(Device).all()
 
-    @staticmethod
-    def create(db: Session, **kwargs):
+    def get_by_id(self, device_id):
+        return self.db.get(Device, device_id)
+
+    def create(self, **kwargs):
         device = Device(**kwargs)
-        db.add(device)
-        db.commit()
+        self.db.add(device)
+        self.db.commit()
         return device
 
-    @staticmethod
-    def update(db: Session, device_id, **kwargs):
-        device = db.get(Device, device_id)
+    def update(self, device_id, **kwargs):
+        device = self.db.get(Device, device_id)
         for key, value in kwargs.items():
             setattr(device, key, value)
-        db.commit()
+        self.db.commit()
         return device
 ```
 

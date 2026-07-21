@@ -26,41 +26,47 @@ Pin to these versions or newer. Examples in this file assume them.
 ## Repository structure
 
 | Path | Purpose |
-|---|---|
-| `app/main.py` | FastAPI entrypoint (`fastapi run app/main.py`) |
-| `app/__init__.py` | FastAPI app factory, lifespan, exception handlers, router mounting |
-| `app/config.py` | Settings via `pydantic-settings` BaseSettings |
-| `app/database.py` | SQLAlchemy engine, SessionLocal, Base, `get_db` dependency |
-| `app/auth.py` | JWT creation/verification, `get_current_user`, `get_api_key_device` deps |
-| `app/dependencies.py` | Canonical re-export of all FastAPI dependencies (`get_db`, `require_user`, etc.) |
-| `app/schemas/` | Pydantic request/response models (Measurement, Session, Device, Alert, Project, Auth, Settings) |
-| `app/models/` | SQLAlchemy models (User, Device, Session, Measurement, Alert, Project) |
-| `app/services/` | Business logic layer (User, Device, Session, Measurement, Alert, Project, Dashboard) |
-| `app/middleware/` | ASGI middleware (rate limiter) |
-| `app/api/` | FastAPI APIRouters (`/api/v1/*`) |
-| `app/dashboard/` | Server-rendered page routes (Jinja2) |
-| `app/templates/` | Jinja2 templates (Tailwind CSS, HTMX) |
-| `app/templates/_partials/` | Reusable template fragments (confirm modal, etc.) |
-| `app/static/` | CSS, JS (format, Chart.js, dashboard, theme) |
-| `app/utils/` | Utility functions (calculations, errors, validators, hash, pagination) |
+|---|---|---|
+| `src/main.py` | FastAPI entrypoint (`fastapi run src/main.py`) |
+| `src/__init__.py` | FastAPI app factory, lifespan, exception handlers |
+| `src/config.py` | Settings via `pydantic-settings` BaseSettings |
+| `src/database.py` | SQLAlchemy engine, SessionLocal, Base, `get_db` dependency |
+| `src/router.py` | API router aggregator + health endpoint |
+| `src/dependencies.py` | Canonical re-export of all FastAPI dependencies |
+| `src/template_helpers.py` | Jinja2 rendering helpers |
+| `src/auth/` | Auth domain (models, schemas, router, service, JWT deps) |
+| `src/devices/` | Device domain (models, schemas, router, service) |
+| `src/sessions/` | Session domain (models, schemas, router, service) |
+| `src/measurements/` | Measurement domain (models, schemas, router, service) |
+| `src/projects/` | Project domain (models, schemas, router, service) |
+| `src/alerts/` | Alert domain (models, schemas, router, service) |
+| `src/audit/` | Audit log domain (models, schemas, router, service) |
+| `src/benchmark/` | Benchmark domain (models, schemas, router, service) |
+| `src/settings/` | Settings domain (schemas, router, service) |
+| `src/dashboard/` | Dashboard (page routes per domain, API endpoints, service) |
+| `src/middleware/` | ASGI middleware (rate limiter) |
+| `src/utils/` | Utility functions (calculations, errors, validators, hash, pagination, query) |
+| `templates/` | Jinja2 templates (Tailwind CSS, HTMX) |
+| `templates/_partials/` | Reusable template fragments (confirm modal, etc.) |
+| `src/static/` | CSS, JS (format, Chart.js, dashboard, theme) |
 | `instance/buckpow.db` | SQLite database (auto-created) |
 | `migrations/` | Alembic migration files (Flask-Migrate) |
 | `scripts/send_dummy.py` | Dummy data generator |
 | `firmware/` | Arduino sketches for ESP32/ESP8266 + INA219 |
-| `tests/` | Pytest suite (659+ tests) |
+| `requirements/base.txt` | Core dependencies |
+| `requirements/dev.txt` | Dev/test dependencies |
+| `requirements/prod.txt` | Production dependencies |
+| `tests/` | Pytest suite (696+ tests, organized by domain) |
 | `.env` | Config via env vars |
-| `Dockerfile` | `CMD ["fastapi", "run", "app/main.py", "--port", "8000", "--proxy-headers"]` |
+| `Dockerfile` | `CMD ["fastapi", "run", "src/main.py", "--port", "8000", "--proxy-headers"]` |
 | `docker-compose.yml` | PostgreSQL + Nginx production stack |
-
-> This project organizes by file type (schemas/, models/, services/, api/), not by
-> domain. This is an existing convention — do not restructure.
 
 ## Quick start
 
 ```bash
 source venv/bin/activate
-pip install -r requirements.txt
-fastapi run app/main.py
+pip install -r requirements/dev.txt
+fastapi run src/main.py
 ```
 
 Tables auto-create on first run. Default admin: `admin@example.com` / `password`.
@@ -139,10 +145,10 @@ curl -X POST http://localhost:8000/api/v1/measurements \
 - **Models** — User, Device (with API key & thresholds), Session (with energy), Measurement (with energy), Alert (levels: info/warning/critical), Project
 - **Authentication** — JWT bearer token for API, JWT cookie-based for dashboard, Bearer token for device API
 - **Service layer** — business logic separated from HTTP handlers (7 services), all accept `db: Session`
-- **Schemas** — Pydantic request/response models in `app/schemas/`, imported by API route files
-- **Dependencies** — canonical import point in `app/dependencies.py` (re-exports from `app.auth` and `app.database`)
-- **Pagination** — `PaginatedResult` dataclass in `app/utils/pagination.py` used by all services
-- **Middleware** — ASGI middleware in `app/middleware/` (rate limiter with sliding window)
+- **Schemas** — Pydantic request/response models in `src/{domain}/schemas.py`, imported by API route files
+- **Dependencies** — canonical import point in `src/dependencies.py` (re-exports from `src/auth` and `src/database`)
+- **Pagination** — `PaginatedResult` dataclass in `src/utils/pagination.py` used by all services
+- **Middleware** — ASGI middleware in `src/middleware/` (rate limiter with sliding window)
 - **Config** — `pydantic-settings` BaseSettings with env var loading and type validation
 - **HTMX navigation** — `hx-boost="true"` on `<body>` for SPA-like page transitions with native `<script>` re-evaluation
 - **Tailwind CSS** — Utility-first styling with dark theme via CSS variables
@@ -168,13 +174,13 @@ curl -X POST http://localhost:8000/api/v1/measurements \
 ```python
 from typing import Annotated
 from fastapi import Depends
-from app.dependencies import get_db
+from src.dependencies import get_db
 from sqlalchemy.orm import Session
 
 DbDep = Annotated[Session, Depends(get_db)]
 
 @router.get("/devices")
-async def list_devices(db: DbDep) -> list[DeviceResponse]: ...
+def list_devices(db: DbDep) -> list[DeviceResponse]: ...
 ```
 
 ### Chain dependencies for reuse
@@ -183,16 +189,16 @@ async def list_devices(db: DbDep) -> list[DeviceResponse]: ...
 from uuid import UUID
 from typing import Annotated
 from fastapi import Depends
-from app.dependencies import get_db
-from app.services.device_service import DeviceService
+from src.dependencies import get_db
+from src.devices.service import DeviceService
 
-async def valid_device(device_id: UUID, db: Annotated[Session, Depends(get_db)]) -> Device:
-    device = DeviceService.get_by_id(db, device_id)
+def valid_device(device_id: UUID, db: Annotated[Session, Depends(get_db)]) -> Device:
+    device = DeviceService(db).get_by_id(device_id)
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
     return device
 
-async def valid_owned_device(
+def valid_owned_device(
     device: Annotated[Device, Depends(valid_device)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Device:
@@ -221,18 +227,18 @@ This project uses sync SQLAlchemy — follow these rules:
 # DO — sync route for API endpoint with DB access
 @router.get("/devices", response_model=list[DeviceResponse])
 def list_devices(db: DbDep) -> list[DeviceResponse]:
-    return DeviceService.get_all(db)
+    return DeviceService(db).get_all()
 
 # DO — async route for dashboard with template rendering
 @router.get("/")
 async def dashboard(request: Request, db: DbDep):
-    data = DashboardService.get_summary(db)          # sync DB call
+    data = DashboardService(db).get_summary()          # sync DB call
     return templates.TemplateResponse("dashboard.html", {"request": request, **data})
 
 # DON'T — async route with sync DB call that has no await
 @router.get("/bad")
 async def bad(db: DbDep):
-    return DeviceService.get_all(db)    # no await, just overhead
+    return DeviceService(db).get_all()    # no await, just overhead
 ```
 
 ## Pydantic
@@ -338,7 +344,7 @@ def create_alert(payload: AlertCreate, db: DbDep, bg: BackgroundTasks):
 ```python
 import pytest
 from httpx import AsyncClient, ASGITransport
-from app.main import app
+from src.main import app
 
 
 @pytest.fixture
@@ -359,8 +365,8 @@ async def test_create_device(client: AsyncClient):
 ### Override dependencies in tests
 
 ```python
-from app.auth import get_current_user
-from app.main import app
+from src.auth.dependencies import get_current_user
+from src.main import app
 
 
 def fake_user():
@@ -391,7 +397,7 @@ ruff format src
 Hide docs outside dev/staging:
 
 ```python
-from app.config import settings
+from src.config import settings
 
 SHOW_DOCS_IN = {"development", "staging"}
 app_kwargs = {"title": "BuckPow"}
@@ -417,7 +423,7 @@ Check diffs for these. Each is a real failure mode from production code.
 | Catching bare `Exception` around a route body | Hides bugs, turns 500s into silent 200s. | Catch specific exception; raise `HTTPException`. |
 | `BackgroundTasks` for anything you'd page on | No retry, dies with the worker. | Use Celery / Arq / RQ. |
 | Returning a Pydantic model *and* setting `response_model=` to same class | Model constructed twice (validate + serialize). | Return a dict/ORM row and let `response_model` validate, or drop `response_model`. |
-| Importing across domains via deep paths (`from app.services.user.user_service import ...`) | Tight coupling, hard to refactor. | `from app.services import user_service`. |
+| Importing across domains via deep paths (`from src.services.user.user_service import ...`) | Tight coupling, hard to refactor. | `from src.services import user_service`. |
 | Reusing one `BaseSettings` for the whole app | Hard to reason about. | One `BaseSettings` per domain. |
 | Mocking the database in integration tests | Mock/prod divergence. | Use a real DB (testcontainers, ephemeral schema) and `dependency_overrides` for auth. |
 | Switching to `AsyncSession` without project lead approval | Entire service layer assumes sync `Session`. | Keep sync unless approved. |
@@ -425,7 +431,7 @@ Check diffs for these. Each is a real failure mode from production code.
 ## Tests
 
 ```bash
-python -m pytest tests/ -v --cov=app --cov-report=term-missing
+python -m pytest tests/ -v --cov=src --cov-report=term-missing
 ```
 
 ## Send dummy data

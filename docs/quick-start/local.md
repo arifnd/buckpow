@@ -18,7 +18,7 @@ git clone https://github.com/arifnd/buckpow.git
 cd buckpow
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements/dev.txt
 ```
 
 ## Step 2 — Configure Environment (Optional)
@@ -40,12 +40,12 @@ ADMIN_PASSWORD=your-secure-password
 ## Step 3 — Start the Server
 
 ```bash title="Development (with auto-reload)"
-fastapi dev app/main.py --port 8000
+fastapi dev src/main.py --port 8000
 ```
 
 ```bash title="Production"
 alembic upgrade head
-fastapi run app/main.py --proxy-headers
+fastapi run src/main.py --proxy-headers
 ```
 
 ## Step 4 — Open the Dashboard
@@ -137,7 +137,7 @@ alembic upgrade head
 lsof -i :8000
 
 # Use a different port
-fastapi dev app/main.py --port 8001
+fastapi dev src/main.py --port 8001
 ```
 
 ### Module not found
@@ -146,7 +146,7 @@ Ensure your virtual environment is activated:
 
 ```bash
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements/dev.txt
 ```
 
 ### Database errors

@@ -30,10 +30,10 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements/dev.txt
 
 # Start development server
-fastapi dev app/main.py --port 8000
+fastapi dev src/main.py --port 8000
 ```
 
 ### Running Tests
@@ -52,20 +52,31 @@ python scripts/send_dummy.py --interval 1
 
 ```
 buckpow/
-├── app/
-│   ├── api/           # REST API routes
-│   ├── dashboard/     # Server-rendered pages
+├── src/
+│   ├── __init__.py    # App factory, lifespan, middleware
+│   ├── main.py        # Entrypoint
+│   ├── config.py      # Settings
+│   ├── database.py    # SQLAlchemy engine
+│   ├── router.py      # Router aggregation
+│   ├── auth/          # Auth domain
+│   ├── devices/       # Device domain
+│   ├── sessions/      # Session domain
+│   ├── measurements/  # Measurement domain
+│   ├── projects/      # Project domain
+│   ├── alerts/        # Alert domain
+│   ├── audit/         # Audit log domain
+│   ├── benchmark/     # Benchmark domain
+│   ├── settings/      # Settings domain
+│   ├── dashboard/     # Dashboard pages
 │   ├── middleware/     # ASGI middleware
-│   ├── models/        # SQLAlchemy models
-│   ├── schemas/       # Pydantic schemas
-│   ├── services/      # Business logic
-│   ├── templates/     # Jinja2 templates
+│   ├── utils/         # Utility functions
 │   ├── static/        # CSS, JS
-│   └── utils/         # Utility functions
+│   └── templates/     # Jinja2 templates
 ├── firmware/          # Arduino sketches
 ├── migrations/        # Alembic migrations
 ├── scripts/           # Helper scripts
-└── tests/             # Test suite
+├── requirements/      # Split dependencies
+└── tests/             # Test suite (by domain)
 ```
 
 ## Development Workflow
@@ -82,10 +93,10 @@ git checkout -b fix/my-bugfix
 
 Follow the existing code style and patterns:
 
-- **Services** — Business logic goes in `app/services/`
-- **Routes** — API routes go in `app/api/`, dashboard routes in `app/dashboard/`
-- **Models** — SQLAlchemy models in `app/models/`
-- **Schemas** — Pydantic schemas in `app/schemas/`
+- **Services** — Business logic goes in `src/{domain}/service.py`
+- **Routes** — API routes go in `src/{domain}/router.py`, dashboard page routes in `src/dashboard/`
+- **Models** — SQLAlchemy models in `src/{domain}/models.py`
+- **Schemas** — Pydantic schemas in `src/{domain}/schemas.py`
 
 ### 3. Run Tests
 
@@ -126,13 +137,14 @@ All business logic lives in the service layer:
 
 ```python
 class DeviceService:
-    @staticmethod
-    def get_all(db: Session):
-        return db.query(Device).all()
+    def __init__(self, db: Session):
+        self.db = db
 
-    @staticmethod
-    def get_by_id(db: Session, device_id: int):
-        return db.query(Device).filter(Device.id == device_id).first()
+    def get_all(self):
+        return self.db.query(Device).all()
+
+    def get_by_id(self, device_id: int):
+        return self.db.query(Device).filter(Device.id == device_id).first()
 ```
 
 ### Routes
@@ -145,7 +157,7 @@ def list_devices(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_user),
 ):
-    devices = DeviceService.get_all(db)
+    devices = DeviceService(db).get_all()
     return devices
 ```
 
@@ -160,14 +172,21 @@ def list_devices(
 
 ### Test Structure
 
-Tests are in the `tests/` directory, organized by module:
+Tests are in the `tests/` directory, organized by domain:
 
 ```
 tests/
-├── test_devices.py
-├── test_sessions.py
-├── test_measurements.py
-├── ...
+├── auth/
+├── devices/
+├── sessions/
+├── measurements/
+├── projects/
+├── alerts/
+├── audit/
+├── benchmark/
+├── settings/
+├── dashboard/
+└── conftest.py
 ```
 
 ### Running Tests
@@ -180,7 +199,7 @@ python -m pytest tests/ -v
 python -m pytest tests/test_devices.py -v
 
 # Run with coverage
-python -m pytest tests/ --cov=app --cov-report=term-missing
+python -m pytest tests/ --cov=src --cov-report=term-missing
 ```
 
 ### Writing Tests
