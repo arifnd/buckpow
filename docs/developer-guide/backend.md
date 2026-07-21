@@ -98,8 +98,8 @@ Settings via `pydantic-settings` BaseSettings in `app/config.py`:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `SECRET_KEY` | `buckpow-dev-key-change-in-production` | JWT signing key |
-| `ALGORITHM` | `HS256` | JWT algorithm |
+| `JWT_SECRET` | `buckpow-dev-key-change-in-production` | JWT signing key |
+| `JWT_ALGORITHM` | `HS256` | JWT algorithm |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `10080` (7 days) | Token TTL |
 | `DATABASE_URL` | `sqlite:///instance/buckpow.db` | Database connection |
 | `APP_HOST` | `0.0.0.0` | Server bind host |
@@ -172,7 +172,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
         expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({'exp': expire})
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 ```
 
 ### Dependency Functions

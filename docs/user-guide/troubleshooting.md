@@ -326,7 +326,7 @@ curl -X POST http://localhost:8000/api/v1/alerts \
 **Solutions:**
 
 1. **Verify credentials** — Check `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env`
-2. **Check SECRET_KEY** — Ensure `SECRET_KEY` is set (required in production)
+2. **Check JWT_SECRET** — Ensure `JWT_SECRET` is set (required in production)
 3. **Clear cookies** — Clear browser cookies for the BuckPow domain
 4. **Check JWT expiry** — Tokens expire after 7 days by default
 

@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.models import Device, Session, Project, Measurement
 from app.utils.dates import utc_iso
+from app.utils.query import FilterBuilder
 
 
 class DashboardService:
@@ -43,16 +44,8 @@ class DashboardService:
 
     @staticmethod
     def get_statistics(db: Session, device_id=None, session_id=None, start_date=None, end_date=None):
-        q = db.query(Measurement)
-        if device_id:
-            q = q.filter_by(device_id=device_id)
-        if session_id:
-            q = q.filter_by(session_id=session_id)
-        if start_date:
-            q = q.filter(Measurement.created_at >= start_date)
-        if end_date:
-            q = q.filter(Measurement.created_at <= end_date)
-        q = q.order_by(Measurement.created_at.desc()).limit(500)
+        fb = FilterBuilder(Measurement, db.query(Measurement))
+        fb.eq(device_id=device_id, session_id=session_id).date_range('created_at', start_date, end_date).order('created_at').limit(500)
 
         session_started_at = None
         if session_id:
@@ -60,7 +53,7 @@ class DashboardService:
             if sess:
                 session_started_at = utc_iso(sess.started_at)
 
-        rows = q.all()
+        rows = fb.query.all()
         if not rows:
             return {
                 'voltage': {'min': 0, 'max': 0, 'avg': 0},
@@ -103,18 +96,10 @@ class DashboardService:
 
     @staticmethod
     def _get_energy_breakdown(db: Session, device_id=None, session_id=None,
-                              start_date=None, end_date=None):
-        q = db.query(Measurement)
-        if device_id:
-            q = q.filter_by(device_id=device_id)
-        if session_id:
-            q = q.filter_by(session_id=session_id)
-        if start_date:
-            q = q.filter(Measurement.created_at >= start_date)
-        if end_date:
-            q = q.filter(Measurement.created_at <= end_date)
-
-        rows = q.order_by(Measurement.created_at.asc()).all()
+                               start_date=None, end_date=None):
+        fb = FilterBuilder(Measurement, db.query(Measurement))
+        fb.eq(device_id=device_id, session_id=session_id).date_range('created_at', start_date, end_date).order('created_at', desc=False)
+        rows = fb.query.all()
         if not rows:
             return {'hourly': [], 'daily': [], 'weekly': [], 'monthly': []}
 

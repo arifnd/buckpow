@@ -131,7 +131,7 @@ Create a `.env` file (or copy `.env.example`):
 
 ```env
 APP_ENV=production
-SECRET_KEY=your-strong-secret-key
+JWT_SECRET=your-strong-secret-key
 DATABASE_URL=postgresql://buckpow:buckpow@db:5432/buckpow
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=your-secure-password
@@ -150,7 +150,7 @@ docker compose up -d
 | Variable | Default | Description |
 |---|---|---|
 | `APP_ENV` | `development` | Environment mode |
-| `SECRET_KEY` | `buckpow-dev-key-...` | JWT signing key (set in production) |
+| `JWT_SECRET` | `buckpow-dev-key-...` | JWT signing key (set in production) |
 | `APP_HOST` | `0.0.0.0` | Server bind address |
 | `APP_PORT` | `8000` | Server port |
 | `DATABASE_URL` | SQLite (`instance/buckpow.db`) | Database connection string |

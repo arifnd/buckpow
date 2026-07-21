@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from app.models import Alert
 from app.config import settings
 from app.utils.pagination import PaginatedResult
+from app.utils.query import FilterBuilder
 
 DEFAULT_HIGH_POWER_THRESHOLD = 2.5
 DEFAULT_HIGH_CURRENT_THRESHOLD = 0.5
@@ -22,21 +23,13 @@ class AlertService:
 
     @staticmethod
     def get_paginated(db: Session, page=1, per_page=10, device_id=None, level=None, resolved=None):
-        q = db.query(Alert)
-        if device_id:
-            q = q.filter_by(device_id=device_id)
-        if level:
-            q = q.filter_by(level=level)
+        fb = FilterBuilder(Alert, db.query(Alert))
+        fb.eq(device_id=device_id, level=level).order('created_at')
         if resolved is True:
-            q = q.filter(Alert.resolved_at.isnot(None))
+            fb.query = fb.query.filter(Alert.resolved_at.isnot(None))
         elif resolved is False:
-            q = q.filter(Alert.resolved_at.is_(None))
-        q = q.order_by(Alert.created_at.desc())
-        offset = (page - 1) * per_page
-        total = q.count()
-        items = q.offset(offset).limit(per_page).all()
-        pages = (total + per_page - 1) // per_page if total > 0 else 1
-        return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
+            fb.query = fb.query.filter(Alert.resolved_at.is_(None))
+        return fb.paginate(page, per_page)
 
     @staticmethod
     def resolve(db: Session, alert_id):
@@ -49,20 +42,18 @@ class AlertService:
 
     @staticmethod
     def resolve_all(db: Session, device_id=None):
-        q = db.query(Alert).filter(Alert.resolved_at.is_(None))
-        if device_id:
-            q = q.filter_by(device_id=device_id)
+        fb = FilterBuilder(Alert, db.query(Alert).filter(Alert.resolved_at.is_(None)))
+        fb.eq(device_id=device_id)
         now = datetime.now(timezone.utc)
-        for alert in q.all():
+        for alert in fb.query.all():
             alert.resolved_at = now
         db.commit()
 
     @staticmethod
     def get_unresolved_count(db: Session, device_id=None):
-        q = db.query(Alert).filter(Alert.resolved_at.is_(None))
-        if device_id:
-            q = q.filter_by(device_id=device_id)
-        return q.count()
+        fb = FilterBuilder(Alert, db.query(Alert).filter(Alert.resolved_at.is_(None)))
+        fb.eq(device_id=device_id)
+        return fb.query.count()
 
     @staticmethod
     def _has_unresolved(db: Session, device_id, message_prefix):

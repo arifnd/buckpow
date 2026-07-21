@@ -43,7 +43,7 @@ Full installation guide for BuckPow with all configuration options.
 
     ```env
     APP_ENV=production
-    SECRET_KEY=your-strong-random-secret-key-min-32-chars
+    JWT_SECRET=your-strong-random-secret-key-min-32-chars
     ADMIN_EMAIL=admin@example.com
     ADMIN_PASSWORD=your-secure-password
     DATABASE_URL=postgresql://buckpow:buckpow@db:5432/buckpow
@@ -127,7 +127,7 @@ Full installation guide for BuckPow with all configuration options.
 
     ```env
     APP_ENV=production
-    SECRET_KEY=your-strong-random-secret-key-min-32-chars
+    JWT_SECRET=your-strong-random-secret-key-min-32-chars
     ADMIN_EMAIL=admin@example.com
     ADMIN_PASSWORD=your-secure-password
     DATABASE_URL=postgresql://user:pass@localhost:5432/buckpow
@@ -152,7 +152,7 @@ Full installation guide for BuckPow with all configuration options.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `APP_ENV` | `development` | Environment mode: `development` or `production` |
-| `SECRET_KEY` | `buckpow-dev-key-change-in-production` | JWT signing key. **Required in production** (min 32 chars) |
+| `JWT_SECRET` | `buckpow-dev-key-change-in-production` | JWT signing key. **Required in production** (min 32 chars) |
 | `APP_HOST` | `0.0.0.0` | Server bind address |
 | `APP_PORT` | `8000` | Server port |
 | `LOG_LEVEL` | `info` | Python logging level: `debug`, `info`, `warning`, `error` |
@@ -214,7 +214,7 @@ DATABASE_URL=mysql+pymysql://user:password@host:3306/dbname
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ALGORITHM` | `HS256` | JWT signing algorithm |
+| `JWT_ALGORITHM` | `HS256` | JWT signing algorithm |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `10080` (7 days) | JWT token expiry time |
 
 ## Database Setup

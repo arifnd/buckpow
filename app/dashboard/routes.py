@@ -19,7 +19,7 @@ templates = Environment(loader=FileSystemLoader('app/templates'), autoescape=Tru
 
 def _url_for(endpoint, **kwargs):
     if endpoint == 'static':
-        return '/static/' + kwargs.get('filename', '')
+        return '/static/' + kwargs.get('filename', '') + '?v=' + APP_VERSION
     return '/'
 
 

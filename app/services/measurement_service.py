@@ -7,6 +7,7 @@ from app.models.session import Session as SessionModel
 from app.utils.calculations import calc_load_voltage, calc_energy_increment
 from app.utils.dates import utc_iso
 from app.utils.pagination import PaginatedResult
+from app.utils.query import FilterBuilder
 from app.services.device_service import DeviceService
 from app.services.session_service import SessionService
 from app.services.alert_service import AlertService
@@ -58,26 +59,18 @@ class MeasurementService:
 
     @staticmethod
     def get_recent(db: DBSession, limit=50, device_id=None):
-        q = db.query(Measurement)
-        if device_id:
-            q = q.filter_by(device_id=device_id)
-        return q.order_by(Measurement.created_at.desc()).limit(limit).all()
+        fb = FilterBuilder(Measurement, db.query(Measurement))
+        fb.eq(device_id=device_id).order('created_at').limit(limit)
+        return fb.query.all()
 
     @staticmethod
     def get_chart_data(db: DBSession, limit=500, device_id=None, session_id=None, granularity=None,
                        start_date=None, end_date=None):
-        q = db.query(Measurement)
-        if device_id:
-            q = q.filter_by(device_id=device_id)
-        if session_id:
-            q = q.filter_by(session_id=session_id)
-        if start_date:
-            q = q.filter(Measurement.created_at >= start_date)
-        if end_date:
-            q = q.filter(Measurement.created_at <= end_date)
+        fb = FilterBuilder(Measurement, db.query(Measurement))
+        fb.eq(device_id=device_id, session_id=session_id).date_range('created_at', start_date, end_date)
 
         if granularity and granularity in ('s', 'm', 'h', 'd'):
-            rows = q.order_by(Measurement.created_at.asc()).all()
+            rows = fb.query.order_by(Measurement.created_at.asc()).all()
             buckets = {}
             for m in rows:
                 ts = m.created_at
@@ -120,7 +113,7 @@ class MeasurementService:
                 'energy': energy,
             }
 
-        rows = q.order_by(Measurement.created_at.desc()).limit(limit).all()
+        rows = fb.query.order_by(Measurement.created_at.desc()).limit(limit).all()
         rows.reverse()
         return {
             'labels': [utc_iso(r.created_at) if r.created_at else '' for r in rows],
@@ -133,11 +126,10 @@ class MeasurementService:
 
     @staticmethod
     def get_stats(db: DBSession, device_id=None):
-        q = db.query(Measurement)
-        if device_id:
-            q = q.filter_by(device_id=device_id)
+        fb = FilterBuilder(Measurement, db.query(Measurement))
+        fb.eq(device_id=device_id)
 
-        rows = q.order_by(Measurement.created_at.desc()).limit(500).all()
+        rows = fb.query.order_by(Measurement.created_at.desc()).limit(500).all()
 
         if not rows:
             return {
@@ -242,31 +234,12 @@ class MeasurementService:
 
     @staticmethod
     def get_paginated(db: DBSession, page=1, per_page=50, device_id=None, session_id=None, start_date=None, end_date=None):
-        q = db.query(Measurement)
-        if device_id:
-            q = q.filter_by(device_id=device_id)
-        if session_id:
-            q = q.filter_by(session_id=session_id)
-        if start_date:
-            q = q.filter(Measurement.created_at >= start_date)
-        if end_date:
-            q = q.filter(Measurement.created_at <= end_date)
-        q = q.order_by(Measurement.created_at.desc())
-        offset = (page - 1) * per_page
-        total = q.count()
-        items = q.offset(offset).limit(per_page).all()
-        pages = (total + per_page - 1) // per_page if total > 0 else 1
-        return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
+        fb = FilterBuilder(Measurement, db.query(Measurement))
+        fb.eq(device_id=device_id, session_id=session_id).date_range('created_at', start_date, end_date).order('created_at')
+        return fb.paginate(page, per_page)
 
     @staticmethod
     def get_all_filtered(db: DBSession, device_id=None, session_id=None, start_date=None, end_date=None):
-        q = db.query(Measurement)
-        if device_id:
-            q = q.filter_by(device_id=device_id)
-        if session_id:
-            q = q.filter_by(session_id=session_id)
-        if start_date:
-            q = q.filter(Measurement.created_at >= start_date)
-        if end_date:
-            q = q.filter(Measurement.created_at <= end_date)
-        return q.order_by(Measurement.created_at.asc()).all()
+        fb = FilterBuilder(Measurement, db.query(Measurement))
+        fb.eq(device_id=device_id, session_id=session_id).date_range('created_at', start_date, end_date).order('created_at', desc=False)
+        return fb.query.all()
