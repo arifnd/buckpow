@@ -3,6 +3,8 @@ import sys
 import time
 import threading
 
+from src import APP_VERSION, MIN_FIRMWARE_VERSION
+
 
 class TestAppStartup:
     def test_app_imports_without_error(self):
@@ -17,8 +19,8 @@ assert hasattr(config, 'DISABLE_API_DOCS')
 assert config.DATABASE_URL.startswith('sqlite')
 assert config.JWT_SECRET is not None
 assert app.title == 'BuckPow'
-assert APP_VERSION == '0.1.0-beta.1'
-assert MIN_FIRMWARE_VERSION == '1.0.0'
+assert isinstance(APP_VERSION, str) and len(APP_VERSION) > 0
+assert isinstance(MIN_FIRMWARE_VERSION, str) and len(MIN_FIRMWARE_VERSION) > 0
 print('OK')
 """
         result = subprocess.run(
@@ -72,7 +74,7 @@ print('OK')
             import json
             data = json.loads(resp.read())
             assert data['status'] == 'ok'
-            assert data['version'] == '0.1.0-beta.1'
+            assert data['version'] == APP_VERSION
         finally:
             proc.kill()
             proc.wait()

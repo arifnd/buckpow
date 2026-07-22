@@ -12,7 +12,7 @@ from src.config import settings as config
 from src.database import engine, Base
 from src.middleware import RateLimiterMiddleware, bearer_token_key
 
-APP_VERSION = "0.1.0-beta.1"
+APP_VERSION = "0.1.0-beta.3"
 MIN_FIRMWARE_VERSION = "1.0.0"
 
 
