@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Query
 
 from src.utils.pagination import PaginatedResult
@@ -18,8 +20,12 @@ class FilterBuilder:
     def date_range(self, col_name: str, start=None, end=None) -> "FilterBuilder":
         col = getattr(self.model, col_name)
         if start is not None:
+            if isinstance(start, str):
+                start = datetime.fromisoformat(start)
             self.query = self.query.filter(col >= start)
         if end is not None:
+            if isinstance(end, str):
+                end = datetime.fromisoformat(end)
             self.query = self.query.filter(col <= end)
         return self
 
@@ -48,4 +54,6 @@ class FilterBuilder:
         total = self.query.count()
         items = self.query.offset(offset).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
-        return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
+        return PaginatedResult(
+            items=items, page=page, pages=pages, total=total, per_page=per_page
+        )

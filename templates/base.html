@@ -16,7 +16,7 @@ if (window.tailwind) {
 <script>htmx.config.allowScriptEval = true;</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flowbite-datepicker@1.3.1/dist/js/datepicker.min.js"></script>
+
 <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
 <script>
   window.__userTimestampFormat = '{{ current_user.settings.get("timestamp_format", "24h") if current_user and current_user.is_authenticated else "24h" }}';
@@ -28,7 +28,7 @@ if (window.tailwind) {
 <script src="{{ url_for('static', filename='js/format.js') }}"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flowbite-datepicker@1.3.1/dist/css/datepicker.min.css">
+
 {% block extra_head %}{% endblock %}
 <script>
 function confirmDialog(msg, confirmLabel) {
