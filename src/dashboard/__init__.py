@@ -25,4 +25,4 @@ dashboard_router.include_router(profile_router)
 dashboard_router.include_router(settings_router)
 dashboard_router.include_router(audit_router)
 
-__all__ = ['dashboard_router']
+__all__ = ["dashboard_router"]

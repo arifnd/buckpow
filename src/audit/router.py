@@ -9,7 +9,7 @@ from src.audit.service import AuditService
 router = APIRouter()
 
 
-@router.get('/audit/logs')
+@router.get("/audit/logs")
 def list_audit_logs(
     page: int = Query(1),
     per_page: int = Query(10),
@@ -18,14 +18,17 @@ def list_audit_logs(
     db: Session = Depends(get_db),
     _current_user: User = Depends(require_user),
 ):
-    pagination = AuditService(db).get_paginated(page=page, per_page=per_page,
-        action=action, target_type=target_type,
+    pagination = AuditService(db).get_paginated(
+        page=page,
+        per_page=per_page,
+        action=action,
+        target_type=target_type,
     )
     return {
-        'logs': [l.to_dict() for l in pagination.items],
-        'page': pagination.page,
-        'pages': pagination.pages,
-        'total': pagination.total,
-        'per_page': pagination.per_page,
-        'actions': AuditService(db).get_actions(),
+        "logs": [l.to_dict() for l in pagination.items],
+        "page": pagination.page,
+        "pages": pagination.pages,
+        "total": pagination.total,
+        "per_page": pagination.per_page,
+        "actions": AuditService(db).get_actions(),
     }

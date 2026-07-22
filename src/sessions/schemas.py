@@ -4,8 +4,8 @@ from pydantic import BaseModel
 class SessionCreate(BaseModel):
     device_id: int
     name: str
-    target_device: str = ''
-    description: str = ''
+    target_device: str = ""
+    description: str = ""
     project_id: int | None = None
 
 

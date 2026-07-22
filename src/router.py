@@ -16,12 +16,12 @@ from src.audit.router import router as audit_router
 health_router = APIRouter()
 
 
-@health_router.get('/health')
+@health_router.get("/health")
 def health_check():
     return {
-        'status': 'ok',
-        'version': APP_VERSION,
-        'min_firmware_version': MIN_FIRMWARE_VERSION,
+        "status": "ok",
+        "version": APP_VERSION,
+        "min_firmware_version": MIN_FIRMWARE_VERSION,
     }
 
 

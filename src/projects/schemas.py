@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class ProjectCreate(BaseModel):
     name: str
-    description: str = ''
+    description: str = ""
 
 
 class ProjectUpdate(BaseModel):

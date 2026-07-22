@@ -3,7 +3,6 @@ from src.auth.models import User
 
 
 class UserService:
-
     def __init__(self, db: Session):
         self.db = db
 
@@ -16,7 +15,7 @@ class UserService:
     def create(self, name, email, password, commit=True):
         existing = self.get_by_email(email)
         if existing:
-            raise ValueError(f'User with email {email} already exists')
+            raise ValueError(f"User with email {email} already exists")
         user = User(name=name, email=email)
         user.set_password(password)
         self.db.add(user)
@@ -33,7 +32,7 @@ class UserService:
         if email is not None:
             existing = self.get_by_email(email)
             if existing and existing.id != user_id:
-                raise ValueError(f'Email {email} already in use')
+                raise ValueError(f"Email {email} already in use")
             user.email = email
         if password:
             user.set_password(password)

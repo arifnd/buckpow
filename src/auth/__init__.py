@@ -7,9 +7,9 @@ from src.auth.dependencies import (
 )
 
 __all__ = [
-    'create_access_token',
-    'get_current_user',
-    'require_user',
-    'get_api_key_device',
-    'security',
+    "create_access_token",
+    "get_current_user",
+    "require_user",
+    "get_api_key_device",
+    "security",
 ]

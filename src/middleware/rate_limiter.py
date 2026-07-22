@@ -4,16 +4,15 @@ from collections import defaultdict
 
 
 def bearer_token_key(scope):
-    for name, value in scope.get('headers', []):
-        if name == b'authorization':
+    for name, value in scope.get("headers", []):
+        if name == b"authorization":
             auth = value.decode()
-            if auth.startswith('Bearer '):
+            if auth.startswith("Bearer "):
                 return auth[7:]
     return None
 
 
 class RateLimiterMiddleware:
-
     def __init__(self, app, limits=None):
         self.app = app
         self.limits = limits or []
@@ -21,13 +20,13 @@ class RateLimiterMiddleware:
         self._cleanup_counter = 0
 
     async def __call__(self, scope, receive, send):
-        if scope['type'] != 'http':
+        if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
-        client_ip = scope.get('client', ('127.0.0.1', 0))[0]
-        method = scope['method']
-        path = scope['path']
+        client_ip = scope.get("client", ("127.0.0.1", 0))[0]
+        method = scope["method"]
+        path = scope["path"]
 
         max_reqs = window = key_func = None
         for entry in self.limits:
@@ -46,26 +45,32 @@ class RateLimiterMiddleware:
             identity = client_ip
 
         now = time.time()
-        key = f'{identity}:{method}:{prefix}'
+        key = f"{identity}:{method}:{prefix}"
         timestamps = self.requests[key]
         cutoff = now - window
         self.requests[key] = [t for t in timestamps if t > cutoff]
 
         if len(self.requests[key]) >= max_reqs:
-            body = json.dumps({'error': 'Rate limit exceeded', 'code': 'RATE_LIMITED'}).encode()
+            body = json.dumps(
+                {"error": "Rate limit exceeded", "code": "RATE_LIMITED"}
+            ).encode()
             headers = [
-                (b'content-type', b'application/json'),
-                (b'retry-after', str(int(window)).encode()),
+                (b"content-type", b"application/json"),
+                (b"retry-after", str(int(window)).encode()),
             ]
-            await send({
-                'type': 'http.response.start',
-                'status': 429,
-                'headers': headers,
-            })
-            await send({
-                'type': 'http.response.body',
-                'body': body,
-            })
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": 429,
+                    "headers": headers,
+                }
+            )
+            await send(
+                {
+                    "type": "http.response.body",
+                    "body": body,
+                }
+            )
             return
 
         self.requests[key].append(now)

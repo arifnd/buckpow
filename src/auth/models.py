@@ -8,7 +8,7 @@ from src.utils.hash import hash_password, verify_password
 
 
 class User(Base):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     is_authenticated = True
 
@@ -27,11 +27,11 @@ class User(Base):
 
     def to_dict(self):
         return {
-            'id': self.id,
-            'name': self.name,
-            'email': self.email,
-            'created_at': utc_iso(self.created_at) if self.created_at else None,
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "created_at": utc_iso(self.created_at) if self.created_at else None,
         }
 
     def __repr__(self):
-        return f'<User {self.email}>'
+        return f"<User {self.email}>"

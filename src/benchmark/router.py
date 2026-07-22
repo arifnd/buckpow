@@ -11,9 +11,12 @@ router = APIRouter()
 
 def _parse_session_ids(sessions: str) -> list[int]:
     if not sessions:
-        raise HTTPException(status_code=400, detail='sessions parameter is required (comma-separated IDs)')
+        raise HTTPException(
+            status_code=400,
+            detail="sessions parameter is required (comma-separated IDs)",
+        )
     ids = []
-    for s in sessions.split(','):
+    for s in sessions.split(","):
         s = s.strip()
         if not s:
             continue
@@ -22,13 +25,13 @@ def _parse_session_ids(sessions: str) -> list[int]:
         except ValueError:
             continue
     if len(ids) < 2 or len(ids) > 3:
-        raise HTTPException(status_code=400, detail='2 to 3 session IDs are required')
+        raise HTTPException(status_code=400, detail="2 to 3 session IDs are required")
     return ids
 
 
-@router.get('/benchmark/compare')
+@router.get("/benchmark/compare")
 def compare(
-    sessions: str = Query(''),
+    sessions: str = Query(""),
     db: Session = Depends(get_db),
     _current_user: User = Depends(require_user),
 ):
@@ -40,11 +43,13 @@ def compare(
         if not stat:
             continue
         chart = svc.get_chart_data(session_id=sid)
-        stat['chart_data'] = {
-            'labels': chart.get('labels', []),
-            'power': chart.get('power', []),
+        stat["chart_data"] = {
+            "labels": chart.get("labels", []),
+            "power": chart.get("power", []),
         }
         results.append(stat)
     if len(results) < 2:
-        raise HTTPException(status_code=404, detail='Could not find at least two valid sessions')
-    return {'sessions': results}
+        raise HTTPException(
+            status_code=404, detail="Could not find at least two valid sessions"
+        )
+    return {"sessions": results}

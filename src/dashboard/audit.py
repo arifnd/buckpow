@@ -1,6 +1,4 @@
 from fastapi import APIRouter, Depends
-from fastapi.responses import HTMLResponse
-from sqlalchemy.orm import Session
 
 from src.dependencies import get_current_user
 from src.auth.models import User
@@ -9,6 +7,6 @@ from src.template_helpers import _render_or_redirect
 router = APIRouter()
 
 
-@router.get('/audit')
+@router.get("/audit")
 def audit_page(current_user: User | None = Depends(get_current_user)):
-    return _render_or_redirect('audit/index.html', current_user, 'audit')
+    return _render_or_redirect("audit/index.html", current_user, "audit")

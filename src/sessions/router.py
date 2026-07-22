@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from src.database import get_db
@@ -14,7 +13,7 @@ from src.sessions.schemas import SessionCreate, SessionUpdate
 router = APIRouter()
 
 
-@router.get('/sessions')
+@router.get("/sessions")
 def list_sessions(
     page: int = Query(1),
     per_page: int = Query(10),
@@ -29,8 +28,8 @@ def list_sessions(
         for s in sessions:
             d = s.to_dict()
             st = stats.get(s.id, {})
-            d['avg_power'] = st.get('avg_power')
-            d['total_energy'] = st.get('total_energy')
+            d["avg_power"] = st.get("avg_power")
+            d["total_energy"] = st.get("total_energy")
             result.append(d)
         return result
     pagination = SessionService(db).get_paginated(page=page, per_page=per_page)
@@ -40,23 +39,28 @@ def list_sessions(
     for s in pagination.items:
         d = s.to_dict()
         st = stats.get(s.id, {})
-        d['avg_power'] = st.get('avg_power')
-        d['total_energy'] = st.get('total_energy')
+        d["avg_power"] = st.get("avg_power")
+        d["total_energy"] = st.get("total_energy")
         sessions.append(d)
     return {
-        'sessions': sessions,
-        'page': pagination.page,
-        'pages': pagination.pages,
-        'total': pagination.total,
-        'per_page': pagination.per_page,
+        "sessions": sessions,
+        "page": pagination.page,
+        "pages": pagination.pages,
+        "total": pagination.total,
+        "per_page": pagination.per_page,
     }
 
 
-@router.post('/sessions', status_code=201)
-def create_session(body: SessionCreate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+@router.post("/sessions", status_code=201)
+def create_session(
+    body: SessionCreate,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
+):
     if not body.name or not body.device_id:
-        raise HTTPException(status_code=400, detail='name and device_id are required')
-    session = SessionService(db).create(device_id=body.device_id,
+        raise HTTPException(status_code=400, detail="name and device_id are required")
+    session = SessionService(db).create(
+        device_id=body.device_id,
         name=body.name,
         target_device=body.target_device,
         description=body.description,
@@ -65,57 +69,97 @@ def create_session(body: SessionCreate, db: Session = Depends(get_db), _current_
     return session.to_dict()
 
 
-@router.get('/sessions/{session_id}')
-def get_session(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+@router.get("/sessions/{session_id}")
+def get_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
+):
     session = SessionService(db).get_by_id(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail='Session not found')
+        raise HTTPException(status_code=404, detail="Session not found")
     return session.to_dict()
 
 
-@router.put('/sessions/{session_id}')
-def update_session(session_id: int, body: SessionUpdate, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
-    session = SessionService(db).update(session_id,
+@router.put("/sessions/{session_id}")
+def update_session(
+    session_id: int,
+    body: SessionUpdate,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
+):
+    session = SessionService(db).update(
+        session_id,
         name=body.name,
         target_device=body.target_device,
         description=body.description,
         project_id=body.project_id,
     )
     if not session:
-        raise HTTPException(status_code=404, detail='Session not found')
+        raise HTTPException(status_code=404, detail="Session not found")
     return session.to_dict()
 
 
-@router.delete('/sessions/{session_id}')
-def delete_session(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+@router.delete("/sessions/{session_id}")
+def delete_session(
+    session_id: int,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
+):
     if SessionService(db).delete(session_id):
-        return {'status': 'deleted'}
-    raise HTTPException(status_code=404, detail='Session not found')
+        return {"status": "deleted"}
+    raise HTTPException(status_code=404, detail="Session not found")
 
 
-@router.get('/sessions/{session_id}/stats')
-def session_stats(session_id: int, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+@router.get("/sessions/{session_id}/stats")
+def session_stats(
+    session_id: int,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
+):
     stats = MeasurementService.get_session_stats(db, session_id)
     if stats is None:
-        raise HTTPException(status_code=404, detail='Session not found')
+        raise HTTPException(status_code=404, detail="Session not found")
     return stats
 
 
-@router.post('/sessions/{session_id}/start')
-def start_session(session_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+@router.post("/sessions/{session_id}/start")
+def start_session(
+    session_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
+):
     session, error = SessionService(db).start(session_id)
     if error:
         raise HTTPException(status_code=400, detail=error)
     ip = get_client_ip(request)
-    AuditService(db).log('session.start', user_id=_current_user.id, target_type='session', target_id=session_id, ip_address=ip)
+    AuditService(db).log(
+        "session.start",
+        user_id=_current_user.id,
+        target_type="session",
+        target_id=session_id,
+        ip_address=ip,
+    )
     return session.to_dict()
 
 
-@router.post('/sessions/{session_id}/stop')
-def stop_session(session_id: int, request: Request, db: Session = Depends(get_db), _current_user: User = Depends(require_user)):
+@router.post("/sessions/{session_id}/stop")
+def stop_session(
+    session_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    _current_user: User = Depends(require_user),
+):
     session, error = SessionService(db).stop(session_id)
     if error:
         raise HTTPException(status_code=400, detail=error)
     ip = get_client_ip(request)
-    AuditService(db).log('session.stop', user_id=_current_user.id, target_type='session', target_id=session_id, ip_address=ip)
+    AuditService(db).log(
+        "session.stop",
+        user_id=_current_user.id,
+        target_type="session",
+        target_id=session_id,
+        ip_address=ip,
+    )
     return session.to_dict()

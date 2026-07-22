@@ -12,32 +12,48 @@ from src.projects.service import ProjectService
 router = APIRouter()
 
 
-@router.get('/sessions')
+@router.get("/sessions")
 def sessions_page(current_user: User | None = Depends(get_current_user)):
-    return _render_or_redirect('sessions/index.html', current_user, 'sessions')
+    return _render_or_redirect("sessions/index.html", current_user, "sessions")
 
 
-@router.get('/sessions/new')
+@router.get("/sessions/new")
 def sessions_new_page(
     current_user: User | None = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     all_devices = DeviceService(db).get_all()
-    devices = [d for d in all_devices if not SessionService(db).get_active_session(d.id)]
-    return _render_or_redirect('sessions/form.html', current_user, 'sessions', session=None, devices=devices, projects=ProjectService(db).get_all())
+    devices = [
+        d for d in all_devices if not SessionService(db).get_active_session(d.id)
+    ]
+    return _render_or_redirect(
+        "sessions/form.html",
+        current_user,
+        "sessions",
+        session=None,
+        devices=devices,
+        projects=ProjectService(db).get_all(),
+    )
 
 
-@router.get('/sessions/{session_id}/edit')
+@router.get("/sessions/{session_id}/edit")
 def sessions_edit_page(
     session_id: int,
     current_user: User | None = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     session = SessionService(db).get_by_id(session_id)
-    return _render_or_redirect('sessions/form.html', current_user, 'sessions', session=session, devices=DeviceService(db).get_all(), projects=ProjectService(db).get_all())
+    return _render_or_redirect(
+        "sessions/form.html",
+        current_user,
+        "sessions",
+        session=session,
+        devices=DeviceService(db).get_all(),
+        projects=ProjectService(db).get_all(),
+    )
 
 
-@router.get('/sessions/{session_id}')
+@router.get("/sessions/{session_id}")
 def sessions_detail_page(
     session_id: int,
     current_user: User | None = Depends(get_current_user),
@@ -48,5 +64,12 @@ def sessions_detail_page(
         return redir
     session = SessionService(db).get_by_id(session_id)
     if not session:
-        return RedirectResponse(url='/sessions', status_code=302)
-    return HTMLResponse(_render('sessions/detail.html', current_user=current_user, active_page='sessions', session=session))
+        return RedirectResponse(url="/sessions", status_code=302)
+    return HTMLResponse(
+        _render(
+            "sessions/detail.html",
+            current_user=current_user,
+            active_page="sessions",
+            session=session,
+        )
+    )
