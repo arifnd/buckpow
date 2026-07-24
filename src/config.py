@@ -1,11 +1,15 @@
 import os
-from pydantic import Field, model_validator
+import warnings
+
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class Settings(BaseSettings):
+    model_config = {"env_file": ".env", "extra": "ignore", "populate_by_name": True}
+
     JWT_SECRET: str = Field(
         default="buckpow-dev-key-change-in-production", alias="SECRET_KEY"
     )
@@ -18,23 +22,20 @@ class Settings(BaseSettings):
 
     HOST: str = Field(default="0.0.0.0", alias="APP_HOST")
     PORT: int = Field(default=8000, alias="APP_PORT")
-    LOG_LEVEL: str = Field(default="info")
+    LOG_LEVEL: str = "info"
 
-    ADMIN_EMAIL: str = Field(default="")
-    ADMIN_PASSWORD: str = Field(default="")
+    ADMIN_EMAIL: str = ""
+    ADMIN_PASSWORD: str = ""
 
-    DEVICE_ONLINE_TIMEOUT: int = Field(default=30)
-    DEFAULT_SAMPLING_INTERVAL: int = Field(default=1)
-    DEVICE_AUTH_ENABLED: bool = Field(default=True)
-    DISABLE_API_DOCS: bool = Field(default=False)
-    APP_ENV: str = Field(default="development")
+    DEVICE_ONLINE_TIMEOUT: int = 30
+    DEFAULT_SAMPLING_INTERVAL: int = 1
+    DEVICE_AUTH_ENABLED: bool = True
+    DISABLE_API_DOCS: bool = False
+    APP_ENV: str = "development"
 
     DEBUG: bool = Field(default=True, exclude=True)
 
-    model_config = {"env_file": ".env", "extra": "ignore", "populate_by_name": True}
-
-    @model_validator(mode="after")
-    def _derive_debug(self):
+    def model_post_init(self, __context):
         env = self.APP_ENV
         object.__setattr__(self, "DEBUG", env == "development")
 
@@ -43,14 +44,11 @@ class Settings(BaseSettings):
                 "JWT_SECRET environment variable is required in production"
             )
         if len(self.JWT_SECRET) < 32:
-            import warnings
-
             warnings.warn(
                 f"JWT_SECRET is {len(self.JWT_SECRET)} bytes (minimum 32 recommended for HMAC-SHA256)",
                 UserWarning,
                 stacklevel=2,
             )
-        return self
 
 
 settings = Settings()
