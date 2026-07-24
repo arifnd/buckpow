@@ -144,7 +144,7 @@ curl http://localhost:8000/api/v1/devices/<device-id>/key \
 3. Wait for the connection sequence:
 
 ```
-BuckPow INA219 Firmware v1.1.0
+BuckPow INA219 Firmware v1.2.0
 Host: http://192.168.1.100:8000
 Proto: HTTP
 Key:   a1b2****ef01

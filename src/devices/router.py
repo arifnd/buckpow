@@ -1,14 +1,23 @@
-from fastapi import APIRouter, HTTPException, Query, Request
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from pydantic import Field
 
 from src.audit.service import AuditService
+from src.auth.dependencies import get_api_key_device
 from src.dependencies import DbDep, RequiredUserDep
 from src.devices.models import Device
 from src.devices.schemas import DeviceCreate, DeviceUpdate
 from src.devices.service import DeviceService
+from src.models import AppBaseModel
 from src.projects.models import Project
 from src.utils.client_ip import get_client_ip
 
 router = APIRouter()
+
+
+class LocalIpUpdate(AppBaseModel):
+    local_ip: str = Field(min_length=1, max_length=45)
 
 
 def _check_device_owner(db, device_id, user_id):
@@ -206,3 +215,16 @@ def delete_device(
         )
         return {"status": "deleted"}
     raise HTTPException(status_code=404, detail="Device not found")
+
+
+@router.patch("/devices/local-ip")
+def update_local_ip(
+    body: LocalIpUpdate,
+    db: DbDep,
+    device: Annotated[Device | None, Depends(get_api_key_device)],
+):
+    if device is None:
+        raise HTTPException(status_code=401, detail="Device authentication required")
+    device.local_ip = body.local_ip
+    db.commit()
+    return {"status": "ok", "local_ip": device.local_ip}

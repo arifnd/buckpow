@@ -10,9 +10,9 @@ BuckPow provides two firmware variants:
 
 | Sketch | Display | Version | Interval |
 |--------|---------|---------|----------|
-| `buckpow_ina219` | None (Serial only) | 1.1.0 | 1s |
-| `buckpow_ina219_oled` | SSD1306 128x32 OLED | 1.1.0 | 5s |
-| `buckpow_ina219_captive` | None (Web UI) | 1.1.0 | Configurable |
+| `buckpow_ina219` | None (Serial only) | 1.2.0 | 1s |
+| `buckpow_ina219_oled` | SSD1306 128x32 OLED | 1.2.0 | 5s |
+| `buckpow_ina219_captive` | None (Web UI) | 1.2.0 | Configurable |
 
 Both sketches support **ESP32** and **ESP8266** with the INA219 current/power sensor.
 
@@ -158,7 +158,7 @@ Click the Upload button or press Ctrl+U.
 Open Serial Monitor (Tools → Serial Monitor) at **115200 baud**:
 
 ```
-BuckPow INA219 Firmware v1.1.0
+BuckPow INA219 Firmware v1.2.0
 Host: http://192.168.100.16:8000
 Proto: HTTP
 Key:   ****
@@ -176,7 +176,7 @@ Each reading sends a JSON POST request:
 ```json
 {
   "device_id": "esp32-ina219-01",
-  "firmware_version": "1.1.0",
+  "firmware_version": "1.2.0",
   "bus_voltage": 5.12,
   "shunt_voltage": 82.0,
   "current": 241.0,
@@ -350,12 +350,26 @@ curl http://localhost:8000/api/v1/health
 
 Devices below this version still send readings but are flagged in the device record.
 
+## Local IP Reporting
+
+After WiFi connects and the first successful API call is made, the firmware reports its local IP address via a separate endpoint:
+
+```http
+PATCH /api/v1/devices/local-ip
+Authorization: Bearer <api_key>
+Content-Type: application/json
+
+{"local_ip": "192.168.1.100"}
+```
+
+This is called once per boot. An `ipReported` flag prevents resending on every measurement cycle.
+
 ## Serial Output Reference
 
 ### Boot Sequence
 
 ```
-BuckPow INA219 Firmware v1.1.0
+BuckPow INA219 Firmware v1.2.0
 Host: http://192.168.100.16:8000
 Proto: HTTP
 Key:   ****

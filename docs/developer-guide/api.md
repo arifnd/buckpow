@@ -125,7 +125,7 @@ POST /api/v1/measurements
   "shunt_voltage": 82,
   "current": 241,
   "power": 1234,
-  "firmware_version": "1.1.0"
+  "firmware_version": "1.2.0"
 }
 ```
 
@@ -297,7 +297,8 @@ GET /api/v1/devices
       "status": "online",
       "api_key": "a1b2c3****ef01",
       "enabled": true,
-      "firmware_version": "1.1.0",
+"firmware_version": "1.2.0",
+      "local_ip": "192.168.1.100",
       "project_id": 1,
       "project_name": "Power Lab",
       "high_current_threshold": 0.5,
@@ -331,7 +332,7 @@ POST /api/v1/devices
   "description": "INA219 on power supply",
   "sampling_interval": 1,
   "project_id": 1,
-  "firmware_version": "1.1.0",
+  "firmware_version": "1.2.0",
   "high_current_threshold": 0.5,
   "high_power_threshold": 2.5,
   "low_voltage_threshold": 4.5
@@ -434,6 +435,38 @@ POST /api/v1/devices/{device_id}/regenerate-key
 
 !!! warning "Old key invalidated"
     The old API key is immediately invalidated after regeneration.
+
+### Update Device Local IP
+
+```http
+PATCH /api/v1/devices/local-ip
+```
+
+**Authentication:** Device Bearer token (API key)
+
+**Request Body:**
+
+```json
+{
+  "local_ip": "192.168.1.100"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `local_ip` | string | Yes | Device local IP address |
+
+**Response (200):**
+
+```json
+{
+  "status": "ok",
+  "local_ip": "192.168.1.100"
+}
+```
+
+!!! info "Firmware usage"
+    Firmware calls this endpoint once after WiFi connects and the first successful API call is made. The `ipReported` flag prevents resending on every measurement.
 
 ---
 

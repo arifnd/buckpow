@@ -64,7 +64,7 @@
 #include "setup_page.h"
 
 // ── Firmware Version ──
-#define FW_VERSION "1.1.0"
+#define FW_VERSION "1.2.0"
 
 // ── EEPROM Layout ──
 #define EEPROM_SIZE 512
@@ -84,6 +84,7 @@ unsigned long lastApiFail = 0;
 unsigned long lastUpload  = 0;
 bool serverConnected      = false;
 bool captivePortalActive  = false;
+bool ipReported           = false;
 float lastVoltage         = 0;
 float lastCurrent         = 0;
 
@@ -317,11 +318,44 @@ void startStatusPage() {
 //  Send Data to BuckPow
 // ─────────────────────────────────────────────
 
+void sendLocalIp() {
+  if (WiFi.status() != WL_CONNECTED || ipReported) return;
+
+  StaticJsonDocument<96> doc;
+  doc["local_ip"] = WiFi.localIP().toString();
+
+  String url = String(config.serverUrl) + "/api/v1/devices/local-ip";
+  String payload;
+  serializeJson(doc, payload);
+
+  HTTPClient http;
+  if (url.startsWith("https")) {
+    WiFiClientSecure secureClient;
+    secureClient.setInsecure();
+    if (!http.begin(secureClient, url)) return;
+  } else {
+    WiFiClient plainClient;
+    if (!http.begin(plainClient, url)) return;
+  }
+  http.addHeader("Content-Type", "application/json");
+  if (config.apiKey[0] != '\0') {
+    http.addHeader("Authorization", "Bearer " + String(config.apiKey));
+  }
+  int code = http.sendRequest("PATCH", payload);
+  http.end();
+
+  if (code == 200) {
+    Serial.print("Local IP reported: ");
+    Serial.println(WiFi.localIP().toString());
+    ipReported = true;
+  }
+}
+
 bool sendReading(float busVoltage, float shuntVoltage, float current, float power) {
   if (WiFi.status() != WL_CONNECTED) return false;
   if (millis() - lastApiFail < RETRY_MS) return false;
 
-  StaticJsonDocument<256> doc;
+  StaticJsonDocument<128> doc;
   doc["device_id"]        = config.nodeId;
   doc["firmware_version"] = FW_VERSION;
   doc["bus_voltage"]      = busVoltage;
@@ -366,6 +400,7 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
     Serial.print("OK id=");
     Serial.println(config.nodeId);
     serverConnected = true;
+    ipReported = true;
     lastUpload = millis();
     return true;
   }
@@ -441,5 +476,6 @@ void loop() {
   lastVoltage = busV;
   lastCurrent = current_mA;
 
+  sendLocalIp();
   sendReading(busV, shuntV, current_mA, power_mW);
 }

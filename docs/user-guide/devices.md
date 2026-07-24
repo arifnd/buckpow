@@ -178,6 +178,7 @@ Thresholds can also be set as global defaults in [Settings](installation.md).
 | `DELETE` | `/api/v1/devices/{id}` | Delete node |
 | `GET` | `/api/v1/devices/{id}/key` | Get full API key |
 | `PATCH` | `/api/v1/devices/{id}/toggle` | Enable/disable node |
+| `PATCH` | `/api/v1/devices/local-ip` | Update device local IP (device auth) |
 | `POST` | `/api/v1/devices/{id}/regenerate-key` | Generate new API key |
 
 ### Example: Create Node
