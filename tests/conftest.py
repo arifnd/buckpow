@@ -1,18 +1,11 @@
 import os
-import shutil
-import sys
-import tempfile
 
 import pytest
-
-# Must set DB path before any app imports
-_tmp = tempfile.mkdtemp()
-os.environ['DATABASE_URL'] = f'sqlite:///{os.path.join(_tmp, "test.db")}'
-os.environ['BCRYPT_ROUNDS'] = '4'
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+import src.database as db_module
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 from src import app as fastapi_app
 from src.alerts.models import Alert
 from src.alerts.service import AlertService
@@ -20,9 +13,7 @@ from src.audit.models import AuditLog
 from src.auth import create_access_token
 from src.auth.models import User
 from src.auth.service import UserService
-
-# These imports trigger app init, must come after env var is set
-from src.database import Base, SessionLocal, engine, get_db
+from src.database import Base, get_db
 from src.devices.models import Device
 from src.devices.service import DeviceService
 from src.measurements.models import Measurement
@@ -30,9 +21,17 @@ from src.projects.models import Project
 from src.projects.service import ProjectService
 from src.sessions.models import Session
 
+# Override engine with in-memory SQLite + StaticPool for test isolation
+db_module.engine = create_engine(
+    'sqlite://',
+    connect_args={'check_same_thread': False},
+    poolclass=StaticPool,
+)
+db_module.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_module.engine)
+
 
 def override_get_db():
-    db = SessionLocal()
+    db = db_module.SessionLocal()
     try:
         yield db
     finally:
@@ -46,7 +45,7 @@ fastapi_app.dependency_overrides[get_db] = override_get_db
 def reset_db():
     yield
     try:
-        db = SessionLocal()
+        db = db_module.SessionLocal()
         for m in [Alert, Measurement, Session, Device, Project, User, AuditLog]:
             db.query(m).delete()
         db.commit()
@@ -57,8 +56,8 @@ def reset_db():
 
 @pytest.fixture
 def app():
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
+    Base.metadata.create_all(bind=db_module.engine)
+    db = db_module.SessionLocal()
     if not db.query(User).first():
         UserService(db).create(name='Admin', email='admin@example.com', password='password')
     db.close()
@@ -67,7 +66,7 @@ def app():
 
 @pytest.fixture
 def client(app):
-    db = SessionLocal()
+    db = db_module.SessionLocal()
     user = db.query(User).first()
     token = create_access_token(data={'sub': user.id})
     db.close()
@@ -83,7 +82,7 @@ def unauth_client(app):
 
 @pytest.fixture
 def db(app):
-    session = SessionLocal()
+    session = db_module.SessionLocal()
     try:
         yield session
     finally:
@@ -92,7 +91,7 @@ def db(app):
 
 @pytest.fixture
 def sample_device(app):
-    db = SessionLocal()
+    db = db_module.SessionLocal()
     d = Device(device_id='esp32-test', alias='Test Device', sampling_interval=1,
                api_key=DeviceService.generate_api_key())
     db.add(d)
@@ -104,7 +103,7 @@ def sample_device(app):
 
 @pytest.fixture
 def sample_device_id(app):
-    db = SessionLocal()
+    db = db_module.SessionLocal()
     d = Device(device_id='esp32-test', alias='Test Device', sampling_interval=1,
                api_key=DeviceService.generate_api_key())
     db.add(d)
@@ -116,7 +115,7 @@ def sample_device_id(app):
 
 @pytest.fixture
 def device_auth_header(app):
-    db = SessionLocal()
+    db = db_module.SessionLocal()
     d = Device(device_id='esp32-auth', alias='Auth Device', sampling_interval=1,
                api_key=DeviceService.generate_api_key())
     db.add(d)
@@ -128,7 +127,7 @@ def device_auth_header(app):
 
 @pytest.fixture
 def sample_project(app):
-    db = SessionLocal()
+    db = db_module.SessionLocal()
     user = db.query(User).first()
     p = ProjectService(db).create(name='Test Project', description='A test project', owner_id=user.id)
     result = {'id': p.id, 'name': p.name}
@@ -138,12 +137,25 @@ def sample_project(app):
 
 @pytest.fixture
 def sample_alert(app, sample_device_id):
-    db = SessionLocal()
+    db = db_module.SessionLocal()
     alert = AlertService(db).create(device_id=sample_device_id, level='warning', message='Test alert')
     result = {'id': alert.id, 'device_id': alert.device_id}
     db.close()
     return result
 
 
-def pytest_unconfigure():
-    shutil.rmtree(_tmp, ignore_errors=True)
+@pytest.fixture()
+def file_db():
+    db_path = os.path.join(os.path.dirname(__file__), '..', 'instance', 'test_buckpow.db')
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    file_engine = create_engine(f'sqlite:///{db_path}')
+    Base.metadata.create_all(bind=file_engine)
+    file_engine.dispose()
+    old_url = db_module.engine.url
+    db_module.engine.url = create_engine(f'sqlite:///{db_path}').url
+    try:
+        yield db_path
+    finally:
+        db_module.engine.url = old_url
+        if os.path.exists(db_path):
+            os.remove(db_path)

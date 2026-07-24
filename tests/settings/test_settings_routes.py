@@ -73,7 +73,7 @@ class TestSettingsAPI:
         resp = unauth_client.put('/api/v1/settings', json={'brand': 'X'})
         assert resp.status_code == 401
 
-    def test_backup_database(self, client):
+    def test_backup_database(self, client, file_db):
         resp = client.get('/api/v1/settings/backup')
         assert resp.status_code == 200
         assert resp.headers['content-type'] == 'application/octet-stream'
@@ -86,7 +86,7 @@ class TestSettingsAPI:
         resp = unauth_client.get('/api/v1/settings/backup')
         assert resp.status_code == 401
 
-    def test_db_info(self, client):
+    def test_db_info(self, client, file_db):
         resp = client.get('/api/v1/settings/db-info')
         assert resp.status_code == 200
         data = resp.json()
@@ -133,7 +133,7 @@ class TestSettingsAPI:
         finally:
             database.engine.url = old
 
-    def test_get_db_size_sqlite(self):
+    def test_get_db_size_sqlite(self, file_db):
         from src.settings.router import _get_db_size
         size = _get_db_size()
         assert size is not None
@@ -297,7 +297,7 @@ class TestSettingsAPI:
         from src.settings.router import _backup_sqlite
         mock_engine = MagicMock()
         mock_engine.url = 'sqlite:///relative/path/test.db'
-        with patch('src.settings.router.engine', mock_engine):
+        with patch('src.database.engine', mock_engine):
             try:
                 _backup_sqlite('2025-01-01-000000')
                 raise AssertionError("Should have raised")
@@ -311,7 +311,7 @@ class TestSettingsAPI:
         from src.settings.router import _backup_sqlite
         mock_engine = MagicMock()
         mock_engine.url = 'sqlite:////nonexistent/path/buckpow.db'
-        with patch('src.settings.router.engine', mock_engine):
+        with patch('src.database.engine', mock_engine):
             try:
                 _backup_sqlite('2025-01-01-000000')
                 raise AssertionError("Should have raised")
@@ -325,7 +325,7 @@ class TestSettingsAPI:
         from src.settings.router import _backup_sqlite
         mock_engine = MagicMock()
         mock_engine.url = 'mysql://localhost/test'
-        with patch('src.settings.router.engine', mock_engine):
+        with patch('src.database.engine', mock_engine):
             try:
                 _backup_sqlite('2025-01-01-000000')
                 raise AssertionError("Should have raised")

@@ -130,7 +130,7 @@ class TestDeadLinks:
                 broken.append((link, r.status_code))
         assert not broken, f'Alerts has broken links: {broken}'
 
-    def test_settings_has_no_broken_links(self, client):
+    def test_settings_has_no_broken_links(self, client, file_db):
         resp = client.get('/settings')
         links = extract_links(resp.content.decode())
         broken = []

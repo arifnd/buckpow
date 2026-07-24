@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
-from src.database import engine
+from src import database as db_module
 from src.dependencies import DbDep, RequiredUserDep
 from src.settings.schemas import SettingsUpdate
 
@@ -16,7 +16,7 @@ router = APIRouter()
 
 
 def _detect_db_type() -> str:
-    url = str(engine.url)
+    url = str(db_module.engine.url)
     if url.startswith("sqlite"):
         return "sqlite"
     if url.startswith("postgresql"):
@@ -28,7 +28,7 @@ def _detect_db_type() -> str:
 
 def _get_db_size() -> int | None:
     db_type = _detect_db_type()
-    url = str(engine.url)
+    url = str(db_module.engine.url)
     if db_type == "sqlite":
         if url.startswith("sqlite:///"):
             db_path = url[10:]
@@ -48,7 +48,7 @@ def _get_db_size() -> int | None:
 
 
 def _parse_pg_url():
-    parsed = urlparse(str(engine.url))
+    parsed = urlparse(str(db_module.engine.url))
     return {
         "host": parsed.hostname or "localhost",
         "port": parsed.port or 5432,
@@ -59,7 +59,7 @@ def _parse_pg_url():
 
 
 def _parse_mysql_url():
-    parsed = urlparse(str(engine.url))
+    parsed = urlparse(str(db_module.engine.url))
     return {
         "host": parsed.hostname or "localhost",
         "port": parsed.port or 3306,
@@ -136,11 +136,11 @@ def backup_database(current_user: RequiredUserDep):
         return _backup_postgresql(ts)
     if db_type == "mysql":
         return _backup_mysql(ts)
-    raise HTTPException(status_code=400, detail="Unsupported database engine")
+    raise HTTPException(status_code=400, detail="Unsupported database db_module.engine")
 
 
 def _backup_sqlite(ts: str):
-    db_url = str(engine.url)
+    db_url = str(db_module.engine.url)
     if db_url.startswith("sqlite:///"):
         db_path = db_url[10:]
     elif db_url.startswith("sqlite://"):

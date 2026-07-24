@@ -8,9 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from src import database as db_module
 from src.config import settings as config
 from src.dashboard import dashboard_router
-from src.database import Base, engine
+from src.database import Base
 from src.middleware import RateLimiterMiddleware, bearer_token_key
 from src.router import api_router
 from src.version import APP_VERSION as APP_VERSION
@@ -28,12 +29,12 @@ async def lifespan(app: FastAPI):
     logger.setLevel(logging.INFO)
 
     if "sqlite" in config.DATABASE_URL:
-        db_path = engine.url.database
+        db_path = db_module.engine.url.database
         if db_path:
             db_dir = os.path.dirname(db_path)
             if db_dir and not os.path.exists(db_dir):
                 os.makedirs(db_dir, exist_ok=True)
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=db_module.engine)
         try:
             from alembic import command
             from alembic.config import Config
