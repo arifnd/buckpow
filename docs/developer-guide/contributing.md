@@ -6,7 +6,9 @@ Guidelines for contributing to BuckPow.
 
 ## Welcome
 
-Contributions are welcome! Bug reports, feature requests, documentation improvements, and pull requests are greatly appreciated.
+BuckPow welcomes contributions from engineers, researchers, educators, and makers interested in energy observability for embedded systems.
+
+Whether you improve documentation, firmware, hardware integrations, benchmarking methods, or the web platform, your contributions are appreciated.
 
 Please open an issue before submitting large changes to discuss the proposed implementation.
 

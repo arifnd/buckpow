@@ -1,8 +1,10 @@
 # BuckPow
 
-**Measure. Benchmark. Understand.**
+> **Measure. Observe. Optimize.**
 
-Open-source energy observability and benchmarking platform for low-power edge devices.
+**Open-source energy observability platform for low-power edge devices.**
+
+> BuckPow enables engineers and researchers to measure, organize, benchmark, and analyze energy consumption through reproducible experiments. Instead of treating power measurements as isolated telemetry, BuckPow provides an end-to-end workflow for energy characterization and optimization.
 
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
@@ -17,32 +19,34 @@ Open-source energy observability and benchmarking platform for low-power edge de
 
 ## What is BuckPow
 
-BuckPow is a self-hosted platform for measuring, analyzing, and benchmarking energy consumption across low-power DC systems.
+BuckPow is an open-source, self-hosted energy observability platform for low-power edge devices.
 
-Unlike traditional IoT dashboards that only display live telemetry, BuckPow treats every measurement as part of an engineering experiment. Measurements are organized into sessions, allowing developers and researchers to compare hardware, firmware, batteries, operating modes, and workloads using reproducible real-world data.
+Unlike traditional IoT dashboards that focus on displaying live telemetry, BuckPow organizes measurements into reproducible engineering experiments. Every measurement belongs to a session, making it easy to compare hardware platforms, firmware versions, batteries, operating modes, workloads, and deployment scenarios.
 
-BuckPow is designed for developers, researchers, makers, engineers, and educators who need accurate energy measurements rather than simple monitoring.
+BuckPow combines measurement nodes, embedded firmware, REST APIs, and a web-based dashboard into a complete workflow for collecting, visualizing, benchmarking, and analyzing energy consumption.
 
-Whether you are validating an IoT prototype, optimizing battery life, benchmarking a Raspberry Pi, evaluating a solar-powered system, profiling TinyML applications, or conducting Green AI research, BuckPow provides a complete workflow for collecting, visualizing, and comparing energy data.
+Whether you are validating an IoT prototype, optimizing battery life, benchmarking embedded Linux systems, profiling TinyML inference, evaluating solar-powered devices, or conducting academic research, BuckPow helps replace assumptions with reproducible measurements.
 
-## Key Features
+## Core Capabilities
 
-- Real-time voltage, current, power, and energy monitoring
-- Automatic device registration
-- Session recording with energy accumulation
-- Energy benchmarking and session comparison
-- Device API key authentication
-- Alerting based on configurable thresholds
-- Project organization
+- Real-time voltage, current, power, and energy characterization
+- Automatic device discovery and registration
+- Experiment session management
+- Multi-device measurement collection
+- Interactive observability dashboards
+- Energy benchmarking and comparison
+- Configurable threshold alerts
 - CSV and Excel data export
-- Self-hosted deployment with Docker
-- REST API for device integration
+- RESTful developer API
+- Self-hosted Docker deployment
 
 ## Why BuckPow
 
-Most IoT dashboards are built to visualize telemetry.
+Traditional monitoring platforms answer:
 
-BuckPow is built to answer engineering questions such as:
+> "What is happening right now?"
+
+BuckPow is designed to answer engineering questions such as:
 
 - Which device consumes less power?
 - Which firmware version is more energy efficient?
@@ -53,25 +57,38 @@ BuckPow is built to answer engineering questions such as:
 
 BuckPow helps replace assumptions with measurements.
 
+## Energy Observability
+
+BuckPow is built around the idea that energy should be observable throughout the engineering lifecycle.
+
+**Measure → Observe → Compare → Benchmark → Optimize**
+
+Rather than collecting isolated measurements, BuckPow helps engineers understand how design decisions affect energy consumption and battery lifetime through reproducible experiments.
+
 ## Typical Use Cases
 
-- Raspberry Pi power benchmarking
-- ESP32 and ESP8266 power monitoring
-- Battery discharge and runtime testing
-- Small solar panel evaluation
-- DC power supply validation
-- TinyML and Edge AI energy profiling
-- Firmware power optimization
-- IoT prototype validation
+- Embedded firmware optimization
+- Battery-powered IoT development
+- Raspberry Pi benchmarking
+- TinyML energy profiling
+- Edge AI evaluation
+- Solar-powered system characterization
 - Engineering laboratory experiments
 - Academic energy research
 
 ## Supported Hardware
 
+### Measurement Nodes
+
 | Current | Planned |
 |---------|---------|
 | ESP32 | Raspberry Pi Agent |
 | ESP8266 | Linux Agent |
+
+### Supported Sensors
+
+| Current | Planned |
+|---------|---------|
 | INA219 | INA226 |
 | | PZEM-004T |
 | | MQTT devices |
@@ -84,29 +101,52 @@ BuckPow helps replace assumptions with measurements.
 ## Architecture
 
 ```mermaid
-graph LR
-    subgraph Hardware
+flowchart LR
+    subgraph Edge Devices
         ESP["ESP32 / ESP8266"]
         PI["Raspberry Pi"]
         OTHER["Future Agents"]
+    end
+
+    subgraph BuckPow Platform
+        API["BuckPow API"]
+        DB[("Time-Series Measurements")]
+        SESSION["Experiment Sessions"]
+    end
+
+    subgraph Energy Observability
+        DASH["Observability Dashboard"]
+        BENCH["Energy Benchmarking"]
+        ALERT["Alert Engine"]
+        EXPORT["CSV / XLSX Export"]
     end
 
     ESP --> API
     PI --> API
     OTHER --> API
 
-    API["BuckPow API"]
+    API --> DB
+    DB --> SESSION
 
-    API --> DB["Measurements Database"]
+    SESSION --> BENCH
+    SESSION --> DASH
 
-    DB --> DASH["Real-time Dashboard"]
-    DB --> SESSION["Experiment Sessions"]
-    SESSION --> BENCH["Energy Benchmarking"]
-    DB --> ALERT["Alert Engine"]
-    DB --> EXPORT["CSV / XLSX Export"]
+    DB --> ALERT
+    DB --> EXPORT
 ```
 
-Power sensors collect measurements from edge devices and send them to the BuckPow API. The API stores measurements, processes sessions and benchmarks, and serves a web dashboard for visualization and analysis.
+## Dashboard Pages
+
+- Dashboard
+- Devices
+- Sessions
+- Measurements
+- Projects
+- Benchmark
+- Alerts
+- Audit Log
+- Settings
+- User Profile
 
 ## Installation with Docker Compose
 
@@ -200,9 +240,9 @@ When `DISABLE_API_DOCS` is not set, interactive docs are available at:
 - **ReDoc** — [/redoc](http://localhost:8000/redoc)
 - **OpenAPI JSON** — [/openapi.json](http://localhost:8000/openapi.json)
 
-## REST API
+## Developer API
 
-BuckPow provides REST APIs for:
+BuckPow provides a RESTful developer API for:
 
 - Authentication
 - Device management
@@ -214,7 +254,7 @@ BuckPow provides REST APIs for:
 - Dashboard statistics
 - Settings
 - Audit logs
-- Health monitoring
+- Health check
 
 See the OpenAPI documentation for the complete API reference.
 
@@ -230,19 +270,6 @@ curl -X POST http://localhost:8000/api/v1/measurements \
 ```
 
 API key is optional when authentication is disabled (dev mode). Get the key from the device detail page.
-
-## Dashboard Pages
-
-- Dashboard
-- Devices
-- Sessions
-- Measurements
-- Projects
-- Benchmark
-- Alerts
-- Audit Log
-- Settings
-- User Profile
 
 ## Testing
 
@@ -262,7 +289,9 @@ python scripts/send_dummy.py --interval 1 --api-key <key>
 
 ## Contributing
 
-Contributions are welcome.
+BuckPow welcomes contributions from engineers, researchers, educators, and makers interested in energy observability for embedded systems.
+
+Whether you improve documentation, firmware, hardware integrations, benchmarking methods, or the web platform, your contributions are appreciated.
 
 Bug reports, feature requests, documentation improvements, and pull requests are greatly appreciated.
 
