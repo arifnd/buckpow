@@ -196,6 +196,84 @@ class TestDevicesAPI:
         resp = client.post('/api/v1/devices/99999/regenerate-key')
         assert resp.status_code == 404
 
+    def test_update_local_ip(self, client, device_auth_header):
+        from src.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = True
+        try:
+            resp = client.patch('/api/v1/devices/local-ip', json={
+                'local_ip': '192.168.1.100',
+            }, headers=device_auth_header)
+            assert resp.status_code == 200
+            assert resp.json()['local_ip'] == '192.168.1.100'
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
+
+    def test_update_local_ip_updates_device(self, client, device_auth_header):
+        from src.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = True
+        try:
+            client.patch('/api/v1/devices/local-ip', json={
+                'local_ip': '10.0.0.5',
+            }, headers=device_auth_header)
+            resp = client.get('/api/v1/devices')
+            devices = resp.json()['devices']
+            d = next(dev for dev in devices if dev['device_id'] == 'esp32-auth')
+            assert d['local_ip'] == '10.0.0.5'
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
+
+    def test_update_local_ip_no_auth(self, unauth_client):
+        from src.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = True
+        try:
+            resp = unauth_client.patch('/api/v1/devices/local-ip', json={
+                'local_ip': '192.168.1.1',
+            })
+            assert resp.status_code == 401
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
+
+    def test_update_local_ip_invalid_key(self, client):
+        from src.config import settings
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = True
+        try:
+            resp = client.patch('/api/v1/devices/local-ip', json={
+                'local_ip': '192.168.1.1',
+            }, headers={'Authorization': 'Bearer badkey'})
+            assert resp.status_code == 401
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
+
+    def test_update_local_ip_empty_value(self, client, device_auth_header):
+        resp = client.patch('/api/v1/devices/local-ip', json={
+            'local_ip': '',
+        }, headers=device_auth_header)
+        assert resp.status_code == 422
+
+    def test_update_local_ip_disabled_device(self, client, app):
+        from src.config import settings
+        from src.database import SessionLocal
+        from src.devices.service import DeviceService
+        old = settings.DEVICE_AUTH_ENABLED
+        settings.DEVICE_AUTH_ENABLED = True
+        try:
+            db = SessionLocal()
+            d = DeviceService(db).create('esp32-disabled-ip')
+            d.enabled = False
+            db.commit()
+            key = d.api_key
+            db.close()
+            resp = client.patch('/api/v1/devices/local-ip', json={
+                'local_ip': '192.168.1.1',
+            }, headers={'Authorization': f'Bearer {key}'})
+            assert resp.status_code == 403
+        finally:
+            settings.DEVICE_AUTH_ENABLED = old
+
     def test_device_update_no_json(self, client):
         resp = client.put('/api/v1/devices/1', content=b'{}')
         assert resp.status_code == 422

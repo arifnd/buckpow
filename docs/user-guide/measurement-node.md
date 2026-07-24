@@ -131,7 +131,7 @@ Each measurement is sent as a JSON POST request:
 ```json
 {
   "device_id": "esp32-ina219-01",
-  "firmware_version": "1.1.0",
+  "firmware_version": "1.2.0",
   "bus_voltage": 5.12,
   "shunt_voltage": 82,
   "current": 241,
@@ -248,7 +248,7 @@ const unsigned long INTERVAL_MS = 1000;
 After upload, the Serial Monitor should show:
 
 ```
-BuckPow INA219 Firmware v1.1.0
+BuckPow INA219 Firmware v1.2.0
 Host: http://192.168.100.16:8000
 Proto: HTTP
 Key:   abcd****ef01

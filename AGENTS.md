@@ -520,6 +520,7 @@ Tables auto-create on first run. Default admin: `admin@example.com` / `password`
 | GET/PUT/DELETE | `/api/v1/devices/<id>` | Device CRUD |
 | GET | `/api/v1/devices/<id>/key` | Get masked API key |
 | PATCH | `/api/v1/devices/<id>/toggle` | Enable/disable device |
+| PATCH | `/api/v1/devices/local-ip` | Update device local IP (device auth) |
 | POST | `/api/v1/devices/<id>/regenerate-key` | Generate new API key |
 | GET/POST | `/api/v1/sessions` | List / create sessions |
 | GET/PUT/DELETE | `/api/v1/sessions/<id>` | Session CRUD |
@@ -587,6 +588,7 @@ curl -X POST http://localhost:8000/api/v1/measurements \
 - **Tailwind CSS** — Utility-first styling with dark theme via CSS variables
 - **Flowbite Datepicker** — Used on measurements filter page for date range selection
 - **Device auto-registration** — unknown device IDs create devices automatically
+- **Device local IP** — firmware reports IP once via `PATCH /api/v1/devices/local-ip` after connecting
 - **Session auto-assignment** — new measurements assigned to running session (if any)
 - **Energy calculation** — cumulative Wh = Σ(Power(W) × sampling_interval(h))
 - **Alert engine** — automatic alerts on high power/current/low voltage thresholds

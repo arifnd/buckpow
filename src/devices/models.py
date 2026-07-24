@@ -32,6 +32,7 @@ class Device(Base):
     firmware_version = Column(String(64), default="")
     api_key = Column(String(64), unique=True, nullable=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
+    local_ip = Column(String(45), nullable=True)
     high_current_threshold = Column(Float, nullable=True)
     high_power_threshold = Column(Float, nullable=True)
     low_voltage_threshold = Column(Float, nullable=True)
@@ -78,6 +79,7 @@ class Device(Base):
             "firmware_version": self.firmware_version or "",
             "project_id": self.project_id,
             "project_name": self.project.name if self.project else None,
+            "local_ip": self.local_ip,
             "high_current_threshold": self.high_current_threshold,
             "high_power_threshold": self.high_power_threshold,
             "low_voltage_threshold": self.low_voltage_threshold,

@@ -59,6 +59,7 @@ DATABASE_URL=mysql+pymysql://user:password@host:3306/dbname
 | `enabled` | Boolean | Default `True` | Active flag |
 | `firmware_version` | String(64) | Default `''` | Firmware version |
 | `api_key` | String(64) | UNIQUE, nullable, indexed | API authentication key |
+| `local_ip` | String(45) | Nullable | Device local IP address |
 | `project_id` | Integer | FK → `projects.id`, nullable | Project assignment |
 | `high_current_threshold` | Float | Nullable | Alert threshold (A) |
 | `high_power_threshold` | Float | Nullable | Alert threshold (W) |

@@ -55,7 +55,7 @@
 #include <ArduinoJson.h>
 
 // ── Firmware Version ──
-#define FW_VERSION "1.1.0"
+#define FW_VERSION "1.2.0"
 
 // ── WiFi Configuration ──
 const char* WIFI_SSID     = "your-ssid";
@@ -78,6 +78,7 @@ Adafruit_INA219 ina219;
 unsigned long lastSend    = 0;
 unsigned long lastWifiTry = 0;
 unsigned long lastApiFail = 0;
+bool ipReported           = false;
 
 String maskKey(const char* key) {
   int len = strlen(key);
@@ -105,11 +106,44 @@ bool connectWiFi() {
   return true;
 }
 
+void sendLocalIp() {
+  if (WiFi.status() != WL_CONNECTED || ipReported) return;
+
+  StaticJsonDocument<96> doc;
+  doc["local_ip"] = WiFi.localIP().toString();
+
+  String url = String(API_BASE) + "/api/v1/devices/local-ip";
+  String payload;
+  serializeJson(doc, payload);
+
+  HTTPClient http;
+  if (USE_HTTPS) {
+    WiFiClientSecure secureClient;
+    secureClient.setInsecure();
+    if (!http.begin(secureClient, url)) return;
+  } else {
+    WiFiClient plainClient;
+    if (!http.begin(plainClient, url)) return;
+  }
+  http.addHeader("Content-Type", "application/json");
+  if (API_KEY[0] != '\0') {
+    http.addHeader("Authorization", "Bearer " + String(API_KEY));
+  }
+  int code = http.sendRequest("PATCH", payload);
+  http.end();
+
+  if (code == 200) {
+    Serial.print("Local IP reported: ");
+    Serial.println(WiFi.localIP().toString());
+    ipReported = true;
+  }
+}
+
 bool sendReading(float busVoltage, float shuntVoltage, float current, float power) {
   if (WiFi.status() != WL_CONNECTED) return false;
   if (millis() - lastApiFail < RETRY_MS) return false;
 
-  StaticJsonDocument<256> doc;
+  StaticJsonDocument<128> doc;
   doc["device_id"]       = NODE_ID;
   doc["firmware_version"] = FW_VERSION;
   doc["bus_voltage"]     = busVoltage;
@@ -149,6 +183,7 @@ bool sendReading(float busVoltage, float shuntVoltage, float current, float powe
   if (code == 201) {
     Serial.print("OK id=");
     Serial.println(NODE_ID);
+    ipReported = true;
     return true;
   }
 
@@ -200,5 +235,6 @@ void loop() {
   float current_mA = ina219.getCurrent_mA();
   float power_mW   = ina219.getPower_mW();
 
+  sendLocalIp();
   sendReading(busV, shuntV, current_mA, power_mW);
 }

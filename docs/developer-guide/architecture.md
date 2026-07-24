@@ -180,6 +180,7 @@ erDiagram
         boolean enabled
         string firmware_version
         string api_key UK
+        string local_ip
         int project_id FK
         float high_current_threshold
         float high_power_threshold

@@ -13,8 +13,8 @@
         <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
           <th class="text-left py-2 px-3 font-medium">Node ID</th>
           <th class="text-left py-2 px-3 font-medium">Alias</th>
-          <th class="text-left py-2 px-3 font-medium">Description</th>
           <th class="text-left py-2 px-3 font-medium">Project</th>
+          <th class="text-left py-2 px-3 font-medium">IP</th>
           <th class="text-center py-2 px-3 font-medium">Firmware</th>
           <th class="text-right py-2 px-3 font-medium">Interval</th>
           <th class="text-center py-2 px-3 font-medium">Status</th>
@@ -148,8 +148,8 @@ async function loadDevices(page) {
     return `<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">
       <td class="py-2 px-3"><code class="text-blue-400">${d.device_id}</code></td>
       <td class="py-2 px-3">${d.alias || '—'}</td>
-      <td class="py-2 px-3">${d.description || '—'}</td>
       <td class="py-2 px-3">${d.project_name || '—'}</td>
+      <td class="py-2 px-3"><code class="text-xs">${d.local_ip || '—'}</code></td>
       <td class="py-2 px-3 text-center"><code class="text-xs">${d.firmware_version || '—'}</code></td>
       <td class="py-2 px-3 text-right">${d.sampling_interval}s</td>
       <td class="py-2 px-3 text-center"><span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white ${badge}">${status}</span></td>
