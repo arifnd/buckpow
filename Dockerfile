@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM python:3.12-slim
 
 WORKDIR /app
@@ -13,9 +14,10 @@ COPY ./src /app/src
 COPY ./templates /app/templates
 
 RUN mkdir -p /app/instance && chown -R appuser:appuser /app
+COPY --chmod=755 ./scripts /app/scripts
 
 USER appuser
 
 EXPOSE 8000
 
-CMD ["fastapi", "run", "src/main.py", "--port", "8000", "--proxy-headers"]
+ENTRYPOINT ["/app/scripts/start.sh"]
