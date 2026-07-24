@@ -68,13 +68,16 @@ async def lifespan(app: FastAPI):
     yield
 
 
+SHOW_DOCS_IN = {"development", "staging"}
+disable_docs = config.DISABLE_API_DOCS or config.APP_ENV not in SHOW_DOCS_IN
+
 app = FastAPI(
     title="BuckPow",
     version=APP_VERSION,
     lifespan=lifespan,
-    docs_url=None if config.DISABLE_API_DOCS else "/docs",
-    redoc_url=None if config.DISABLE_API_DOCS else "/redoc",
-    openapi_url=None if config.DISABLE_API_DOCS else "/openapi.json",
+    docs_url=None if disable_docs else "/docs",
+    redoc_url=None if disable_docs else "/redoc",
+    openapi_url=None if disable_docs else "/openapi.json",
 )
 
 app.add_middleware(

@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     DEFAULT_SAMPLING_INTERVAL: int = Field(default=1)
     DEVICE_AUTH_ENABLED: bool = Field(default=True)
     DISABLE_API_DOCS: bool = Field(default=False)
+    APP_ENV: str = Field(default="development")
 
     DEBUG: bool = Field(default=True, exclude=True)
 
@@ -34,7 +35,7 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _derive_debug(self):
-        env = os.getenv("APP_ENV", "development")
+        env = self.APP_ENV
         object.__setattr__(self, "DEBUG", env == "development")
 
         if not self.JWT_SECRET and env == "production":
