@@ -1,33 +1,8 @@
-from datetime import datetime, timezone, timedelta
-
-from datetime import datetime, timezone, timedelta
-
+from datetime import datetime, timedelta, timezone
 
 from src.database import SessionLocal
-
-
-from src.auth.models import User
-
-
 from src.devices.models import Device
-
-
-from src.sessions.models import Session
-
-
-from src.measurements.models import Measurement
-
-
-from src.projects.models import Project
-
-from src.alerts.models import Alert
-from src.auth.service import UserService
 from src.devices.service import DeviceService
-from src.sessions.service import SessionService
-from src.measurements.service import MeasurementService
-from src.alerts.service import AlertService
-from src.projects.service import ProjectService
-from src.dashboard.service import DashboardService
 
 
 class TestDeviceService:
@@ -314,7 +289,6 @@ class TestDeviceService:
 
     def test_masked_api_key_short(self, app):
 
-        from src.devices.models import Device
 
         d = Device(device_id='esp32-short', api_key='abcd1234')
 
@@ -368,7 +342,6 @@ class TestDeviceService:
 
         from sqlalchemy import insert
 
-        from src.devices.models import Device
 
         db = self._db(app)
 

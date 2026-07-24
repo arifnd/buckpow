@@ -1,18 +1,11 @@
-from datetime import datetime, timezone, timedelta
-
+from datetime import datetime, timezone
 
 from src.database import SessionLocal
-
-
 from src.devices.models import Device
-
-
-from src.sessions.models import Session
-
-
 from src.measurements.models import Measurement
+from src.sessions.models import Session
+from src.utils.calculations import calc_energy_increment, calc_load_voltage
 
-from src.utils.calculations import calc_load_voltage, calc_energy_increment
 
 class TestMeasurementModel:
     def test_to_dict(self, app):

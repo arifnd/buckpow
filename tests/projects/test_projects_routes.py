@@ -86,10 +86,10 @@ class TestProjectsAPI:
 class TestOwnerChecks:
 
     def _second_user_client(self, app):
-        from src.database import SessionLocal
-        from src.auth.service import UserService
-        from src.auth import create_access_token
         from fastapi.testclient import TestClient
+        from src.auth import create_access_token
+        from src.auth.service import UserService
+        from src.database import SessionLocal
         db = SessionLocal()
         user = UserService(db).create(name='Other', email='other@example.com', password='otherpass')
         token = create_access_token(data={'sub': user.id})

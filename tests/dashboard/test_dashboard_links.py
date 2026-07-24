@@ -1,6 +1,5 @@
 import re
 
-
 HREF_RE = re.compile(r'href="([^"]+)"')
 SCRIPT_RE = re.compile(r'<script[^>]*>.*?</script>', re.DOTALL)
 

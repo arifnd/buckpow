@@ -1,8 +1,7 @@
 import pytest
 from pydantic import ValidationError
-
-
 from src.auth.schemas import LoginRequest, ProfileUpdate
+
 
 class TestLoginRequestSchema:
 

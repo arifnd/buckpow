@@ -1,33 +1,10 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
-from datetime import datetime, timezone, timedelta
-
-
-from src.database import SessionLocal
-
-
-from src.auth.models import User
-
-
-from src.devices.models import Device
-
-
-from src.sessions.models import Session
-
-
-from src.measurements.models import Measurement
-
-
-from src.projects.models import Project
-
-from src.alerts.models import Alert
-from src.auth.service import UserService
-from src.devices.service import DeviceService
-from src.sessions.service import SessionService
-from src.measurements.service import MeasurementService
-from src.alerts.service import AlertService
-from src.projects.service import ProjectService
 from src.dashboard.service import DashboardService
+from src.database import SessionLocal
+from src.devices.service import DeviceService
+from src.measurements.service import MeasurementService
+from src.sessions.service import SessionService
 
 
 class TestDashboardService:
@@ -168,7 +145,7 @@ class TestDashboardService:
 
                                   shunt_voltage=80.0, current=200, power=1000)
 
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timezone
 
         start = datetime.now(timezone.utc) - timedelta(hours=1)
 
@@ -190,7 +167,7 @@ class TestDashboardService:
 
                                   shunt_voltage=80.0, current=200, power=1000)
 
-        from datetime import datetime, timezone, timedelta
+        from datetime import datetime, timezone
 
         start = datetime.now(timezone.utc) + timedelta(hours=10)
 
@@ -246,9 +223,9 @@ class TestDashboardService:
 
         sess2 = SessionService(db).create(d2.id, 'Boundary S2')
 
-        from src.measurements.models import Measurement as M
+        from datetime import datetime, timezone
 
-        from datetime import datetime, timezone, timedelta
+        from src.measurements.models import Measurement as M
 
         now = datetime.now(timezone.utc)
 

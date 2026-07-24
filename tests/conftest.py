@@ -1,6 +1,6 @@
 import os
-import sys
 import shutil
+import sys
 import tempfile
 
 import pytest
@@ -13,23 +13,22 @@ os.environ['BCRYPT_ROUNDS'] = '4'
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi.testclient import TestClient
+from src import app as fastapi_app
+from src.alerts.models import Alert
+from src.alerts.service import AlertService
+from src.audit.models import AuditLog
+from src.auth import create_access_token
+from src.auth.models import User
+from src.auth.service import UserService
 
 # These imports trigger app init, must come after env var is set
-from src.database import engine, Base, SessionLocal, get_db
-from src.config import settings
+from src.database import Base, SessionLocal, engine, get_db
 from src.devices.models import Device
-from src.measurements.models import Measurement
-from src.sessions.models import Session
-from src.auth.models import User
-from src.projects.models import Project
-from src.alerts.models import Alert
-from src.audit.models import AuditLog
-from src.auth.service import UserService
 from src.devices.service import DeviceService
+from src.measurements.models import Measurement
+from src.projects.models import Project
 from src.projects.service import ProjectService
-from src.alerts.service import AlertService
-from src.auth import create_access_token
-from src import app as fastapi_app
+from src.sessions.models import Session
 
 
 def override_get_db():

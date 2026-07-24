@@ -1,8 +1,7 @@
 import pytest
 from pydantic import ValidationError
-
-
 from src.measurements.schemas import MeasurementCreate
+
 
 class TestMeasurementCreateSchema:
 

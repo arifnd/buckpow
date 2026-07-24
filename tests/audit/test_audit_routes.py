@@ -93,10 +93,10 @@ class TestAuditExtra:
         assert resp.json()['total'] == 0
 
     def test_device_owner_mismatch_forbidden(self, client, sample_device, sample_project):
+        from src.auth.models import User
         from src.database import SessionLocal
         from src.devices.models import Device
         from src.projects.models import Project
-        from src.auth.models import User
         db = SessionLocal()
         other_user = User(name='Other', email='other2@example.com', password='x')
         db.add(other_user)

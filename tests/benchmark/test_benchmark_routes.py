@@ -19,8 +19,8 @@ class TestBenchmarkCompare:
     def test_compare_valid(self, client, app):
         from src.database import SessionLocal
         from src.devices.service import DeviceService
-        from src.sessions.service import SessionService
         from src.measurements.service import MeasurementService
+        from src.sessions.service import SessionService
         db = SessionLocal()
         d = DeviceService(db).create('esp32-bench')
         s1 = SessionService(db).create(d.id, 'Bench 1')
@@ -50,8 +50,8 @@ class TestBenchmarkCompare:
     def test_compare_three_sessions(self, client, app):
         from src.database import SessionLocal
         from src.devices.service import DeviceService
-        from src.sessions.service import SessionService
         from src.measurements.service import MeasurementService
+        from src.sessions.service import SessionService
         db = SessionLocal()
         d = DeviceService(db).create('esp32-bench3')
         s1 = SessionService(db).create(d.id, 'Bench A')
@@ -76,8 +76,8 @@ class TestBenchmarkCompare:
     def test_compare_non_numeric_skipped(self, client, app):
         from src.database import SessionLocal
         from src.devices.service import DeviceService
-        from src.sessions.service import SessionService
         from src.measurements.service import MeasurementService
+        from src.sessions.service import SessionService
         db = SessionLocal()
         d = DeviceService(db).create('esp32-bench2')
         s1 = SessionService(db).create(d.id, 'Bench A')

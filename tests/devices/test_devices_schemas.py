@@ -1,7 +1,7 @@
-from pydantic import ValidationError
 
 
 from src.devices.schemas import DeviceCreate, DeviceUpdate
+
 
 class TestDeviceCreateSchema:
 

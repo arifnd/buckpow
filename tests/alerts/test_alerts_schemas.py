@@ -1,8 +1,7 @@
 import pytest
 from pydantic import ValidationError
-
-
 from src.alerts.schemas import AlertCreate
+
 
 class TestAlertCreateSchema:
 

@@ -1,9 +1,8 @@
 import subprocess
 import sys
 import time
-import threading
 
-from src import APP_VERSION, MIN_FIRMWARE_VERSION
+from src import APP_VERSION
 
 
 class TestAppStartup:
