@@ -145,7 +145,10 @@ class TestPageStructure:
         sid = self._create_session(client)
         resp = client.get(f'/sessions/{sid}')
         html = resp.content.decode()
-        for stat in ['stat-duration', 'stat-count', 'stat-avg-power', 'stat-peak-power', 'stat-avg-current', 'stat-total-energy']:
+        for stat in [
+            'stat-duration', 'stat-count', 'stat-avg-power',
+            'stat-peak-power', 'stat-avg-current', 'stat-total-energy'
+        ]:
             assert f'id="{stat}"' in html
 
     def test_session_detail_has_measurements_table(self, client):

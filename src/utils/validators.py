@@ -18,7 +18,7 @@ def validate_float(value, min=None, max=None, name="field"):
     try:
         v = float(value)
     except (ValueError, TypeError):
-        raise ValidationError(f"{name} must be a number")
+        raise ValidationError(f"{name} must be a number") from None
     if min is not None and v < min:
         raise ValidationError(f"{name} must be at least {min}")
     if max is not None and v > max:
@@ -32,7 +32,7 @@ def validate_int(value, min=None, max=None, name="field"):
     try:
         v = int(value)
     except (ValueError, TypeError):
-        raise ValidationError(f"{name} must be an integer")
+        raise ValidationError(f"{name} must be an integer") from None
     if min is not None and v < min:
         raise ValidationError(f"{name} must be at least {min}")
     if max is not None and v > max:

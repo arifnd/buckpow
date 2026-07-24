@@ -16,9 +16,7 @@ def _check_device_owner(db, device_id, user_id):
     if not device or not device.project_id:
         return True
     project = db.get(Project, device.project_id)
-    if project and project.owner_id and project.owner_id != user_id:
-        return False
-    return True
+    return not (project and project.owner_id and project.owner_id != user_id)
 
 
 @router.get("/devices")

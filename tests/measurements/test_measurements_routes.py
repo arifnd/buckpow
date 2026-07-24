@@ -245,9 +245,6 @@ class TestMeasurementsExtra:
         assert resp.status_code == 500
         assert resp.json()['error'] == 'db error'
 
-
-
-class TestMeasurementsExtra:
     def test_measurements_empty_list(self, client):
         resp = client.get('/api/v1/measurements?per_page=10')
         assert resp.status_code == 200

@@ -60,7 +60,7 @@ def update_profile(
             raise HTTPException(status_code=404, detail="User not found")
         return {"status": "ok", "user": user.to_dict()}
     except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
 
 
 @router.get("/auth/me")

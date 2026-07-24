@@ -201,9 +201,9 @@ def _backup_postgresql(ts: str):
             )
         compressed = gzip.compress(proc.stdout)
     except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=500, detail="pg_dump timed out")
+        raise HTTPException(status_code=500, detail="pg_dump timed out") from None
     except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="pg_dump not found")
+        raise HTTPException(status_code=500, detail="pg_dump not found") from None
 
     return Response(
         content=compressed,
@@ -241,9 +241,9 @@ def _backup_mysql(ts: str):
             )
         compressed = gzip.compress(proc.stdout)
     except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=500, detail="mysqldump timed out")
+        raise HTTPException(status_code=500, detail="mysqldump timed out") from None
     except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="mysqldump not found")
+        raise HTTPException(status_code=500, detail="mysqldump not found") from None
 
     return Response(
         content=compressed,

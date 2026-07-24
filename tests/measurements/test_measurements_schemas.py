@@ -12,7 +12,10 @@ class TestMeasurementCreateSchema:
         assert m.firmware_version is None
 
     def test_with_firmware(self):
-        m = MeasurementCreate(device_id='esp32-01', bus_voltage=5.0, shunt_voltage=0.1, current=100, power=500, firmware_version='1.0.0')
+        m = MeasurementCreate(
+            device_id='esp32-01', bus_voltage=5.0, shunt_voltage=0.1,
+            current=100, power=500, firmware_version='1.0.0'
+        )
         assert m.firmware_version == '1.0.0'
 
     def test_pzem_no_shunt_voltage(self):
@@ -31,6 +34,9 @@ class TestMeasurementCreateSchema:
 
     def test_wrong_type(self):
         with pytest.raises(ValidationError):
-            MeasurementCreate(device_id='esp32-01', bus_voltage='not_a_number', shunt_voltage=0.1, current=100, power=500)
+            MeasurementCreate(
+                device_id='esp32-01', bus_voltage='not_a_number',
+                shunt_voltage=0.1, current=100, power=500
+            )
 
 

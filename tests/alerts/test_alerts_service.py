@@ -207,8 +207,6 @@ class TestAlertService:
 
         AlertService(db).generate_alerts( d, bus_voltage=5.0, current=0.1, power=2.0)
 
-        unresolved = AlertService(db).get_unresolved_count(device_id=d.id)
-
         alerts = db.query(Alert).filter_by(device_id=d.id, resolved_at=None).all()
 
         high_power_count = sum(1 for a in alerts if 'High power' in a.message)

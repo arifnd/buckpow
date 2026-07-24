@@ -144,13 +144,13 @@ class TestSettingsAPI:
 
         from src.settings.router import _backup_postgresql
         with patch('src.settings.router.shutil.which', return_value=None):
-            resp = client.get('/api/v1/settings/backup')
+            client.get('/api/v1/settings/backup')
             # Since actual db is sqlite, this won't hit postgresql path
             # Test the function directly
             from fastapi.exceptions import HTTPException
             try:
                 _backup_postgresql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'pg_dump not found' in str(e.detail)
 
@@ -162,7 +162,7 @@ class TestSettingsAPI:
         with patch('src.settings.router.shutil.which', return_value=None):
             try:
                 _backup_mysql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'mysqldump not found' in str(e.detail)
 
@@ -176,10 +176,11 @@ class TestSettingsAPI:
         mock_result.returncode = 0
         mock_result.stdout = b'dump data'
         with patch('src.settings.router.shutil.which', return_value='/usr/bin/pg_dump'), \
-             patch('src.settings.router.subprocess.run', side_effect=subprocess.TimeoutExpired(cmd='pg_dump', timeout=120)):
+             patch('src.settings.router.subprocess.run',
+                   side_effect=subprocess.TimeoutExpired(cmd='pg_dump', timeout=120)):
             try:
                 _backup_postgresql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'timed out' in str(e.detail)
 
@@ -190,10 +191,11 @@ class TestSettingsAPI:
         from fastapi.exceptions import HTTPException
         from src.settings.router import _backup_mysql
         with patch('src.settings.router.shutil.which', return_value='/usr/bin/mysqldump'), \
-             patch('src.settings.router.subprocess.run', side_effect=subprocess.TimeoutExpired(cmd='mysqldump', timeout=120)):
+             patch('src.settings.router.subprocess.run',
+                   side_effect=subprocess.TimeoutExpired(cmd='mysqldump', timeout=120)):
             try:
                 _backup_mysql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'timed out' in str(e.detail)
 
@@ -209,7 +211,7 @@ class TestSettingsAPI:
              patch('src.settings.router.subprocess.run', return_value=mock_result):
             try:
                 _backup_postgresql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'pg_dump failed' in str(e.detail)
 
@@ -225,7 +227,7 @@ class TestSettingsAPI:
              patch('src.settings.router.subprocess.run', return_value=mock_result):
             try:
                 _backup_mysql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'mysqldump failed' in str(e.detail)
 
@@ -238,7 +240,7 @@ class TestSettingsAPI:
              patch('src.settings.router.subprocess.run', side_effect=FileNotFoundError):
             try:
                 _backup_postgresql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'not found' in str(e.detail).lower()
 
@@ -251,7 +253,7 @@ class TestSettingsAPI:
              patch('src.settings.router.subprocess.run', side_effect=FileNotFoundError):
             try:
                 _backup_mysql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'not found' in str(e.detail).lower()
 
@@ -298,7 +300,7 @@ class TestSettingsAPI:
         with patch('src.settings.router.engine', mock_engine):
             try:
                 _backup_sqlite('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert e.status_code == 404
 
@@ -312,7 +314,7 @@ class TestSettingsAPI:
         with patch('src.settings.router.engine', mock_engine):
             try:
                 _backup_sqlite('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert e.status_code == 404
 
@@ -326,7 +328,7 @@ class TestSettingsAPI:
         with patch('src.settings.router.engine', mock_engine):
             try:
                 _backup_sqlite('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert e.status_code == 400
                 assert 'Invalid SQLite URL' in str(e.detail)
