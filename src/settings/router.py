@@ -5,13 +5,11 @@ import shutil
 import subprocess
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
-from sqlalchemy.orm import Session
 
-from src.database import get_db, engine
-from src.dependencies import require_user
-from src.auth.models import User
+from src.database import engine
+from src.dependencies import DbDep, RequiredUserDep
 from src.settings.schemas import SettingsUpdate
 
 router = APIRouter()
@@ -84,15 +82,15 @@ ALLOWED = {
 
 
 @router.get("/settings")
-def get_settings(current_user: User = Depends(require_user)):
+def get_settings(current_user: RequiredUserDep):
     return current_user.settings or {}
 
 
 @router.put("/settings")
 def update_settings(
     body: SettingsUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_user),
+    db: DbDep,
+    current_user: RequiredUserDep,
 ):
     current = dict(current_user.settings or {})
     data = body.model_dump(exclude_none=True)
@@ -108,7 +106,7 @@ def update_settings(
 
 
 @router.get("/settings/db-info")
-def db_info(current_user: User = Depends(require_user)):
+def db_info(current_user: RequiredUserDep):
     db_type = _detect_db_type()
     size = _get_db_size()
     tools = {
@@ -128,7 +126,7 @@ def db_info(current_user: User = Depends(require_user)):
 
 
 @router.get("/settings/backup")
-def backup_database(current_user: User = Depends(require_user)):
+def backup_database(current_user: RequiredUserDep):
     db_type = _detect_db_type()
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M%S")
 

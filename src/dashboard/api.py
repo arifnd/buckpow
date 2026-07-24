@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Query
 
-from src.database import get_db
-from src.auth.models import User
-from src.dependencies import require_user
+from src.dependencies import DbDep, RequiredUserDep
 from src.measurements.service import MeasurementService
 from src.devices.service import DeviceService
 from src.dashboard.service import DashboardService
@@ -12,9 +9,7 @@ router = APIRouter()
 
 
 @router.get("/dashboard")
-def dashboard_data(
-    db: Session = Depends(get_db), _current_user: User = Depends(require_user)
-):
+def dashboard_data(db: DbDep, _current_user: RequiredUserDep):
     measurements = MeasurementService(db).get_recent(limit=1)
     stats = MeasurementService(db).get_stats()
     devices = DeviceService(db).get_all()
@@ -24,20 +19,18 @@ def dashboard_data(
 
 
 @router.get("/dashboard/summary")
-def dashboard_summary(
-    db: Session = Depends(get_db), _current_user: User = Depends(require_user)
-):
+def dashboard_summary(db: DbDep, _current_user: RequiredUserDep):
     return DashboardService(db).get_summary()
 
 
 @router.get("/dashboard/statistics")
 def dashboard_statistics(
+    db: DbDep,
+    _current_user: RequiredUserDep,
     device_id: int | None = Query(None),
     session_id: int | None = Query(None),
     start_date: str | None = Query(None),
     end_date: str | None = Query(None),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     return DashboardService(db).get_statistics(
         device_id=device_id,

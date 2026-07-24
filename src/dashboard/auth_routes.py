@@ -1,8 +1,7 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session
 
-from src.dependencies import get_current_user, get_db
+from src.dependencies import CurrentUserDep, DbDep
 from src.auth.models import User
 from src.template_helpers import _render
 
@@ -10,9 +9,7 @@ router = APIRouter()
 
 
 @router.get("/auth/login")
-def login_page(
-    current_user: User | None = Depends(get_current_user), db: Session = Depends(get_db)
-):
+def login_page(current_user: CurrentUserDep, db: DbDep):
     if current_user:
         return RedirectResponse(url="/", status_code=302)
     brand = "BuckPow"

@@ -1,10 +1,7 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Query, HTTPException
 
-from src.database import get_db
-from src.auth.models import User
 from src.measurements.service import MeasurementService
-from src.dependencies import require_user
+from src.dependencies import DbDep, RequiredUserDep
 
 router = APIRouter()
 
@@ -31,9 +28,9 @@ def _parse_session_ids(sessions: str) -> list[int]:
 
 @router.get("/benchmark/compare")
 def compare(
+    db: DbDep,
+    _current_user: RequiredUserDep,
     sessions: str = Query(""),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     session_ids = _parse_session_ids(sessions)
     svc = MeasurementService(db)

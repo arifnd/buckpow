@@ -1,14 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Query, Request
 
-from src.database import get_db
 from src.devices.models import Device
 from src.projects.models import Project
-from src.auth.models import User
 from src.devices.service import DeviceService
 from src.audit.service import AuditService
 from src.utils.client_ip import get_client_ip
-from src.dependencies import require_user
+from src.dependencies import DbDep, RequiredUserDep
 from src.devices.schemas import DeviceCreate, DeviceUpdate
 
 router = APIRouter()
@@ -26,10 +23,10 @@ def _check_device_owner(db, device_id, user_id):
 
 @router.get("/devices")
 def list_devices(
+    db: DbDep,
+    _current_user: RequiredUserDep,
     page: int = Query(1),
     per_page: int = Query(10),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     if page == 0:
         devices = DeviceService(db).get_all()
@@ -48,8 +45,8 @@ def list_devices(
 def create_device(
     body: DeviceCreate,
     request: Request,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     device = DeviceService(db).create(
         device_id=body.device_id,
@@ -76,8 +73,8 @@ def create_device(
 @router.get("/devices/{device_id}")
 def get_device(
     device_id: int,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     device = DeviceService(db).get_by_id(device_id)
     if not device:
@@ -90,8 +87,8 @@ def update_device(
     device_id: int,
     body: DeviceUpdate,
     request: Request,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(
@@ -130,8 +127,8 @@ def update_device(
 @router.get("/devices/{device_id}/key")
 def get_device_key(
     device_id: int,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     device = db.get(Device, device_id)
     if not device or not device.api_key:
@@ -143,8 +140,8 @@ def get_device_key(
 def toggle_device(
     device_id: int,
     request: Request,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(
@@ -168,8 +165,8 @@ def toggle_device(
 def regenerate_key(
     device_id: int,
     request: Request,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(
@@ -193,8 +190,8 @@ def regenerate_key(
 def delete_device(
     device_id: int,
     request: Request,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     if not _check_device_owner(db, device_id, _current_user.id):
         raise HTTPException(

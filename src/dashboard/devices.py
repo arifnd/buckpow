@@ -1,8 +1,6 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import APIRouter
 
-from src.dependencies import get_current_user, get_db
-from src.auth.models import User
+from src.dependencies import CurrentUserDep, DbDep
 from src.template_helpers import _render_or_redirect
 from src.devices.service import DeviceService
 from src.projects.service import ProjectService
@@ -11,14 +9,14 @@ router = APIRouter()
 
 
 @router.get("/devices")
-def devices_page(current_user: User | None = Depends(get_current_user)):
+def devices_page(current_user: CurrentUserDep):
     return _render_or_redirect("devices/index.html", current_user, "devices")
 
 
 @router.get("/devices/new")
 def devices_new_page(
-    current_user: User | None = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUserDep,
+    db: DbDep,
 ):
     redir = _render_or_redirect(
         "devices/form.html",
@@ -33,8 +31,8 @@ def devices_new_page(
 @router.get("/devices/{device_id}/edit")
 def devices_edit_page(
     device_id: int,
-    current_user: User | None = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUserDep,
+    db: DbDep,
 ):
     device = DeviceService(db).get_by_id(device_id)
     return _render_or_redirect(

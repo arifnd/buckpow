@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Request, Query
 
-from src.database import get_db
-from src.dependencies import require_user
-from src.auth.models import User
+from src.dependencies import DbDep, RequiredUserDep
 from src.projects.service import ProjectService
 from src.audit.service import AuditService
 from src.utils.client_ip import get_client_ip
@@ -14,10 +11,10 @@ router = APIRouter()
 
 @router.get("/projects")
 def list_projects(
+    db: DbDep,
+    current_user: RequiredUserDep,
     page: int = Query(1),
     per_page: int = Query(10),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_user),
 ):
     if page == 0:
         projects = ProjectService(db).get_all()
@@ -36,8 +33,8 @@ def list_projects(
 def create_project(
     body: ProjectCreate,
     request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_user),
+    db: DbDep,
+    current_user: RequiredUserDep,
 ):
     project = ProjectService(db).create(
         name=body.name,
@@ -58,8 +55,8 @@ def create_project(
 @router.get("/projects/{project_id}")
 def get_project(
     project_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_user),
+    db: DbDep,
+    current_user: RequiredUserDep,
 ):
     project = ProjectService(db).get_by_id(project_id)
     if not project:
@@ -72,8 +69,8 @@ def update_project(
     project_id: int,
     body: ProjectUpdate,
     request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_user),
+    db: DbDep,
+    current_user: RequiredUserDep,
 ):
     project = ProjectService(db).get_by_id(project_id)
     if not project:
@@ -102,8 +99,8 @@ def update_project(
 def delete_project(
     project_id: int,
     request: Request,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_user),
+    db: DbDep,
+    current_user: RequiredUserDep,
 ):
     project = ProjectService(db).get_by_id(project_id)
     if not project:

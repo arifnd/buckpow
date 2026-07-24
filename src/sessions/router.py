@@ -1,13 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Query, Request
 
-from src.database import get_db
-from src.auth.models import User
 from src.sessions.service import SessionService
 from src.measurements.service import MeasurementService
 from src.audit.service import AuditService
 from src.utils.client_ip import get_client_ip
-from src.dependencies import require_user
+from src.dependencies import DbDep, RequiredUserDep
 from src.sessions.schemas import SessionCreate, SessionUpdate
 
 router = APIRouter()
@@ -15,10 +12,10 @@ router = APIRouter()
 
 @router.get("/sessions")
 def list_sessions(
+    db: DbDep,
+    _current_user: RequiredUserDep,
     page: int = Query(1),
     per_page: int = Query(10),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     if page == 0:
         sessions = SessionService(db).get_all()
@@ -54,8 +51,8 @@ def list_sessions(
 @router.post("/sessions", status_code=201)
 def create_session(
     body: SessionCreate,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     if not body.name or not body.device_id:
         raise HTTPException(status_code=400, detail="name and device_id are required")
@@ -72,8 +69,8 @@ def create_session(
 @router.get("/sessions/{session_id}")
 def get_session(
     session_id: int,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     session = SessionService(db).get_by_id(session_id)
     if not session:
@@ -85,8 +82,8 @@ def get_session(
 def update_session(
     session_id: int,
     body: SessionUpdate,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     session = SessionService(db).update(
         session_id,
@@ -103,8 +100,8 @@ def update_session(
 @router.delete("/sessions/{session_id}")
 def delete_session(
     session_id: int,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     if SessionService(db).delete(session_id):
         return {"status": "deleted"}
@@ -114,8 +111,8 @@ def delete_session(
 @router.get("/sessions/{session_id}/stats")
 def session_stats(
     session_id: int,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     stats = MeasurementService.get_session_stats(db, session_id)
     if stats is None:
@@ -127,8 +124,8 @@ def session_stats(
 def start_session(
     session_id: int,
     request: Request,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     session, error = SessionService(db).start(session_id)
     if error:
@@ -148,8 +145,8 @@ def start_session(
 def stop_session(
     session_id: int,
     request: Request,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     session, error = SessionService(db).stop(session_id)
     if error:
