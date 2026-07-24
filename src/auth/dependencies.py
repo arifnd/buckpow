@@ -53,7 +53,9 @@ def get_current_user(
     return _decode_user(token, db)
 
 
-def require_user(current_user: Annotated[User | None, Depends(get_current_user)]) -> User:
+def require_user(
+    current_user: Annotated[User | None, Depends(get_current_user)],
+) -> User:
     if current_user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"

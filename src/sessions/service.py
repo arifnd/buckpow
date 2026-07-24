@@ -1,14 +1,14 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session as OrmSession, selectinload
 
 from src.sessions.models import Session
 from src.utils.pagination import PaginatedResult
 
 
 class SessionService:
-    def __init__(self, db: Session):
+    def __init__(self, db: OrmSession):
         self.db = db
 
     def get_all(self):

@@ -1,6 +1,5 @@
 from enum import StrEnum
 
-from pydantic import Field
 
 from src.models import AppBaseModel
 

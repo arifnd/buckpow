@@ -22,7 +22,7 @@ def list_audit_logs(
         target_type=target_type,
     )
     return {
-        "logs": [l.to_dict() for l in pagination.items],
+        "logs": [log.to_dict() for log in pagination.items],
         "page": pagination.page,
         "pages": pagination.pages,
         "total": pagination.total,

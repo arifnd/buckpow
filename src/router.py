@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from src import APP_VERSION, MIN_FIRMWARE_VERSION
+from src.version import APP_VERSION, MIN_FIRMWARE_VERSION
 from src.measurements.router import router as measurements_router
 from src.dashboard.api import router as dashboard_api_router
 from src.devices.router import router as devices_router

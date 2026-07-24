@@ -11,9 +11,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from src.config import settings as config
 from src.database import engine, Base
 from src.middleware import RateLimiterMiddleware, bearer_token_key
-
-APP_VERSION = "0.1.0-beta.3"
-MIN_FIRMWARE_VERSION = "1.0.0"
+from src.version import APP_VERSION as APP_VERSION, MIN_FIRMWARE_VERSION as MIN_FIRMWARE_VERSION
+from src.router import api_router
+from src.dashboard import dashboard_router
 
 
 @asynccontextmanager
@@ -99,9 +99,6 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
-
-from src.router import api_router
-from src.dashboard import dashboard_router
 
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(dashboard_router)

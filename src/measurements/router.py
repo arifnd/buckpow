@@ -8,7 +8,6 @@ from fastapi.responses import Response
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
-from sqlalchemy.orm import Session
 
 from src.auth.models import User
 from src.sessions.models import Session as SessionModel
@@ -18,7 +17,7 @@ from src.audit.service import AuditService
 from src.utils.client_ip import get_client_ip
 from src.utils.dates import to_utc_date_bounds
 from src.dependencies import get_api_key_device, DbDep, RequiredUserDep
-from src import MIN_FIRMWARE_VERSION
+from src.version import MIN_FIRMWARE_VERSION
 from src.measurements.schemas import MeasurementCreate
 
 router = APIRouter()
