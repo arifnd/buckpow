@@ -1,22 +1,19 @@
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Query
 
-from src.database import get_db
-from src.auth.models import User
-from src.dependencies import require_user
 from src.audit.service import AuditService
+from src.dependencies import DbDep, RequiredUserDep
 
 router = APIRouter()
 
 
 @router.get("/audit/logs")
 def list_audit_logs(
+    db: DbDep,
+    _current_user: RequiredUserDep,
     page: int = Query(1),
     per_page: int = Query(10),
     action: str | None = Query(None),
     target_type: str | None = Query(None),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     pagination = AuditService(db).get_paginated(
         page=page,
@@ -25,7 +22,7 @@ def list_audit_logs(
         target_type=target_type,
     )
     return {
-        "logs": [l.to_dict() for l in pagination.items],
+        "logs": [log.to_dict() for log in pagination.items],
         "page": pagination.page,
         "pages": pagination.pages,
         "total": pagination.total,

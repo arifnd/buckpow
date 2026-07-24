@@ -4,7 +4,10 @@ from src.audit.service import AuditService
 class TestAuditService:
 
     def test_log(self, db):
-        entry = AuditService(db).log(action='test.action', user_id=1, target_type='device', target_id=5, ip_address='10.0.0.1', details={'rows': 10})
+        entry = AuditService(db).log(
+            action='test.action', user_id=1, target_type='device',
+            target_id=5, ip_address='10.0.0.1', details={'rows': 10}
+        )
         assert entry.id is not None
         assert entry.action == 'test.action'
         assert entry.user_id == 1

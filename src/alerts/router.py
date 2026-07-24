@@ -1,24 +1,21 @@
-from fastapi import APIRouter, Depends, Query, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Query
 
-from src.database import get_db
-from src.auth.models import User
-from src.alerts.service import AlertService
-from src.dependencies import require_user
 from src.alerts.schemas import AlertCreate
+from src.alerts.service import AlertService
+from src.dependencies import DbDep, RequiredUserDep
 
 router = APIRouter()
 
 
 @router.get("/alerts")
 def list_alerts(
+    db: DbDep,
+    _current_user: RequiredUserDep,
     page: int = Query(1),
     per_page: int = Query(10),
     device_id: int | None = Query(None),
     level: str | None = Query(None),
     resolved: str | None = Query(None),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     resolved_bool = None
     if resolved is not None:
@@ -43,8 +40,8 @@ def list_alerts(
 @router.post("/alerts", status_code=201)
 def create_alert(
     body: AlertCreate,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     alert = AlertService(db).create(body.device_id, body.level, body.message)
     return alert.to_dict()
@@ -53,8 +50,8 @@ def create_alert(
 @router.patch("/alerts/{alert_id}/resolve")
 def resolve_alert(
     alert_id: int,
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
+    db: DbDep,
+    _current_user: RequiredUserDep,
 ):
     alert = AlertService(db).resolve(alert_id)
     if not alert:
@@ -64,9 +61,9 @@ def resolve_alert(
 
 @router.post("/alerts/resolve-all")
 def resolve_all(
+    db: DbDep,
+    _current_user: RequiredUserDep,
     device_id: int | None = Query(None),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     AlertService(db).resolve_all(device_id=device_id)
     return {"status": "ok"}

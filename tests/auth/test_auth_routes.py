@@ -55,8 +55,8 @@ class TestAuthAPI:
         assert resp.status_code == 422
 
     def test_update_profile_email_taken(self, client, app):
-        from src.database import SessionLocal
         from src.auth.service import UserService
+        from src.database import SessionLocal
         db = SessionLocal()
         UserService(db).create(name='Other', email='other@example.com', password='x')
         db.close()

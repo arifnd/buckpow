@@ -65,6 +65,6 @@ class TestSettings:
             Settings(JWT_SECRET='short', _env_file=None)
 
     def test_production_missing_jwt_secret_raises(self):
-        with patch.dict(os.environ, {'APP_ENV': 'production', 'JWT_SECRET': ''}):
-            with pytest.raises(RuntimeError, match='JWT_SECRET environment variable is required'):
+        with patch.dict(os.environ, {'APP_ENV': 'production', 'JWT_SECRET': ''}), \
+             pytest.raises(RuntimeError, match='JWT_SECRET environment variable is required'):
                 Settings(JWT_SECRET='', _env_file=None)

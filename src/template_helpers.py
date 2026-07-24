@@ -1,8 +1,7 @@
 from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader
 
-from src import APP_VERSION
-
+from src.version import APP_VERSION
 
 templates = Environment(loader=FileSystemLoader("templates"), autoescape=True)
 

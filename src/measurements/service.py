@@ -1,10 +1,11 @@
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Session as DBSession, selectinload
+from sqlalchemy.orm import Session as DBSession
+from sqlalchemy.orm import selectinload
 
 from src.measurements.models import Measurement
 from src.sessions.models import Session as SessionModel
-from src.utils.calculations import calc_load_voltage, calc_energy_increment
+from src.utils.calculations import calc_energy_increment, calc_load_voltage
 from src.utils.dates import utc_iso
 from src.utils.query import FilterBuilder
 
@@ -16,9 +17,9 @@ class MeasurementService:
     def create(
         self, device_id_str, bus_voltage, shunt_voltage=0.0, current=0.0, power=0.0
     ):
+        from src.alerts.service import AlertService
         from src.devices.service import DeviceService
         from src.sessions.service import SessionService
-        from src.alerts.service import AlertService
 
         device = DeviceService(self.db).get_or_create(device_id_str)
         DeviceService(self.db).touch(device_id_str)
@@ -39,9 +40,7 @@ class MeasurementService:
 
         inc = calc_energy_increment(power_w, device.sampling_interval)
 
-        if last and session_id and last.session_id == session_id:
-            energy = last.energy + inc
-        elif last and not session_id:
+        if last and session_id and last.session_id == session_id or last and not session_id:
             energy = last.energy + inc
         else:
             energy = inc if session_id else 0.0

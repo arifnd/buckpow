@@ -1,7 +1,7 @@
-from pydantic import ValidationError
 
 
 from src.settings.schemas import SettingsUpdate
+
 
 class TestSettingsUpdateSchema:
 

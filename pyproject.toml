@@ -1,3 +1,19 @@
+[tool.ruff]
+src = ["src", "scripts"]
+exclude = ["migrations"]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--tb=short -q"
+pythonpath = ["."]
+
+[tool.pytest_env]
+DATABASE_URL = "sqlite://"
+BCRYPT_ROUNDS = "4"

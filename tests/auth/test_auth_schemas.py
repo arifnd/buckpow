@@ -1,15 +1,14 @@
 import pytest
 from pydantic import ValidationError
-
-
 from src.auth.schemas import LoginRequest, ProfileUpdate
+
 
 class TestLoginRequestSchema:
 
     def test_valid(self):
-        l = LoginRequest(email='user@test.com', password='pass')
-        assert l.email == 'user@test.com'
-        assert l.password == 'pass'
+        req = LoginRequest(email='user@test.com', password='pass')
+        assert req.email == 'user@test.com'
+        assert req.password == 'pass'
 
     def test_missing_fields(self):
         with pytest.raises(ValidationError):

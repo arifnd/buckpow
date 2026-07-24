@@ -1,10 +1,10 @@
 import secrets
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session, selectinload
 
-from src.devices.models import Device
 from src.config import settings
+from src.devices.models import Device
 from src.utils.pagination import PaginatedResult
 
 
@@ -107,9 +107,9 @@ class DeviceService:
         device = self.db.get(Device, device_id)
         if not device:
             return False
+        from src.alerts.models import Alert
         from src.measurements.models import Measurement
         from src.sessions.models import Session
-        from src.alerts.models import Alert
 
         self.db.query(Measurement).filter(Measurement.device_id == device_id).delete()
         self.db.query(Session).filter(Session.device_id == device_id).delete()

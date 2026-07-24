@@ -245,19 +245,16 @@ class TestMeasurementsExtra:
         assert resp.status_code == 500
         assert resp.json()['error'] == 'db error'
 
-
-
-class TestMeasurementsExtra:
     def test_measurements_empty_list(self, client):
         resp = client.get('/api/v1/measurements?per_page=10')
         assert resp.status_code == 200
         assert resp.json()['total'] == 0
 
     def test_device_owner_mismatch_forbidden(self, client, sample_device, sample_project):
+        from src.auth.models import User
         from src.database import SessionLocal
         from src.devices.models import Device
         from src.projects.models import Project
-        from src.auth.models import User
         db = SessionLocal()
         other_user = User(name='Other', email='other2@example.com', password='x')
         db.add(other_user)

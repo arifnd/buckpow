@@ -1,14 +1,15 @@
 from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
-from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import Session
 
+from src.auth.models import User
 from src.config import settings
 from src.database import get_db
-from src.auth.models import User
 
 security = HTTPBearer(auto_error=False)
 
@@ -38,9 +39,9 @@ def _decode_user(token: str, db: Session) -> User | None:
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+    db: Annotated[Session, Depends(get_db)],
     request: Request = None,
-    db: Session = Depends(get_db),
 ) -> User | None:
     token = None
     if credentials is not None:
@@ -52,7 +53,9 @@ def get_current_user(
     return _decode_user(token, db)
 
 
-def require_user(current_user: User | None = Depends(get_current_user)) -> User:
+def require_user(
+    current_user: Annotated[User | None, Depends(get_current_user)],
+) -> User:
     if current_user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
@@ -61,8 +64,8 @@ def require_user(current_user: User | None = Depends(get_current_user)) -> User:
 
 
 def get_api_key_device(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-    db: Session = Depends(get_db),
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security)],
+    db: Annotated[Session, Depends(get_db)],
 ):
     from src.devices.service import DeviceService
 

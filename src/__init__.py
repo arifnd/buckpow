@@ -1,19 +1,21 @@
 import logging
 import os
 import sys
-
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException
+
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 
+from src import database as db_module
 from src.config import settings as config
-from src.database import engine, Base
+from src.dashboard import dashboard_router
+from src.database import Base
 from src.middleware import RateLimiterMiddleware, bearer_token_key
-
-APP_VERSION = "0.1.0-beta.3"
-MIN_FIRMWARE_VERSION = "1.0.0"
+from src.router import api_router
+from src.version import APP_VERSION as APP_VERSION
+from src.version import MIN_FIRMWARE_VERSION as MIN_FIRMWARE_VERSION
 
 
 @asynccontextmanager
@@ -27,15 +29,15 @@ async def lifespan(app: FastAPI):
     logger.setLevel(logging.INFO)
 
     if "sqlite" in config.DATABASE_URL:
-        db_path = engine.url.database
+        db_path = db_module.engine.url.database
         if db_path:
             db_dir = os.path.dirname(db_path)
             if db_dir and not os.path.exists(db_dir):
                 os.makedirs(db_dir, exist_ok=True)
-        Base.metadata.create_all(bind=engine)
+        Base.metadata.create_all(bind=db_module.engine)
         try:
-            from alembic.config import Config
             from alembic import command
+            from alembic.config import Config
 
             alembic_cfg = Config("alembic.ini")
             command.stamp(alembic_cfg, "head")
@@ -68,13 +70,16 @@ async def lifespan(app: FastAPI):
     yield
 
 
+SHOW_DOCS_IN = {"development", "staging"}
+disable_docs = config.DISABLE_API_DOCS or config.APP_ENV not in SHOW_DOCS_IN
+
 app = FastAPI(
     title="BuckPow",
     version=APP_VERSION,
     lifespan=lifespan,
-    docs_url=None if config.DISABLE_API_DOCS else "/docs",
-    redoc_url=None if config.DISABLE_API_DOCS else "/redoc",
-    openapi_url=None if config.DISABLE_API_DOCS else "/openapi.json",
+    docs_url=None if disable_docs else "/docs",
+    redoc_url=None if disable_docs else "/redoc",
+    openapi_url=None if disable_docs else "/openapi.json",
 )
 
 app.add_middleware(
@@ -96,9 +101,6 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
-
-from src.router import api_router
-from src.dashboard import dashboard_router
 
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(dashboard_router)

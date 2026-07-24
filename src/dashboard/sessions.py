@@ -1,26 +1,24 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse
-from sqlalchemy.orm import Session
 
-from src.dependencies import get_current_user, get_db
-from src.auth.models import User
-from src.template_helpers import _render, _render_or_redirect, _require_dashboard_user
+from src.dependencies import CurrentUserDep, DbDep
 from src.devices.service import DeviceService
-from src.sessions.service import SessionService
 from src.projects.service import ProjectService
+from src.sessions.service import SessionService
+from src.template_helpers import _render, _render_or_redirect, _require_dashboard_user
 
 router = APIRouter()
 
 
 @router.get("/sessions")
-def sessions_page(current_user: User | None = Depends(get_current_user)):
+def sessions_page(current_user: CurrentUserDep):
     return _render_or_redirect("sessions/index.html", current_user, "sessions")
 
 
 @router.get("/sessions/new")
 def sessions_new_page(
-    current_user: User | None = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUserDep,
+    db: DbDep,
 ):
     all_devices = DeviceService(db).get_all()
     devices = [
@@ -39,8 +37,8 @@ def sessions_new_page(
 @router.get("/sessions/{session_id}/edit")
 def sessions_edit_page(
     session_id: int,
-    current_user: User | None = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUserDep,
+    db: DbDep,
 ):
     session = SessionService(db).get_by_id(session_id)
     return _render_or_redirect(
@@ -56,8 +54,8 @@ def sessions_edit_page(
 @router.get("/sessions/{session_id}")
 def sessions_detail_page(
     session_id: int,
-    current_user: User | None = Depends(get_current_user),
-    db: Session = Depends(get_db),
+    current_user: CurrentUserDep,
+    db: DbDep,
 ):
     redir = _require_dashboard_user(current_user)
     if isinstance(redir, RedirectResponse):

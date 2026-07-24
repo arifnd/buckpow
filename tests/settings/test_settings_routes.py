@@ -73,7 +73,7 @@ class TestSettingsAPI:
         resp = unauth_client.put('/api/v1/settings', json={'brand': 'X'})
         assert resp.status_code == 401
 
-    def test_backup_database(self, client):
+    def test_backup_database(self, client, file_db):
         resp = client.get('/api/v1/settings/backup')
         assert resp.status_code == 200
         assert resp.headers['content-type'] == 'application/octet-stream'
@@ -86,7 +86,7 @@ class TestSettingsAPI:
         resp = unauth_client.get('/api/v1/settings/backup')
         assert resp.status_code == 401
 
-    def test_db_info(self, client):
+    def test_db_info(self, client, file_db):
         resp = client.get('/api/v1/settings/db-info')
         assert resp.status_code == 200
         data = resp.json()
@@ -100,8 +100,8 @@ class TestSettingsAPI:
         assert _detect_db_type() == 'sqlite'
 
     def test_detect_db_type_postgresql(self):
-        from src.settings.router import _detect_db_type
         from src import database
+        from src.settings.router import _detect_db_type
         old = database.engine.url
         try:
             database.engine.url = database.engine.url.set(host='localhost', database='test')
@@ -112,9 +112,9 @@ class TestSettingsAPI:
             database.engine.url = old
 
     def test_detect_db_type_mysql(self):
-        from src.settings.router import _detect_db_type
-        from src import database
         from sqlalchemy.engine import make_url
+        from src import database
+        from src.settings.router import _detect_db_type
         old = database.engine.url
         try:
             database.engine.url = make_url('mysql+pymysql://user:pass@localhost/test')
@@ -123,9 +123,9 @@ class TestSettingsAPI:
             database.engine.url = old
 
     def test_detect_db_type_unknown(self):
-        from src.settings.router import _detect_db_type
-        from src import database
         from sqlalchemy.engine import make_url
+        from src import database
+        from src.settings.router import _detect_db_type
         old = database.engine.url
         try:
             database.engine.url = make_url('oracle://user:pass@localhost/test')
@@ -133,7 +133,7 @@ class TestSettingsAPI:
         finally:
             database.engine.url = old
 
-    def test_get_db_size_sqlite(self):
+    def test_get_db_size_sqlite(self, file_db):
         from src.settings.router import _get_db_size
         size = _get_db_size()
         assert size is not None
@@ -141,62 +141,69 @@ class TestSettingsAPI:
 
     def test_backup_postgresql_no_tool(self, client):
         from unittest.mock import patch
+
         from src.settings.router import _backup_postgresql
         with patch('src.settings.router.shutil.which', return_value=None):
-            resp = client.get('/api/v1/settings/backup')
+            client.get('/api/v1/settings/backup')
             # Since actual db is sqlite, this won't hit postgresql path
             # Test the function directly
             from fastapi.exceptions import HTTPException
             try:
                 _backup_postgresql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'pg_dump not found' in str(e.detail)
 
     def test_backup_mysql_no_tool(self):
         from unittest.mock import patch
-        from src.settings.router import _backup_mysql
+
         from fastapi.exceptions import HTTPException
+        from src.settings.router import _backup_mysql
         with patch('src.settings.router.shutil.which', return_value=None):
             try:
                 _backup_mysql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'mysqldump not found' in str(e.detail)
 
     def test_backup_postgresql_timeout(self):
-        from unittest.mock import patch, MagicMock
         import subprocess
-        from src.settings.router import _backup_postgresql
+        from unittest.mock import MagicMock, patch
+
         from fastapi.exceptions import HTTPException
+        from src.settings.router import _backup_postgresql
         mock_result = MagicMock()
         mock_result.returncode = 0
         mock_result.stdout = b'dump data'
         with patch('src.settings.router.shutil.which', return_value='/usr/bin/pg_dump'), \
-             patch('src.settings.router.subprocess.run', side_effect=subprocess.TimeoutExpired(cmd='pg_dump', timeout=120)):
+             patch('src.settings.router.subprocess.run',
+                   side_effect=subprocess.TimeoutExpired(cmd='pg_dump', timeout=120)):
             try:
                 _backup_postgresql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'timed out' in str(e.detail)
 
     def test_backup_mysql_timeout(self):
-        from unittest.mock import patch
         import subprocess
-        from src.settings.router import _backup_mysql
+        from unittest.mock import patch
+
         from fastapi.exceptions import HTTPException
+        from src.settings.router import _backup_mysql
         with patch('src.settings.router.shutil.which', return_value='/usr/bin/mysqldump'), \
-             patch('src.settings.router.subprocess.run', side_effect=subprocess.TimeoutExpired(cmd='mysqldump', timeout=120)):
+             patch('src.settings.router.subprocess.run',
+                   side_effect=subprocess.TimeoutExpired(cmd='mysqldump', timeout=120)):
             try:
                 _backup_mysql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'timed out' in str(e.detail)
 
     def test_backup_postgresql_dump_error(self):
-        from unittest.mock import patch, MagicMock
-        from src.settings.router import _backup_postgresql
+        from unittest.mock import MagicMock, patch
+
         from fastapi.exceptions import HTTPException
+        from src.settings.router import _backup_postgresql
         mock_result = MagicMock()
         mock_result.returncode = 1
         mock_result.stderr = b'permission denied'
@@ -204,14 +211,15 @@ class TestSettingsAPI:
              patch('src.settings.router.subprocess.run', return_value=mock_result):
             try:
                 _backup_postgresql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'pg_dump failed' in str(e.detail)
 
     def test_backup_mysql_dump_error(self):
-        from unittest.mock import patch, MagicMock
-        from src.settings.router import _backup_mysql
+        from unittest.mock import MagicMock, patch
+
         from fastapi.exceptions import HTTPException
+        from src.settings.router import _backup_mysql
         mock_result = MagicMock()
         mock_result.returncode = 1
         mock_result.stderr = b'access denied'
@@ -219,38 +227,40 @@ class TestSettingsAPI:
              patch('src.settings.router.subprocess.run', return_value=mock_result):
             try:
                 _backup_mysql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'mysqldump failed' in str(e.detail)
 
     def test_backup_postgresql_file_not_found(self):
         from unittest.mock import patch
-        from src.settings.router import _backup_postgresql
+
         from fastapi.exceptions import HTTPException
+        from src.settings.router import _backup_postgresql
         with patch('src.settings.router.shutil.which', return_value='/usr/bin/pg_dump'), \
              patch('src.settings.router.subprocess.run', side_effect=FileNotFoundError):
             try:
                 _backup_postgresql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'not found' in str(e.detail).lower()
 
     def test_backup_mysql_file_not_found(self):
         from unittest.mock import patch
-        from src.settings.router import _backup_mysql
+
         from fastapi.exceptions import HTTPException
+        from src.settings.router import _backup_mysql
         with patch('src.settings.router.shutil.which', return_value='/usr/bin/mysqldump'), \
              patch('src.settings.router.subprocess.run', side_effect=FileNotFoundError):
             try:
                 _backup_mysql('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert 'not found' in str(e.detail).lower()
 
     def test_parse_pg_url(self):
-        from src.settings.router import _parse_pg_url
-        from src import database
         from sqlalchemy.engine import make_url
+        from src import database
+        from src.settings.router import _parse_pg_url
         old = database.engine.url
         try:
             database.engine.url = make_url('postgresql://admin:secret@db.example.com:5432/mydb')
@@ -265,9 +275,9 @@ class TestSettingsAPI:
             database.engine.url = old
 
     def test_parse_mysql_url(self):
-        from src.settings.router import _parse_mysql_url
-        from src import database
         from sqlalchemy.engine import make_url
+        from src import database
+        from src.settings.router import _parse_mysql_url
         old = database.engine.url
         try:
             database.engine.url = make_url('mysql+pymysql://root:pass@db.example.com:3306/mydb')
@@ -281,41 +291,44 @@ class TestSettingsAPI:
             database.engine.url = old
 
     def test_backup_sqlite_relative_path(self):
-        from unittest.mock import patch, MagicMock
-        from src.settings.router import _backup_sqlite
+        from unittest.mock import MagicMock, patch
+
         from fastapi.exceptions import HTTPException
+        from src.settings.router import _backup_sqlite
         mock_engine = MagicMock()
         mock_engine.url = 'sqlite:///relative/path/test.db'
-        with patch('src.settings.router.engine', mock_engine):
+        with patch('src.database.engine', mock_engine):
             try:
                 _backup_sqlite('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert e.status_code == 404
 
     def test_backup_sqlite_file_not_found(self):
-        from unittest.mock import patch, MagicMock
-        from src.settings.router import _backup_sqlite
+        from unittest.mock import MagicMock, patch
+
         from fastapi.exceptions import HTTPException
+        from src.settings.router import _backup_sqlite
         mock_engine = MagicMock()
         mock_engine.url = 'sqlite:////nonexistent/path/buckpow.db'
-        with patch('src.settings.router.engine', mock_engine):
+        with patch('src.database.engine', mock_engine):
             try:
                 _backup_sqlite('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert e.status_code == 404
 
     def test_backup_sqlite_invalid_url(self):
-        from unittest.mock import patch, MagicMock
-        from src.settings.router import _backup_sqlite
+        from unittest.mock import MagicMock, patch
+
         from fastapi.exceptions import HTTPException
+        from src.settings.router import _backup_sqlite
         mock_engine = MagicMock()
         mock_engine.url = 'mysql://localhost/test'
-        with patch('src.settings.router.engine', mock_engine):
+        with patch('src.database.engine', mock_engine):
             try:
                 _backup_sqlite('2025-01-01-000000')
-                assert False, "Should have raised"
+                raise AssertionError("Should have raised")
             except HTTPException as e:
                 assert e.status_code == 400
                 assert 'Invalid SQLite URL' in str(e.detail)

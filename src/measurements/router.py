@@ -1,25 +1,24 @@
 import csv
 import io
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
-from sqlalchemy.orm import Session
 
-from src.database import get_db
-from src.auth.models import User
-from src.sessions.models import Session as SessionModel
-from src.measurements.service import MeasurementService
-from src.devices.service import DeviceService
 from src.audit.service import AuditService
+from src.auth.models import User
+from src.dependencies import DbDep, RequiredUserDep, get_api_key_device
+from src.devices.service import DeviceService
+from src.measurements.schemas import MeasurementCreate
+from src.measurements.service import MeasurementService
+from src.sessions.models import Session as SessionModel
 from src.utils.client_ip import get_client_ip
 from src.utils.dates import to_utc_date_bounds
-from src.dependencies import get_api_key_device, require_user
-from src import MIN_FIRMWARE_VERSION
-from src.measurements.schemas import MeasurementCreate
+from src.version import MIN_FIRMWARE_VERSION
 
 router = APIRouter()
 
@@ -34,8 +33,8 @@ def _parse_version(v):
 @router.post("/measurements", status_code=201)
 def receive_measurement(
     body: MeasurementCreate,
-    db: Session = Depends(get_db),
-    device=Depends(get_api_key_device),
+    db: DbDep,
+    device: Annotated[User | None, Depends(get_api_key_device)],
 ):
     if device is None:
         device = DeviceService(db).get_by_device_id(body.device_id)
@@ -81,11 +80,13 @@ def receive_measurement(
             return resp_obj
         return resp
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/measurements")
 def get_measurements(
+    db: DbDep,
+    _current_user: RequiredUserDep,
     device_id: int | None = Query(None),
     session_id: int | None = Query(None),
     page: int = Query(1),
@@ -93,8 +94,6 @@ def get_measurements(
     start_date: str | None = Query(None),
     end_date: str | None = Query(None),
     tz: str = Query("+0"),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     tz_offset = float(tz)
     if start_date and len(start_date) == 10:
@@ -121,13 +120,13 @@ def get_measurements(
 @router.get("/measurements/export/csv")
 def export_csv(
     request: Request,
+    db: DbDep,
+    _current_user: RequiredUserDep,
     device_id: int | None = Query(None),
     session_id: int | None = Query(None),
     start_date: str | None = Query(None),
     end_date: str | None = Query(None),
     tz: str = Query("+0"),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     tz_offset = float(tz)
     if start_date and len(start_date) == 10:
@@ -199,13 +198,13 @@ def export_csv(
 @router.get("/measurements/export/xlsx")
 def export_xlsx(
     request: Request,
+    db: DbDep,
+    _current_user: RequiredUserDep,
     device_id: int | None = Query(None),
     session_id: int | None = Query(None),
     start_date: str | None = Query(None),
     end_date: str | None = Query(None),
     tz: str = Query("+0"),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     tz_offset = float(tz)
     if start_date and len(start_date) == 10:
@@ -281,6 +280,8 @@ def export_xlsx(
 
 @router.get("/chart")
 def chart_data(
+    db: DbDep,
+    _current_user: RequiredUserDep,
     device_id: int | None = Query(None),
     session_id: int | None = Query(None),
     limit: int = Query(500),
@@ -289,8 +290,6 @@ def chart_data(
     start_date: str | None = Query(None),
     end_date: str | None = Query(None),
     tz: str = Query("+0"),
-    db: Session = Depends(get_db),
-    _current_user: User = Depends(require_user),
 ):
     if granularity not in (None, "s", "m", "h", "d"):
         granularity = None

@@ -1,20 +1,19 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import (
+    Boolean,
     Column,
+    DateTime,
+    Float,
+    ForeignKey,
     Integer,
     String,
     Text,
-    Boolean,
-    Float,
-    DateTime,
-    ForeignKey,
 )
 from sqlalchemy.orm import relationship
 
 from src.database import Base
 from src.utils.dates import utc_iso
-
 
 ONLINE_TIMEOUT = 30
 

@@ -1,14 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException, Request, Response
 
-from src.dependencies import create_access_token, get_current_user, require_user
-from src.database import get_db
-from src.auth.service import UserService
 from src.audit.service import AuditService
-from src.utils.client_ip import get_client_ip
-from src.auth.models import User
-from src.config import settings
 from src.auth.schemas import LoginRequest, ProfileUpdate
+from src.auth.service import UserService
+from src.config import settings
+from src.dependencies import CurrentUserDep, DbDep, RequiredUserDep, create_access_token
+from src.utils.client_ip import get_client_ip
 
 router = APIRouter()
 
@@ -18,7 +15,7 @@ def login(
     body: LoginRequest,
     request: Request,
     response: Response,
-    db: Session = Depends(get_db),
+    db: DbDep,
 ):
     email = body.email.strip()
     password = body.password
@@ -49,8 +46,8 @@ def logout(response: Response):
 @router.put("/auth/profile")
 def update_profile(
     body: ProfileUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_user),
+    db: DbDep,
+    current_user: RequiredUserDep,
 ):
     try:
         user = UserService(db).update(
@@ -63,11 +60,11 @@ def update_profile(
             raise HTTPException(status_code=404, detail="User not found")
         return {"status": "ok", "user": user.to_dict()}
     except ValueError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+        raise HTTPException(status_code=409, detail=str(e)) from e
 
 
 @router.get("/auth/me")
-def me(current_user: User | None = Depends(get_current_user)):
+def me(current_user: CurrentUserDep):
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return current_user.to_dict()

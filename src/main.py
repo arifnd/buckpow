@@ -1,6 +1,6 @@
-import uvicorn
+import uvicorn  # noqa: F401
 
-from src import app
+from src import app  # noqa: F401
 from src.config import settings
 
 if __name__ == "__main__":

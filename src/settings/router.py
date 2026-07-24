@@ -1,24 +1,22 @@
-from datetime import datetime, timezone
 import gzip
 import os
 import shutil
 import subprocess
+from datetime import datetime, timezone
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
-from sqlalchemy.orm import Session
 
-from src.database import get_db, engine
-from src.dependencies import require_user
-from src.auth.models import User
+from src import database as db_module
+from src.dependencies import DbDep, RequiredUserDep
 from src.settings.schemas import SettingsUpdate
 
 router = APIRouter()
 
 
 def _detect_db_type() -> str:
-    url = str(engine.url)
+    url = str(db_module.engine.url)
     if url.startswith("sqlite"):
         return "sqlite"
     if url.startswith("postgresql"):
@@ -30,7 +28,7 @@ def _detect_db_type() -> str:
 
 def _get_db_size() -> int | None:
     db_type = _detect_db_type()
-    url = str(engine.url)
+    url = str(db_module.engine.url)
     if db_type == "sqlite":
         if url.startswith("sqlite:///"):
             db_path = url[10:]
@@ -50,7 +48,7 @@ def _get_db_size() -> int | None:
 
 
 def _parse_pg_url():
-    parsed = urlparse(str(engine.url))
+    parsed = urlparse(str(db_module.engine.url))
     return {
         "host": parsed.hostname or "localhost",
         "port": parsed.port or 5432,
@@ -61,7 +59,7 @@ def _parse_pg_url():
 
 
 def _parse_mysql_url():
-    parsed = urlparse(str(engine.url))
+    parsed = urlparse(str(db_module.engine.url))
     return {
         "host": parsed.hostname or "localhost",
         "port": parsed.port or 3306,
@@ -84,15 +82,15 @@ ALLOWED = {
 
 
 @router.get("/settings")
-def get_settings(current_user: User = Depends(require_user)):
+def get_settings(current_user: RequiredUserDep):
     return current_user.settings or {}
 
 
 @router.put("/settings")
 def update_settings(
     body: SettingsUpdate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_user),
+    db: DbDep,
+    current_user: RequiredUserDep,
 ):
     current = dict(current_user.settings or {})
     data = body.model_dump(exclude_none=True)
@@ -108,7 +106,7 @@ def update_settings(
 
 
 @router.get("/settings/db-info")
-def db_info(current_user: User = Depends(require_user)):
+def db_info(current_user: RequiredUserDep):
     db_type = _detect_db_type()
     size = _get_db_size()
     tools = {
@@ -128,7 +126,7 @@ def db_info(current_user: User = Depends(require_user)):
 
 
 @router.get("/settings/backup")
-def backup_database(current_user: User = Depends(require_user)):
+def backup_database(current_user: RequiredUserDep):
     db_type = _detect_db_type()
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M%S")
 
@@ -138,11 +136,11 @@ def backup_database(current_user: User = Depends(require_user)):
         return _backup_postgresql(ts)
     if db_type == "mysql":
         return _backup_mysql(ts)
-    raise HTTPException(status_code=400, detail="Unsupported database engine")
+    raise HTTPException(status_code=400, detail="Unsupported database db_module.engine")
 
 
 def _backup_sqlite(ts: str):
-    db_url = str(engine.url)
+    db_url = str(db_module.engine.url)
     if db_url.startswith("sqlite:///"):
         db_path = db_url[10:]
     elif db_url.startswith("sqlite://"):
@@ -203,9 +201,9 @@ def _backup_postgresql(ts: str):
             )
         compressed = gzip.compress(proc.stdout)
     except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=500, detail="pg_dump timed out")
+        raise HTTPException(status_code=500, detail="pg_dump timed out") from None
     except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="pg_dump not found")
+        raise HTTPException(status_code=500, detail="pg_dump not found") from None
 
     return Response(
         content=compressed,
@@ -243,9 +241,9 @@ def _backup_mysql(ts: str):
             )
         compressed = gzip.compress(proc.stdout)
     except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=500, detail="mysqldump timed out")
+        raise HTTPException(status_code=500, detail="mysqldump timed out") from None
     except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="mysqldump not found")
+        raise HTTPException(status_code=500, detail="mysqldump not found") from None
 
     return Response(
         content=compressed,

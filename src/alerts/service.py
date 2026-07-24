@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
@@ -89,7 +89,8 @@ class AlertService:
                     self.create(
                         device.id,
                         "warning",
-                        f"Device offline ({device.device_id}) — no data received for >{settings.DEVICE_ONLINE_TIMEOUT}s",
+                        f"Device offline ({device.device_id}) — no data received for "
+                        f">{settings.DEVICE_ONLINE_TIMEOUT}s",
                     )
                 if not self._has_unresolved(device.id, "Device back online"):
                     self.create(
@@ -103,8 +104,7 @@ class AlertService:
             threshold_w = (
                 owner_s.get("high_power_threshold") or DEFAULT_HIGH_POWER_THRESHOLD
             )
-        if power > threshold_w:
-            if not self._has_unresolved(device.id, "High power"):
+        if power > threshold_w and not self._has_unresolved(device.id, "High power"):
                 self.create(
                     device.id,
                     "critical",
@@ -116,8 +116,7 @@ class AlertService:
             threshold_a = (
                 owner_s.get("high_current_threshold") or DEFAULT_HIGH_CURRENT_THRESHOLD
             )
-        if current > threshold_a:
-            if not self._has_unresolved(device.id, "High current"):
+        if current > threshold_a and not self._has_unresolved(device.id, "High current"):
                 self.create(
                     device.id,
                     "critical",
@@ -129,8 +128,7 @@ class AlertService:
             threshold_v = (
                 owner_s.get("low_voltage_threshold") or DEFAULT_LOW_VOLTAGE_THRESHOLD
             )
-        if bus_voltage < threshold_v:
-            if not self._has_unresolved(device.id, "Low voltage"):
+        if bus_voltage < threshold_v and not self._has_unresolved(device.id, "Low voltage"):
                 self.create(
                     device.id,
                     "warning",

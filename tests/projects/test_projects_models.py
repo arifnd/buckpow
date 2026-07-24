@@ -1,17 +1,9 @@
 from datetime import datetime, timezone
 
-
-from src.database import SessionLocal
-
-
-from src.projects.models import Project
-
-
 from src.auth.models import User
-
-
+from src.database import SessionLocal
 from src.devices.models import Device
-
+from src.projects.models import Project
 from src.sessions.models import Session
 
 

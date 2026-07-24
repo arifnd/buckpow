@@ -2,9 +2,8 @@ import argparse
 import json
 import random
 import time
-import urllib.request
 import urllib.error
-
+import urllib.request
 
 FW_VERSION = "1.0.0"
 

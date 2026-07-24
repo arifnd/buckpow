@@ -1,17 +1,17 @@
 from datetime import datetime, timezone
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session as OrmSession
 
 from src.devices.models import Device
-from src.sessions.models import Session
-from src.projects.models import Project
 from src.measurements.models import Measurement
+from src.projects.models import Project
+from src.sessions.models import Session
 from src.utils.dates import utc_iso
 from src.utils.query import FilterBuilder
 
 
 class DashboardService:
-    def __init__(self, db: Session):
+    def __init__(self, db: OrmSession):
         self.db = db
 
     def get_summary(self):

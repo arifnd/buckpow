@@ -1,33 +1,10 @@
-from datetime import datetime, timezone, timedelta
-
-from datetime import datetime, timezone, timedelta
 
 
-from src.database import SessionLocal
-
-
-from src.auth.models import User
-
-
-from src.devices.models import Device
-
-
-from src.sessions.models import Session
-
-
-from src.measurements.models import Measurement
-
-
-from src.projects.models import Project
 
 from src.alerts.models import Alert
-from src.auth.service import UserService
-from src.devices.service import DeviceService
-from src.sessions.service import SessionService
-from src.measurements.service import MeasurementService
 from src.alerts.service import AlertService
-from src.projects.service import ProjectService
-from src.dashboard.service import DashboardService
+from src.database import SessionLocal
+from src.devices.service import DeviceService
 
 
 class TestAlertService:
@@ -229,8 +206,6 @@ class TestAlertService:
         AlertService(db).generate_alerts( d, bus_voltage=5.0, current=0.1, power=2.0)
 
         AlertService(db).generate_alerts( d, bus_voltage=5.0, current=0.1, power=2.0)
-
-        unresolved = AlertService(db).get_unresolved_count(device_id=d.id)
 
         alerts = db.query(Alert).filter_by(device_id=d.id, resolved_at=None).all()
 

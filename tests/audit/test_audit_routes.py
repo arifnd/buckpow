@@ -47,19 +47,6 @@ class TestAuditExtra:
         assert d.firmware_version == 'unknown'
         db.close()
 
-    def test_firmware_version_missing_sets_unknown(self, client, device_auth_header):
-        resp = client.post('/api/v1/measurements', json={
-            'device_id': 'esp32-auth', 'bus_voltage': 5.0,
-            'shunt_voltage': 80, 'current': 200, 'power': 1000,
-        }, headers=device_auth_header)
-        assert resp.status_code == 201
-        from src.database import SessionLocal
-        from src.devices.models import Device
-        db = SessionLocal()
-        d = db.query(Device).filter_by(device_id='esp32-auth').first()
-        assert d.firmware_version == 'unknown'
-        db.close()
-
     def test_session_start_and_stop(self, client, sample_device):
         sid = client.post('/api/v1/sessions', json={
             'name': 'Start/Stop Test',
@@ -93,10 +80,10 @@ class TestAuditExtra:
         assert resp.json()['total'] == 0
 
     def test_device_owner_mismatch_forbidden(self, client, sample_device, sample_project):
+        from src.auth.models import User
         from src.database import SessionLocal
         from src.devices.models import Device
         from src.projects.models import Project
-        from src.auth.models import User
         db = SessionLocal()
         other_user = User(name='Other', email='other2@example.com', password='x')
         db.add(other_user)

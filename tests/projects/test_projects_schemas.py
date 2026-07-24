@@ -1,7 +1,7 @@
-from pydantic import ValidationError
 
 
 from src.projects.schemas import ProjectCreate, ProjectUpdate
+
 
 class TestProjectCreateSchema:
 
