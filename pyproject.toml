@@ -1,5 +1,6 @@
 [tool.ruff]
-src = ["src"]
+src = ["src", "scripts"]
+exclude = ["migrations"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
