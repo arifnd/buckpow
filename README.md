@@ -149,8 +149,8 @@ docker compose up -d
 
 | Variable | Default | Description |
 |---|---|---|
-| `APP_ENV` | `development` | Environment mode |
-| `JWT_SECRET` | `buckpow-dev-key-...` | JWT signing key (set in production) |
+| `APP_ENV` | `development` | Environment mode (`development`, `staging`, `production`) |
+| `JWT_SECRET` | `buckpow-dev-key-change-in-production` | JWT signing key (set in production, min 32 chars) |
 | `APP_HOST` | `0.0.0.0` | Server bind address |
 | `APP_PORT` | `8000` | Server port |
 | `DATABASE_URL` | SQLite (`instance/buckpow.db`) | Database connection string |
@@ -158,6 +158,7 @@ docker compose up -d
 | `ADMIN_PASSWORD` | (empty) | Admin password |
 | `DEVICE_ONLINE_TIMEOUT` | `30` | Seconds before marking device offline |
 | `DEFAULT_SAMPLING_INTERVAL` | `1` | Default interval (seconds) for new devices |
+| `DEVICE_AUTH_ENABLED` | `true` | Require API key for device ingestion |
 | `LOG_LEVEL` | `info` | Logging level |
 | `DISABLE_API_DOCS` | `false` | Set to `true` to disable `/docs` and `/redoc` |
 

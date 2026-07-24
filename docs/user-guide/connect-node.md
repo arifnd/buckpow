@@ -70,6 +70,7 @@ Expected response:
 ```json
 {
   "status": "ok",
+  "version": "0.1.0",
   "min_firmware_version": "1.0.0"
 }
 ```

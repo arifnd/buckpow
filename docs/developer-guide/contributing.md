@@ -70,8 +70,8 @@ buckpow/
 │   ├── dashboard/     # Dashboard pages
 │   ├── middleware/     # ASGI middleware
 │   ├── utils/         # Utility functions
-│   ├── static/        # CSS, JS
-│   └── templates/     # Jinja2 templates
+│   └── static/        # CSS, JS
+├── templates/         # Jinja2 templates (project root)
 ├── firmware/          # Arduino sketches
 ├── migrations/        # Alembic migrations
 ├── scripts/           # Helper scripts
@@ -184,8 +184,9 @@ tests/
 ├── alerts/
 ├── audit/
 ├── benchmark/
-├── settings/
 ├── dashboard/
+├── health/
+├── settings/
 └── conftest.py
 ```
 
@@ -196,7 +197,7 @@ tests/
 python -m pytest tests/ -v
 
 # Run specific test file
-python -m pytest tests/test_devices.py -v
+python -m pytest tests/devices/test_devices_routes.py -v
 
 # Run with coverage
 python -m pytest tests/ --cov=src --cov-report=term-missing
