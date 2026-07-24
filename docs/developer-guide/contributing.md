@@ -6,7 +6,9 @@ Guidelines for contributing to BuckPow.
 
 ## Welcome
 
-Contributions are welcome! Bug reports, feature requests, documentation improvements, and pull requests are greatly appreciated.
+BuckPow welcomes contributions from engineers, researchers, educators, and makers interested in energy observability for embedded systems.
+
+Whether you improve documentation, firmware, hardware integrations, benchmarking methods, or the web platform, your contributions are appreciated.
 
 Please open an issue before submitting large changes to discuss the proposed implementation.
 
@@ -70,8 +72,8 @@ buckpow/
 │   ├── dashboard/     # Dashboard pages
 │   ├── middleware/     # ASGI middleware
 │   ├── utils/         # Utility functions
-│   ├── static/        # CSS, JS
-│   └── templates/     # Jinja2 templates
+│   └── static/        # CSS, JS
+├── templates/         # Jinja2 templates (project root)
 ├── firmware/          # Arduino sketches
 ├── migrations/        # Alembic migrations
 ├── scripts/           # Helper scripts
@@ -184,8 +186,9 @@ tests/
 ├── alerts/
 ├── audit/
 ├── benchmark/
-├── settings/
 ├── dashboard/
+├── health/
+├── settings/
 └── conftest.py
 ```
 
@@ -196,7 +199,7 @@ tests/
 python -m pytest tests/ -v
 
 # Run specific test file
-python -m pytest tests/test_devices.py -v
+python -m pytest tests/devices/test_devices_routes.py -v
 
 # Run with coverage
 python -m pytest tests/ --cov=src --cov-report=term-missing

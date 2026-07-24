@@ -100,6 +100,7 @@ GET /api/v1/health
 ```json
 {
   "status": "ok",
+  "version": "0.1.0",
   "min_firmware_version": "1.0.0"
 }
 ```
@@ -212,7 +213,7 @@ GET /api/v1/measurements/export/csv
 - Content-Disposition: `attachment; filename=measurements.csv`
 
 ```csv
-ID,Device,Session,Bus Voltage,Shunt Voltage,Load Voltage,Current (A),Power (W),Energy (Wh),Timestamp
+ID,Node,Session,Bus Voltage,Shunt Voltage,Load Voltage,Current (A),Power (W),Energy (Wh),Timestamp
 1,esp32-ina219-01,FW v1.0 Idle,5.120,0.082,5.038,0.241,1.234,0.000343,2026-07-18T10:00:00+00:00
 ```
 
@@ -919,8 +920,14 @@ POST /api/v1/auth/login
 
 ```json
 {
-  "access_token": "eyJ...",
-  "token_type": "bearer"
+  "status": "ok",
+  "user": {
+    "id": 1,
+    "name": "Admin",
+    "email": "admin@example.com",
+    "created_at": "2026-07-18T09:00:00+00:00"
+  },
+  "token": "eyJ..."
 }
 ```
 
@@ -955,7 +962,6 @@ GET /api/v1/auth/me
   "id": 1,
   "name": "Admin",
   "email": "admin@example.com",
-  "settings": {},
   "created_at": "2026-07-18T09:00:00+00:00"
 }
 ```
@@ -980,7 +986,19 @@ PUT /api/v1/auth/profile
 
 All fields optional. Only provided fields are updated.
 
-**Response (200):** Updated user object
+**Response (200):**
+
+```json
+{
+  "status": "ok",
+  "user": {
+    "id": 1,
+    "name": "New Name",
+    "email": "new@example.com",
+    "created_at": "2026-07-18T09:00:00+00:00"
+  }
+}
+```
 
 ---
 
@@ -1045,9 +1063,13 @@ GET /api/v1/settings/db-info
 
 ```json
 {
-  "database_type": "sqlite",
-  "database_size": "1.2 MB",
-  "backup_formats": ["sqlite"]
+  "type": "sqlite",
+  "size": 1258291,
+  "backup_formats": {
+    "sqlite": true,
+    "sql_dump": false
+  },
+  "tool_available": true
 }
 ```
 

@@ -1,6 +1,8 @@
 # Why BuckPow
 
-Most IoT dashboards visualize telemetry. BuckPow answers engineering questions.
+Most IoT dashboards answer: "What is happening right now?"
+
+BuckPow answers engineering questions.
 
 ---
 
@@ -55,7 +57,7 @@ BuckPow treats every measurement as part of an engineering experiment.
 | **Researchers** | Profile TinyML inference energy |
 | **Engineers** | Validate power supply designs |
 | **Educators** | Teach energy-aware programming |
-| **Hobbyists** | Monitor Raspberry Pi power consumption |
+| **Hobbyists** | Characterize Raspberry Pi energy consumption |
 
 ## Design Principles
 
@@ -79,7 +81,7 @@ Every measurement belongs to a session. Every session is an experiment.
 
 | Feature | Traditional Dashboard | BuckPow |
 |---------|----------------------|---------|
-| Live monitoring | Yes | Yes |
+| Live characterization | Yes | Yes |
 | Session recording | No | Yes |
 | Energy accumulation | No | Yes (Wh) |
 | Benchmark comparison | No | Yes |

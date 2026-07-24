@@ -449,7 +449,7 @@ seen agents introduce.
 
 # BuckPow
 
-Power monitoring dashboard built with FastAPI + SQLAlchemy + SQLite. Receives power readings from ESP32/ESP8266 + INA219 via HTTP POST. Serves a Tailwind CSS + HTMX dashboard with Chart.js real-time charts and dark theme.
+Energy observability platform built with FastAPI + SQLAlchemy + SQLite. Receives power readings from ESP32/ESP8266 + INA219 via HTTP POST. Serves a Tailwind CSS + HTMX dashboard with Chart.js real-time charts and dark theme.
 
 > **Async note**: This project uses SQLAlchemy 2.0 sync API (`Session`, `SessionLocal`).
 > Routes are `def` (sync, threadpool) unless they await HTMX template rendering.

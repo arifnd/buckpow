@@ -1,6 +1,6 @@
 # Dashboard
 
-The main dashboard provides a real-time overview of your power monitoring system.
+The main dashboard provides a real-time overview of your energy observability platform.
 
 ---
 

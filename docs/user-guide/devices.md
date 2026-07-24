@@ -1,6 +1,6 @@
 # Nodes
 
-Manage your power monitoring nodes, API keys, and alert thresholds.
+Manage your measurement nodes, API keys, and alert thresholds.
 
 ---
 

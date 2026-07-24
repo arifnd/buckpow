@@ -199,9 +199,8 @@ Success returns `201 Created`:
 
 ```json
 {
-  "id": 1,
-  "device_id": "esp32-ina219-01",
-  "created_at": "2026-07-15T10:30:00Z"
+  "status": "success",
+  "id": 1
 }
 ```
 

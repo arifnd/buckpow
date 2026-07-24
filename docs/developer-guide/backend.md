@@ -28,22 +28,28 @@ src/
 ├── middleware/               # ASGI middleware (rate limiter)
 ├── utils/                   # Utility functions
 ├── static/                  # CSS, JS
-├── templates/               # Jinja2 templates
-└── templates/_partials/     # Reusable template fragments
+└── middleware/               # ASGI middleware (rate limiter)
 ```
+
+Project root also contains:
+- `templates/` — Jinja2 templates
+- `templates/_partials/` — Reusable template fragments
 
 ## Application Factory
 
 The app is created in `src/__init__.py`:
 
 ```python
+SHOW_DOCS_IN = {"development", "staging"}
+disable_docs = settings.DISABLE_API_DOCS or settings.APP_ENV not in SHOW_DOCS_IN
+
 app = FastAPI(
     title='BuckPow',
     version=APP_VERSION,
     lifespan=lifespan,
-    docs_url=None if settings.DISABLE_API_DOCS else '/docs',
-    redoc_url=None if settings.DISABLE_API_DOCS else '/redoc',
-    openapi_url=None if settings.DISABLE_API_DOCS else '/openapi.json',
+    docs_url=None if disable_docs else '/docs',
+    redoc_url=None if disable_docs else '/redoc',
+    openapi_url=None if disable_docs else '/openapi.json',
 )
 ```
 
@@ -506,7 +512,7 @@ fastapi dev src/main.py --port 8000
 ### Production
 
 ```bash
-fastapi run src/main.py --port 8000 --proxy-headers
+fastapi run src/main.py --proxy-headers
 ```
 
 ### Docker
