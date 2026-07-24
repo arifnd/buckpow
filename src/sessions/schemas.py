@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from src.models import AppBaseModel
 
 
-class SessionCreate(BaseModel):
+class SessionCreate(AppBaseModel):
     device_id: int
     name: str
     target_device: str = ""
@@ -9,7 +9,7 @@ class SessionCreate(BaseModel):
     project_id: int | None = None
 
 
-class SessionUpdate(BaseModel):
+class SessionUpdate(AppBaseModel):
     name: str | None = None
     target_device: str | None = None
     description: str | None = None

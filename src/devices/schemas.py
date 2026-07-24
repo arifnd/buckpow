@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from src.models import AppBaseModel
 
 
-class DeviceCreate(BaseModel):
+class DeviceCreate(AppBaseModel):
     device_id: str
     alias: str = ""
     description: str = ""
@@ -13,7 +13,7 @@ class DeviceCreate(BaseModel):
     low_voltage_threshold: float | None = None
 
 
-class DeviceUpdate(BaseModel):
+class DeviceUpdate(AppBaseModel):
     alias: str | None = None
     description: str | None = None
     sampling_interval: int | None = None

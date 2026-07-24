@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from src.models import AppBaseModel
 
 
-class ProjectCreate(BaseModel):
+class ProjectCreate(AppBaseModel):
     name: str
     description: str = ""
 
 
-class ProjectUpdate(BaseModel):
+class ProjectUpdate(AppBaseModel):
     name: str | None = None
     description: str | None = None

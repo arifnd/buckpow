@@ -1,6 +1,8 @@
 from enum import StrEnum
 
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from src.models import AppBaseModel
 
 
 class AlertLevel(StrEnum):
@@ -9,7 +11,7 @@ class AlertLevel(StrEnum):
     CRITICAL = "critical"
 
 
-class AlertCreate(BaseModel):
+class AlertCreate(AppBaseModel):
     device_id: int
     level: AlertLevel = AlertLevel.WARNING
     message: str

@@ -1,7 +1,7 @@
-from pydantic import BaseModel
+from src.models import AppBaseModel
 
 
-class MeasurementCreate(BaseModel):
+class MeasurementCreate(AppBaseModel):
     device_id: str
     bus_voltage: float
     shunt_voltage: float = 0.0
