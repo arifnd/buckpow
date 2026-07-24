@@ -1,19 +1,20 @@
 import logging
 import os
 import sys
-
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException
+
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware
 
 from src.config import settings as config
-from src.database import engine, Base
-from src.middleware import RateLimiterMiddleware, bearer_token_key
-from src.version import APP_VERSION as APP_VERSION, MIN_FIRMWARE_VERSION as MIN_FIRMWARE_VERSION
-from src.router import api_router
 from src.dashboard import dashboard_router
+from src.database import Base, engine
+from src.middleware import RateLimiterMiddleware, bearer_token_key
+from src.router import api_router
+from src.version import APP_VERSION as APP_VERSION
+from src.version import MIN_FIRMWARE_VERSION as MIN_FIRMWARE_VERSION
 
 
 @asynccontextmanager
@@ -34,8 +35,8 @@ async def lifespan(app: FastAPI):
                 os.makedirs(db_dir, exist_ok=True)
         Base.metadata.create_all(bind=engine)
         try:
-            from alembic.config import Config
             from alembic import command
+            from alembic.config import Config
 
             alembic_cfg = Config("alembic.ini")
             command.stamp(alembic_cfg, "head")

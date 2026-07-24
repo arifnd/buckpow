@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException, Query, Request
 
-from src.devices.models import Device
-from src.projects.models import Project
-from src.devices.service import DeviceService
 from src.audit.service import AuditService
-from src.utils.client_ip import get_client_ip
 from src.dependencies import DbDep, RequiredUserDep
+from src.devices.models import Device
 from src.devices.schemas import DeviceCreate, DeviceUpdate
+from src.devices.service import DeviceService
+from src.projects.models import Project
+from src.utils.client_ip import get_client_ip
 
 router = APIRouter()
 

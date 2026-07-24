@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Query
 
-from src.dependencies import DbDep, RequiredUserDep
-from src.measurements.service import MeasurementService
-from src.devices.service import DeviceService
 from src.dashboard.service import DashboardService
+from src.dependencies import DbDep, RequiredUserDep
+from src.devices.service import DeviceService
+from src.measurements.service import MeasurementService
 
 router = APIRouter()
 

@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException, Request, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 
-from src.dependencies import DbDep, RequiredUserDep
-from src.projects.service import ProjectService
 from src.audit.service import AuditService
-from src.utils.client_ip import get_client_ip
+from src.dependencies import DbDep, RequiredUserDep
 from src.projects.schemas import ProjectCreate, ProjectUpdate
+from src.projects.service import ProjectService
+from src.utils.client_ip import get_client_ip
 
 router = APIRouter()
 

@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
+from src.alerts.schemas import AlertCreate
 from src.alerts.service import AlertService
 from src.dependencies import DbDep, RequiredUserDep
-from src.alerts.schemas import AlertCreate
 
 router = APIRouter()
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Query
 
-from src.dependencies import DbDep, RequiredUserDep
 from src.audit.service import AuditService
+from src.dependencies import DbDep, RequiredUserDep
 
 router = APIRouter()
 

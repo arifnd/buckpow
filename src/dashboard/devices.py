@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 
 from src.dependencies import CurrentUserDep, DbDep
-from src.template_helpers import _render_or_redirect
 from src.devices.service import DeviceService
 from src.projects.service import ProjectService
+from src.template_helpers import _render_or_redirect
 
 router = APIRouter()
 

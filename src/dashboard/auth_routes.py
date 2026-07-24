@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from src.dependencies import CurrentUserDep, DbDep
 from src.auth.models import User
+from src.dependencies import CurrentUserDep, DbDep
 from src.template_helpers import _render
 
 router = APIRouter()

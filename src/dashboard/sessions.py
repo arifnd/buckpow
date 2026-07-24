@@ -2,10 +2,10 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from src.dependencies import CurrentUserDep, DbDep
-from src.template_helpers import _render, _render_or_redirect, _require_dashboard_user
 from src.devices.service import DeviceService
-from src.sessions.service import SessionService
 from src.projects.service import ProjectService
+from src.sessions.service import SessionService
+from src.template_helpers import _render, _render_or_redirect, _require_dashboard_user
 
 router = APIRouter()
 

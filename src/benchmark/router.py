@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
-from src.measurements.service import MeasurementService
 from src.dependencies import DbDep, RequiredUserDep
+from src.measurements.service import MeasurementService
 
 router = APIRouter()
 

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, Request, Response
 
-from src.dependencies import create_access_token, DbDep, CurrentUserDep, RequiredUserDep
-from src.auth.service import UserService
 from src.audit.service import AuditService
-from src.utils.client_ip import get_client_ip
-from src.config import settings
 from src.auth.schemas import LoginRequest, ProfileUpdate
+from src.auth.service import UserService
+from src.config import settings
+from src.dependencies import CurrentUserDep, DbDep, RequiredUserDep, create_access_token
+from src.utils.client_ip import get_client_ip
 
 router = APIRouter()
 

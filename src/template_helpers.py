@@ -3,7 +3,6 @@ from jinja2 import Environment, FileSystemLoader
 
 from src.version import APP_VERSION
 
-
 templates = Environment(loader=FileSystemLoader("templates"), autoescape=True)
 
 

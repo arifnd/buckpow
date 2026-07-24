@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, Query, Request
 
-from src.sessions.service import SessionService
-from src.measurements.service import MeasurementService
 from src.audit.service import AuditService
-from src.utils.client_ip import get_client_ip
 from src.dependencies import DbDep, RequiredUserDep
+from src.measurements.service import MeasurementService
 from src.sessions.schemas import SessionCreate, SessionUpdate
+from src.sessions.service import SessionService
+from src.utils.client_ip import get_client_ip
 
 router = APIRouter()
 

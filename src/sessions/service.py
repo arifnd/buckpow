@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
 
 from sqlalchemy import func
-from sqlalchemy.orm import Session as OrmSession, selectinload
+from sqlalchemy.orm import Session as OrmSession
+from sqlalchemy.orm import selectinload
 
 from src.sessions.models import Session
 from src.utils.pagination import PaginatedResult
