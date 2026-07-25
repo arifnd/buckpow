@@ -1,0 +1,18 @@
+# Dev/ops files (tracked in git, not needed for deployment)
+docker-compose.yml
+docker-compose.cloud.yml
+Dockerfile
+.dockerignore
+run.py
+nginx/
+
+# Documentation (tracked in git, not needed for deployment)
+docs/
+mkdocs.yml
+AGENTS.md
+README.md
+
+# Non-deployable directories (tracked in git)
+firmware/
+gallery/
+scripts/
