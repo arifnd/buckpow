@@ -108,8 +108,6 @@ flowchart LR
     DB --> EXPORT
 ```
 
-<!-- TODO: Replace with actual architecture diagram -->
-
 Measurement nodes collect readings from edge devices and send them to the BuckPow API. The API stores time-series measurements, manages experiment sessions and benchmarks, and serves an observability dashboard for visualization and analysis.
 
 ## Supported Hardware
@@ -176,7 +174,7 @@ Measurement nodes collect readings from edge devices and send them to the BuckPo
 | Page | Description |
 |------|-------------|
 | [Dashboard](user-guide/dashboard.md) | Real-time charts and summary cards |
-| [Devices](user-guide/devices.md) | Device management and API keys |
+| [Nodes](user-guide/devices.md) | Node management and API keys |
 | [Sessions](user-guide/first-measurement.md) | Experiment session management |
 | [Measurements](user-guide/export-data.md) | Paginated readings with date filter |
 | [Projects](user-guide/devices.md) | Project organization |
@@ -215,7 +213,7 @@ See the [API Reference](developer-guide/api.md) for the full endpoint list.
 - [**User Guide**](user-guide/installation.md)
     ---
 
-    End-user documentation for the dashboard, devices, sessions, and more.
+    End-user documentation for the dashboard, nodes, sessions, and more.
 
 - [**Developer Guide**](developer-guide/architecture.md)
     ---

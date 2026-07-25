@@ -40,7 +40,7 @@ nav:
   - User Guide:
       - Installation: user-guide/installation.md
       - Dashboard: user-guide/dashboard.md
-      - Devices: user-guide/devices.md
+      - Nodes: user-guide/devices.md
       - Measurement Node: user-guide/measurement-node.md
       - Connect Node: user-guide/connect-node.md
       - First Measurement: user-guide/first-measurement.md

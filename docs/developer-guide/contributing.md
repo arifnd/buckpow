@@ -59,7 +59,11 @@ buckpow/
 │   ├── main.py        # Entrypoint
 │   ├── config.py      # Settings
 │   ├── database.py    # SQLAlchemy engine
+│   ├── models.py      # Shared Pydantic / ORM bases
 │   ├── router.py      # Router aggregation
+│   ├── dependencies.py # FastAPI dependencies (re-exports)
+│   ├── template_helpers.py # Jinja2 rendering helpers
+│   ├── version.py     # App version
 │   ├── auth/          # Auth domain
 │   ├── devices/       # Device domain
 │   ├── sessions/      # Session domain
@@ -76,9 +80,22 @@ buckpow/
 ├── templates/         # Jinja2 templates (project root)
 ├── firmware/          # Arduino sketches
 ├── migrations/        # Alembic migrations
+├── tests/             # Test suite (by domain)
 ├── scripts/           # Helper scripts
-├── requirements/      # Split dependencies
-└── tests/             # Test suite (by domain)
+├── tasks/             # Task management
+├── nginx/             # Nginx config for Docker
+├── requirements/      # Split dependencies (base/dev/prod)
+├── pyproject.toml     # Project config, ruff, pytest
+├── mkdocs.yml         # MkDocs config
+├── alembic.ini        # Alembic config
+├── Dockerfile         # Container build
+├── docker-compose.yml # Production stack (PostgreSQL + Nginx)
+├── docker-compose.cloud.yml # Cloud deployment stack
+├── run.py             # Alternative entrypoint
+├── .pre-commit-config.yaml # Pre-commit hooks
+├── .env.example       # Environment template
+├── .github/           # CI/CD workflows
+└── LICENSE            # MIT License
 ```
 
 ## Development Workflow

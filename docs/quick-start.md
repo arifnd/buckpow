@@ -11,14 +11,14 @@ Choose your setup method:
 
     Production-ready stack with PostgreSQL and Nginx.
 
-    [Docker Setup :arrow_right:](quick-start/docker.md)
+    [Docker Setup](quick-start/docker.md)
 
 - **Local**
     ---
 
     Development with SQLite, no container required.
 
-    [Local Setup :arrow_right:](quick-start/local.md)
+    [Local Setup](quick-start/local.md)
 
 </div>
 
@@ -37,6 +37,6 @@ Choose your setup method:
 |-------|-------------|
 | [Installation](user-guide/installation.md) | Full configuration options and environment variables |
 | [Dashboard](user-guide/dashboard.md) | Navigate the real-time dashboard |
-| [Devices](user-guide/devices.md) | Manage devices and API keys |
+| [Nodes](user-guide/devices.md) | Manage nodes and API keys |
 | [First Measurement](user-guide/first-measurement.md) | Record your first experiment session |
 | [Benchmark](user-guide/benchmark.md) | Compare sessions side-by-side |

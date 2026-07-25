@@ -13,7 +13,7 @@ BuckPow exposes a RESTful API under `/api/v1/`. The API supports:
 - **API key authentication** for device endpoints
 - **Pagination** for list endpoints
 
-<!-- TODO: Replace with Swagger UI screenshot -->
+![Swagger UI](../assets/images/api-swagger.png){ width="800" }
 
 ## Base URL
 
@@ -40,9 +40,9 @@ curl http://localhost:8000/api/v1/devices \
   -H 'Authorization: Bearer <jwt-token>'
 ```
 
-### API Key (Device)
+### API Key (Node)
 
-Obtain the key from the device detail page, then:
+Obtain the key from the node detail page, then:
 
 ```bash
 curl -X POST http://localhost:8000/api/v1/measurements \
@@ -266,9 +266,9 @@ GET /api/v1/chart
 
 ---
 
-## Devices
+## Nodes
 
-### List Devices
+### List Nodes
 
 ```http
 GET /api/v1/devices

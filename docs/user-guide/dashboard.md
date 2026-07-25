@@ -33,6 +33,8 @@ graph TD
 
 ## Summary Cards
 
+![Summary Cards](../assets/images/summary-cards.png){ width="800" }
+
 The top section shows key metrics:
 
 | Card | Description |
@@ -73,7 +75,7 @@ Click a time range button to switch. The active button is highlighted.
 
 ## Live Charts
 
-![Live Charts](../assets/images/dashboard.png){ width="800" }
+![Live Charts](../assets/images/live-charts.png){ width="800" }
 
 Four real-time line charts display measurement data:
 
@@ -105,7 +107,7 @@ Each chart shows the latest value in the header. Charts update every 5 seconds w
 
 ## Statistics Cards
 
-![Statistics Cards](../assets/images/dashboard.png){ width="800" }
+![Statistics Cards](../assets/images/statistics-cards.png){ width="800" }
 
 Below the charts, four stat cards show aggregated metrics:
 
@@ -143,7 +145,7 @@ Below the charts, four stat cards show aggregated metrics:
 
 ## Energy Breakdown
 
-![Energy Breakdown](../assets/images/dashboard.png){ width="800" }
+![Energy Breakdown](../assets/images/energy-breakdown.png){ width="800" }
 
 Four tables show energy consumption over different time periods:
 
@@ -178,7 +180,7 @@ The sidebar provides access to all dashboard pages:
 | Page | Description |
 |------|-------------|
 | [Dashboard](#) | Real-time overview (current page) |
-| [Devices](devices.md) | Manage devices and API keys |
+| [Nodes](devices.md) | Manage nodes and API keys |
 | [Sessions](first-measurement.md) | Experiment session management |
 | [Measurements](export-data.md) | Paginated readings with date filter |
 | [Projects](devices.md) | Project organization |

@@ -56,7 +56,7 @@ docker compose ps
 
 Navigate to `http://localhost` (port 80) or `http://localhost:8000` (direct).
 
-<!-- TODO: Replace with actual login screenshot -->
+![Login Page](../assets/images/login-page.png){ width="800" }
 
 Log in with the admin credentials from your `.env`.
 

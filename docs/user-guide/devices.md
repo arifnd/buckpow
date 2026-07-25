@@ -6,7 +6,7 @@ Manage your measurement nodes, API keys, and alert thresholds.
 
 ## Overview
 
-<!-- TODO: Replace with actual nodes list screenshot -->
+![Nodes Index](../assets/images/nodes-index.png){ width="800" }
 
 The Nodes page lists all registered nodes with their status, configuration, and API keys. Nodes can be created manually or registered automatically when they send their first measurement.
 
@@ -41,7 +41,7 @@ Nodes are paginated at 10 per page. Use the page navigation at the bottom of the
 
 ## Creating a Node
 
-<!-- TODO: Replace with actual create node form screenshot -->
+![Creating a Node](../assets/images/nodes-add.png){ width="800" }
 
 ### Manual Creation
 
@@ -90,7 +90,7 @@ Each node has a unique 64-character hex API key used for authentication.
 
 ### Viewing the Full API Key
 
-<!-- TODO: Replace with actual API key modal screenshot -->
+![API Key](../assets/images/nodes-api-key.png){ width="800" }
 
 1. Click **Edit** on the node row
 2. Scroll down to the **API Key** section

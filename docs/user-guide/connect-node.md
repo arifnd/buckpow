@@ -125,10 +125,10 @@ const bool  USE_HTTPS  = false;
 
 ### Finding the API Key
 
-The API key is shown masked in the device list. To get the full key:
+The API key is shown masked in the node list. To get the full key:
 
-1. Go to **Devices** in the dashboard
-2. Click the **Key** button on your device
+1. Go to **Nodes** in the dashboard
+2. Click the **Key** button on your node
 3. Copy the full key from the modal
 
 Or via API:
@@ -207,7 +207,7 @@ const char* NODE_ID = "esp32-lab-02";
 const char* NODE_ID = "esp8266-office-01";
 ```
 
-Each device gets its own API key from the BuckPow dashboard.
+Each node gets its own API key from the BuckPow dashboard.
 
 ## Changing Server Address
 

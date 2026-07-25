@@ -12,9 +12,11 @@ src/
 ├── main.py                  # Entrypoint: `fastapi run src/main.py`
 ├── config.py                # Settings via pydantic-settings
 ├── database.py              # SQLAlchemy engine, SessionLocal, Base
+├── models.py                # Shared Pydantic / ORM bases
 ├── router.py                # API router aggregator + health endpoint
 ├── dependencies.py          # Canonical re-export of all FastAPI dependencies
 ├── template_helpers.py      # Jinja2 rendering helpers
+├── version.py               # App version
 ├── auth/                    # Auth domain (models, schemas, router, service, deps)
 ├── devices/                 # Device domain (models, schemas, router, service)
 ├── sessions/                # Session domain (models, schemas, router, service)
@@ -27,8 +29,7 @@ src/
 ├── dashboard/               # Dashboard (page routes per domain, API endpoints, service)
 ├── middleware/               # ASGI middleware (rate limiter)
 ├── utils/                   # Utility functions
-├── static/                  # CSS, JS
-└── middleware/               # ASGI middleware (rate limiter)
+└── static/                  # CSS, JS
 ```
 
 Project root also contains:

@@ -6,8 +6,6 @@ Full installation guide for BuckPow with all configuration options.
 
 ## System Requirements
 
-<!-- TODO: Replace with system requirements diagram -->
-
 | Component | Minimum | Recommended |
 |-----------|---------|-------------|
 | CPU | 1 core | 2+ cores |

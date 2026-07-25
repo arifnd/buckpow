@@ -56,9 +56,11 @@ buckpow/
 │   ├── main.py              # Entrypoint: `fastapi run src/main.py`
 │   ├── config.py            # Settings (pydantic-settings)
 │   ├── database.py          # SQLAlchemy engine, session
+│   ├── models.py            # Shared Pydantic / ORM bases
 │   ├── router.py            # Router aggregation + health
 │   ├── dependencies.py      # FastAPI dependencies (re-exports)
 │   ├── template_helpers.py  # Jinja2 rendering helpers
+│   ├── version.py           # App version
 │   ├── auth/                # Auth domain (models, schemas, router, service, deps)
 │   ├── devices/             # Device domain (models, schemas, router, service)
 │   ├── sessions/            # Session domain (models, schemas, router, service)
@@ -69,24 +71,29 @@ buckpow/
 │   ├── benchmark/           # Benchmark domain (models, schemas, router, service)
 │   ├── settings/            # Settings domain (schemas, router, service)
 │   ├── dashboard/           # Dashboard pages, API, service
-│   ├── middleware/           # ASGI middleware
+│   ├── middleware/           # ASGI middleware (rate limiter)
 │   ├── utils/               # Utility functions
-│   ├── static/              # CSS, JS
-│   └── templates/           # Jinja2 templates
+│   └── static/              # CSS, JS
+├── templates/               # Jinja2 templates
 ├── firmware/                # Arduino sketches
 ├── migrations/              # Alembic migrations
 ├── tests/                   # Pytest suite (by domain)
 ├── scripts/                 # Utility scripts
-├── mkdocs.yml               # Documentation config
-├── docs/                    # Documentation source
-├── Dockerfile               # Container build
-├── docker-compose.yml       # Production stack
-├── alembic.ini              # Migration config
+├── tasks/                   # Task management
+├── nginx/                   # Nginx config for Docker
+├── docs/                    # Documentation source (MkDocs)
 ├── requirements/            # Split dependencies (base/dev/prod)
-├── requirements/base.txt    # Core dependencies
-├── requirements/dev.txt     # Dev/test dependencies
-├── requirements/prod.txt    # Production dependencies
-└── .env.example             # Environment template
+├── pyproject.toml           # Project config, ruff, pytest
+├── mkdocs.yml               # MkDocs config
+├── alembic.ini              # Alembic config
+├── Dockerfile               # Container build
+├── docker-compose.yml       # Production stack (PostgreSQL + Nginx)
+├── docker-compose.cloud.yml # Cloud deployment stack
+├── run.py                   # Alternative entrypoint
+├── .pre-commit-config.yaml  # Pre-commit hooks
+├── .env.example             # Environment template
+├── .github/                 # CI/CD workflows
+└── LICENSE                  # MIT License
 ```
 
 ## Request Flow

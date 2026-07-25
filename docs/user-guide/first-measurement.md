@@ -19,6 +19,7 @@ Sessions organize measurements into timed experiments. Each session:
 
 ```mermaid
 stateDiagram-v2
+    direction LR
     [*] --> Draft
     Draft --> Running : Start
     Running --> Finished : Stop

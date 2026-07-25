@@ -52,7 +52,7 @@ fastapi run src/main.py --proxy-headers
 
 Navigate to `http://localhost:8000`.
 
-<!-- TODO: Replace with actual dashboard screenshot -->
+![Login Page](../assets/images/login-page.png){ width="800" }
 
 Log in with the admin credentials from your `.env`.
 

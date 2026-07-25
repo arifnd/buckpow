@@ -69,10 +69,10 @@ Thresholds can be set at two levels:
 
 ### Device-Level Thresholds
 
-Set per-device thresholds on the device edit page:
+Set per-node thresholds on the node edit page:
 
-1. Navigate to **Devices**
-2. Click **Edit** on the device
+1. Navigate to **Nodes**
+2. Click **Edit** on the node
 3. Set threshold values:
 
 | Field | Unit | Default | Description |
@@ -183,7 +183,7 @@ curl -X POST http://localhost:8000/api/v1/alerts \
 
 **Symptoms:**
 
-- Device doesn't appear in the Devices list
+- Node doesn't appear in the Nodes list
 - No measurements are being recorded
 
 **Solutions:**
