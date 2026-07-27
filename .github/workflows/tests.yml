@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: uv pip install -r requirements/dev.txt pytest-xdist
 
+      - name: Lint
+        uses: astral-sh/ruff-action@v4.1.0
+
       - name: Run Tests
         run: uv run pytest tests/ -v --tb=short -n auto --durations=5 --cov=src --cov-report=term-missing
         env:
