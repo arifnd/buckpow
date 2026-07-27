@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from src.database import SessionLocal
 from src.devices.models import Device
@@ -245,7 +245,7 @@ class TestDeviceService:
 
         d = DeviceService(db).create('esp32-stat-on')
 
-        d.last_seen = datetime.now(timezone.utc)
+        d.last_seen = datetime.now(UTC)
 
         assert DeviceService.get_online_status(d) == 'online'
 
@@ -259,7 +259,7 @@ class TestDeviceService:
 
         d = DeviceService(db).create('esp32-stat-off')
 
-        d.last_seen = datetime.now(timezone.utc) - timedelta(seconds=180)
+        d.last_seen = datetime.now(UTC) - timedelta(seconds=180)
 
         assert DeviceService.get_online_status(d) == 'offline'
 

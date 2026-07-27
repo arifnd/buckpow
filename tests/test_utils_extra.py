@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from unittest.mock import MagicMock
 
 from src.utils.client_ip import get_client_ip
@@ -15,7 +15,7 @@ class TestUtcIso:
         assert result == '2025-01-15T12:30:45Z'
 
     def test_timezone_aware_datetime(self):
-        dt = datetime(2025, 1, 15, 12, 30, 45, tzinfo=timezone.utc)
+        dt = datetime(2025, 1, 15, 12, 30, 45, tzinfo=UTC)
         result = utc_iso(dt)
         assert result == '2025-01-15T12:30:45Z'
 

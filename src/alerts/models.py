@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
@@ -14,7 +14,7 @@ class Alert(Base):
     device_id = Column(Integer, ForeignKey("devices.id"), nullable=False, index=True)
     level = Column(String(16), nullable=False, default="warning")
     message = Column(String(256), nullable=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(UTC))
     resolved_at = Column(DateTime, nullable=True)
 
     device_rel = relationship("Device", backref="alerts", lazy="select")

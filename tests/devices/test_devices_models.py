@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from src.database import SessionLocal
 from src.devices.models import Device
@@ -8,7 +8,7 @@ class TestDeviceModel:
     def test_to_dict(self, app):
         db = SessionLocal()
         d = Device(device_id='esp32-001', alias='Sensor', description='Room A',
-                   sampling_interval=2, last_seen=datetime.now(timezone.utc))
+                   sampling_interval=2, last_seen=datetime.now(UTC))
         db.add(d)
         db.commit()
         data = d.to_dict()
@@ -43,7 +43,7 @@ class TestDeviceModel:
     def test_compute_status_online_recent(self, app):
         db = SessionLocal()
         d = Device(device_id='esp32-recent',
-                   last_seen=datetime.now(timezone.utc) - timedelta(seconds=5))
+                   last_seen=datetime.now(UTC) - timedelta(seconds=5))
         db.add(d)
         db.commit()
         assert d._compute_status() == 'online'
@@ -52,7 +52,7 @@ class TestDeviceModel:
     def test_compute_status_offline_expired(self, app):
         db = SessionLocal()
         d = Device(device_id='esp32-expired',
-                   last_seen=datetime.now(timezone.utc) - timedelta(seconds=60))
+                   last_seen=datetime.now(UTC) - timedelta(seconds=60))
         db.add(d)
         db.commit()
         assert d._compute_status() == 'offline'
@@ -75,12 +75,12 @@ class TestDeviceModel:
 
     def test_created_at_is_recent(self, app):
         db = SessionLocal()
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         d = Device(device_id='esp32-ts-created')
         db.add(d)
         db.commit()
-        after = datetime.now(timezone.utc)
-        assert before <= d.created_at.replace(tzinfo=timezone.utc) <= after
+        after = datetime.now(UTC)
+        assert before <= d.created_at.replace(tzinfo=UTC) <= after
         db.close()
 
     def test_updated_at_updates_on_change(self, app):

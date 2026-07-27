@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session as OrmSession
@@ -97,7 +97,7 @@ class SessionService:
             return None, "A session is already running for this device"
 
         session.status = "running"
-        session.started_at = datetime.now(timezone.utc)
+        session.started_at = datetime.now(UTC)
         session.ended_at = None
         self.db.commit()
         self.db.refresh(session)
@@ -110,7 +110,7 @@ class SessionService:
         if session.status != "running":
             return None, "Session is not running"
         session.status = "finished"
-        session.ended_at = datetime.now(timezone.utc)
+        session.ended_at = datetime.now(UTC)
         self.db.commit()
         self.db.refresh(session)
         return session, None

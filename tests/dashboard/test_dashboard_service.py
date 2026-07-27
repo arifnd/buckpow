@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from src.dashboard.service import DashboardService
 from src.database import SessionLocal
@@ -43,7 +43,7 @@ class TestDashboardService:
 
         d = DeviceService(db).create('esp32-dash')
 
-        d.last_seen = datetime.now(timezone.utc)
+        d.last_seen = datetime.now(UTC)
 
         s = SessionService(db).create(d.id, 'Dash Sess')
 
@@ -145,11 +145,11 @@ class TestDashboardService:
 
                                   shunt_voltage=80.0, current=200, power=1000)
 
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        start = datetime.now(timezone.utc) - timedelta(hours=1)
+        start = datetime.now(UTC) - timedelta(hours=1)
 
-        end = datetime.now(timezone.utc) + timedelta(hours=1)
+        end = datetime.now(UTC) + timedelta(hours=1)
 
         stats = DashboardService(db).get_statistics(start_date=start, end_date=end)
 
@@ -167,11 +167,11 @@ class TestDashboardService:
 
                                   shunt_voltage=80.0, current=200, power=1000)
 
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        start = datetime.now(timezone.utc) + timedelta(hours=10)
+        start = datetime.now(UTC) + timedelta(hours=10)
 
-        end = datetime.now(timezone.utc) + timedelta(hours=11)
+        end = datetime.now(UTC) + timedelta(hours=11)
 
         stats = DashboardService(db).get_statistics(start_date=start, end_date=end)
 
@@ -223,11 +223,11 @@ class TestDashboardService:
 
         sess2 = SessionService(db).create(d2.id, 'Boundary S2')
 
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from src.measurements.models import Measurement as M
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         m1 = M(device_id=d1.id, session_id=sess1.id, bus_voltage=5.0,
 

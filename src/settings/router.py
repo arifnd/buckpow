@@ -2,7 +2,7 @@ import gzip
 import os
 import shutil
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, HTTPException
@@ -128,7 +128,7 @@ def db_info(current_user: RequiredUserDep):
 @router.get("/settings/backup")
 def backup_database(current_user: RequiredUserDep):
     db_type = _detect_db_type()
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d-%H%M%S")
+    ts = datetime.now(UTC).strftime("%Y-%m-%d-%H%M%S")
 
     if db_type == "sqlite":
         return _backup_sqlite(ts)

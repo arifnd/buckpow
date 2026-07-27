@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -296,13 +296,13 @@ def chart_data(
 
     tz_offset = float(tz)
     if range == "1h":
-        start_date = datetime.now(timezone.utc) - timedelta(hours=1)
+        start_date = datetime.now(UTC) - timedelta(hours=1)
     elif range == "24h":
-        start_date = datetime.now(timezone.utc) - timedelta(hours=24)
+        start_date = datetime.now(UTC) - timedelta(hours=24)
     elif range == "7d":
-        start_date = datetime.now(timezone.utc) - timedelta(days=7)
+        start_date = datetime.now(UTC) - timedelta(days=7)
     elif range == "30d":
-        start_date = datetime.now(timezone.utc) - timedelta(days=30)
+        start_date = datetime.now(UTC) - timedelta(days=30)
     else:
         if start_date and len(start_date) == 10:
             start_date = to_utc_date_bounds(start_date, tz_offset)[0].isoformat()

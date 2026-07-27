@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session as OrmSession
 
@@ -21,7 +21,7 @@ class DashboardService:
         total_projects = self.db.query(Project).count()
         active_sessions = self.db.query(Session).filter_by(status="running").count()
 
-        today_start = datetime.now(timezone.utc).replace(
+        today_start = datetime.now(UTC).replace(
             hour=0, minute=0, second=0, microsecond=0
         )
         today_ms = (

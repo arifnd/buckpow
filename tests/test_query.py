@@ -1,3 +1,5 @@
+from datetime import UTC
+
 from src.alerts.models import Alert
 from src.database import SessionLocal
 from src.devices.models import Device
@@ -40,43 +42,43 @@ class TestFilterBuilder:
         db.close()
 
     def test_date_range_start_only(self, app):
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         from src.measurements.models import Measurement
         db = SessionLocal()
         from src.measurements.service import MeasurementService
         ms = MeasurementService(db)
         ms.create('esp32-dr-s', bus_voltage=5.0, shunt_voltage=80, current=200, power=1000)
-        future = datetime.now(timezone.utc) + timedelta(days=365)
+        future = datetime.now(UTC) + timedelta(days=365)
         fb = FilterBuilder(Measurement, db.query(Measurement))
         fb.date_range('created_at', start=future)
         assert fb.query.count() == 0
         db.close()
 
     def test_date_range_end_only(self, app):
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         from src.measurements.models import Measurement
         db = SessionLocal()
         from src.measurements.service import MeasurementService
         ms = MeasurementService(db)
         ms.create('esp32-dr-e', bus_voltage=5.0, shunt_voltage=80, current=200, power=1000)
-        past = datetime.now(timezone.utc) - timedelta(days=365)
+        past = datetime.now(UTC) - timedelta(days=365)
         fb = FilterBuilder(Measurement, db.query(Measurement))
         fb.date_range('created_at', end=past)
         assert fb.query.count() == 0
         db.close()
 
     def test_date_range_both(self, app):
-        from datetime import datetime, timedelta, timezone
+        from datetime import datetime, timedelta
 
         from src.measurements.models import Measurement
         db = SessionLocal()
         from src.measurements.service import MeasurementService
         ms = MeasurementService(db)
         ms.create('esp32-dr-b', bus_voltage=5.0, shunt_voltage=80, current=200, power=1000)
-        past = datetime.now(timezone.utc) - timedelta(days=1)
-        future = datetime.now(timezone.utc) + timedelta(days=1)
+        past = datetime.now(UTC) - timedelta(days=1)
+        future = datetime.now(UTC) + timedelta(days=1)
         fb = FilterBuilder(Measurement, db.query(Measurement))
         fb.date_range('created_at', start=past, end=future)
         assert fb.query.count() >= 1

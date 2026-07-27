@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import JSON, Column, DateTime, Integer, String
 
@@ -17,7 +17,7 @@ class User(Base):
     email = Column(String(256), unique=True, nullable=False, index=True)
     password = Column(String(256), nullable=False)
     settings = Column(JSON, nullable=False, default={})
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(UTC))
 
     def set_password(self, password):
         self.password = hash_password(password)

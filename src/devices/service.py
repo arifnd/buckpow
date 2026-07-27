@@ -1,5 +1,5 @@
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session, selectinload
 
@@ -122,7 +122,7 @@ class DeviceService:
         device = self.get_by_device_id(device_id_str)
         if not device:
             return None
-        device.last_seen = datetime.now(timezone.utc)
+        device.last_seen = datetime.now(UTC)
         device.status = "online"
         self.db.commit()
         return device
@@ -133,8 +133,8 @@ class DeviceService:
             return "offline"
         last_seen = device.last_seen
         if last_seen.tzinfo is None:
-            last_seen = last_seen.replace(tzinfo=timezone.utc)
-        if datetime.now(timezone.utc) - last_seen < timedelta(
+            last_seen = last_seen.replace(tzinfo=UTC)
+        if datetime.now(UTC) - last_seen < timedelta(
             seconds=settings.DEVICE_ONLINE_TIMEOUT
         ):
             return "online"
