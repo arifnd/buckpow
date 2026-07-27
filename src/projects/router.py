@@ -76,9 +76,7 @@ def update_project(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     if project.owner_id and project.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=403, detail="Not authorized to update this project"
-        )
+        raise HTTPException(status_code=403, detail="Not authorized to update this project")
     project = ProjectService(db).update(
         project_id,
         name=body.name,
@@ -106,9 +104,7 @@ def delete_project(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     if project.owner_id and project.owner_id != current_user.id:
-        raise HTTPException(
-            status_code=403, detail="Not authorized to delete this project"
-        )
+        raise HTTPException(status_code=403, detail="Not authorized to delete this project")
     if ProjectService(db).delete(project_id):
         ip = get_client_ip(request)
         AuditService(db).log(

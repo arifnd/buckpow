@@ -1,6 +1,3 @@
-
-
-
 from src.database import SessionLocal
 from src.devices.service import DeviceService
 from src.measurements.service import MeasurementService
@@ -8,64 +5,53 @@ from src.sessions.service import SessionService
 
 
 class TestSessionService:
-
     def _db(self, app):
 
         return SessionLocal()
-
-
 
     def test_create_session(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-sess-svc')
+        d = DeviceService(db).create("esp32-sess-svc")
 
-        s = SessionService(db).create(device_id=d.id, name='Test Session')
+        s = SessionService(db).create(device_id=d.id, name="Test Session")
 
         assert s.id is not None
 
-        assert s.status == 'draft'
+        assert s.status == "draft"
 
         db.close()
-
-
 
     def test_create_with_all_fields(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-sess-full')
+        d = DeviceService(db).create("esp32-sess-full")
 
-        s = SessionService(db).create(device_id=d.id, name='Full', target_device='t1',
+        s = SessionService(db).create(device_id=d.id, name="Full", target_device="t1", description="desc")
 
-                                  description='desc')
+        assert s.target_device == "t1"
 
-        assert s.target_device == 't1'
-
-        assert s.description == 'desc'
+        assert s.description == "desc"
 
         db.close()
-
-
 
     def test_start_session(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-start')
+        d = DeviceService(db).create("esp32-start")
 
-        s = SessionService(db).create(d.id, 'Start')
+        s = SessionService(db).create(d.id, "Start")
 
         session, error = SessionService(db).start(s.id)
 
         assert error is None
 
-        assert session.status == 'running'
+        assert session.status == "running"
 
         db.close()
-
-
 
     def test_start_nonexistent(self, app):
 
@@ -75,19 +61,17 @@ class TestSessionService:
 
         assert session is None
 
-        assert error == 'Session not found'
+        assert error == "Session not found"
 
         db.close()
-
-
 
     def test_start_already_running(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-already')
+        d = DeviceService(db).create("esp32-already")
 
-        s = SessionService(db).create(d.id, 'Running')
+        s = SessionService(db).create(d.id, "Running")
 
         SessionService(db).start(s.id)
 
@@ -95,19 +79,17 @@ class TestSessionService:
 
         assert session is None
 
-        assert error == 'Session is already running'
+        assert error == "Session is already running"
 
         db.close()
-
-
 
     def test_stop_session(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-stop')
+        d = DeviceService(db).create("esp32-stop")
 
-        s = SessionService(db).create(d.id, 'Stop')
+        s = SessionService(db).create(d.id, "Stop")
 
         SessionService(db).start(s.id)
 
@@ -115,11 +97,9 @@ class TestSessionService:
 
         assert error is None
 
-        assert session.status == 'finished'
+        assert session.status == "finished"
 
         db.close()
-
-
 
     def test_stop_nonexistent(self, app):
 
@@ -129,37 +109,33 @@ class TestSessionService:
 
         assert session is None
 
-        assert error == 'Session not found'
+        assert error == "Session not found"
 
         db.close()
-
-
 
     def test_stop_not_running(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-stop2')
+        d = DeviceService(db).create("esp32-stop2")
 
-        s = SessionService(db).create(d.id, 'Draft')
+        s = SessionService(db).create(d.id, "Draft")
 
         session, error = SessionService(db).stop(s.id)
 
         assert session is None
 
-        assert error == 'Session is not running'
+        assert error == "Session is not running"
 
         db.close()
-
-
 
     def test_get_active_session(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-act')
+        d = DeviceService(db).create("esp32-act")
 
-        s = SessionService(db).create(d.id, 'Active')
+        s = SessionService(db).create(d.id, "Active")
 
         SessionService(db).start(s.id)
 
@@ -171,69 +147,63 @@ class TestSessionService:
 
         db.close()
 
-
-
     def test_auto_stop_other_on_start(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-auto')
+        d = DeviceService(db).create("esp32-auto")
 
-        a = SessionService(db).create(d.id, 'Session A')
+        a = SessionService(db).create(d.id, "Session A")
 
-        b = SessionService(db).create(d.id, 'Session B')
+        b = SessionService(db).create(d.id, "Session B")
 
         SessionService(db).start(a.id)
 
-        assert a.status == 'running'
+        assert a.status == "running"
 
         result, err = SessionService(db).start(b.id)
 
         assert result is None
 
-        assert err == 'A session is already running for this device'
+        assert err == "A session is already running for this device"
 
-        assert a.status == 'running'
+        assert a.status == "running"
 
         db.close()
-
-
 
     def test_multiple_devices_can_run_concurrently(self, app):
 
         db = self._db(app)
 
-        d1 = DeviceService(db).create('esp32-d1')
+        d1 = DeviceService(db).create("esp32-d1")
 
-        d2 = DeviceService(db).create('esp32-d2')
+        d2 = DeviceService(db).create("esp32-d2")
 
-        a = SessionService(db).create(d1.id, 'Session A')
+        a = SessionService(db).create(d1.id, "Session A")
 
-        b = SessionService(db).create(d2.id, 'Session B')
+        b = SessionService(db).create(d2.id, "Session B")
 
         SessionService(db).start(a.id)
 
-        assert a.status == 'running'
+        assert a.status == "running"
 
         SessionService(db).start(b.id)
 
-        assert b.status == 'running'
+        assert b.status == "running"
 
-        assert a.status == 'running'
+        assert a.status == "running"
 
         db.close()
-
-
 
     def test_get_for_device(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-gfd')
+        d = DeviceService(db).create("esp32-gfd")
 
-        SessionService(db).create(d.id, 'S1')
+        SessionService(db).create(d.id, "S1")
 
-        SessionService(db).create(d.id, 'S2')
+        SessionService(db).create(d.id, "S2")
 
         sessions = SessionService(db).get_for_device(d.id)
 
@@ -241,43 +211,37 @@ class TestSessionService:
 
         db.close()
 
-
-
     def test_update(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-up')
+        d = DeviceService(db).create("esp32-up")
 
-        s = SessionService(db).create(d.id, 'Original')
+        s = SessionService(db).create(d.id, "Original")
 
-        SessionService(db).update(s.id, name='Updated')
+        SessionService(db).update(s.id, name="Updated")
 
-        assert s.name == 'Updated'
+        assert s.name == "Updated"
 
         db.close()
-
-
 
     def test_update_nonexistent(self, app):
 
         db = self._db(app)
 
-        result = SessionService(db).update(99999, name='Ghost')
+        result = SessionService(db).update(99999, name="Ghost")
 
         assert result is None
 
         db.close()
 
-
-
     def test_delete(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-del-s')
+        d = DeviceService(db).create("esp32-del-s")
 
-        s = SessionService(db).create(d.id, 'To Delete')
+        s = SessionService(db).create(d.id, "To Delete")
 
         sid = s.id
 
@@ -287,8 +251,6 @@ class TestSessionService:
 
         db.close()
 
-
-
     def test_delete_nonexistent(self, app):
 
         db = self._db(app)
@@ -297,51 +259,41 @@ class TestSessionService:
 
         db.close()
 
-
-
     def test_get_all(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-all-s')
+        d = DeviceService(db).create("esp32-all-s")
 
-        SessionService(db).create(d.id, 'A')
+        SessionService(db).create(d.id, "A")
 
-        SessionService(db).create(d.id, 'B')
+        SessionService(db).create(d.id, "B")
 
         assert len(SessionService(db).get_all()) >= 2
 
         db.close()
 
-
-
     def test_get_stats_for_sessions_with_measurements(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-sts')
+        d = DeviceService(db).create("esp32-sts")
 
-        s = SessionService(db).create(d.id, 'Stats Session')
+        s = SessionService(db).create(d.id, "Stats Session")
 
         SessionService(db).start(s.id)
 
-        MeasurementService(db).create('esp32-sts', bus_voltage=5.0,
+        MeasurementService(db).create("esp32-sts", bus_voltage=5.0, shunt_voltage=80.0, current=200, power=1000)
 
-                                  shunt_voltage=80.0, current=200, power=1000)
-
-        MeasurementService(db).create('esp32-sts', bus_voltage=5.0,
-
-                                  shunt_voltage=80.0, current=200, power=1000)
+        MeasurementService(db).create("esp32-sts", bus_voltage=5.0, shunt_voltage=80.0, current=200, power=1000)
 
         stats = SessionService.get_stats_for_sessions(db, [s.id])
 
         assert s.id in stats
 
-        assert stats[s.id]['avg_power'] is not None
+        assert stats[s.id]["avg_power"] is not None
 
         db.close()
-
-
 
     def test_get_stats_for_sessions_empty_ids(self, app):
 
@@ -350,8 +302,3 @@ class TestSessionService:
         stats = SessionService.get_stats_for_sessions(db, [])
 
         assert stats == {}
-
-
-
-
-

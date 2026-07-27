@@ -44,9 +44,7 @@ class Device(Base):
     )
 
     sessions = relationship("Session", back_populates="device_ref", lazy="dynamic")
-    measurements = relationship(
-        "Measurement", back_populates="device_ref", lazy="dynamic"
-    )
+    measurements = relationship("Measurement", back_populates="device_ref", lazy="dynamic")
 
     def _compute_status(self):
         if not self.last_seen:

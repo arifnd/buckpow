@@ -21,7 +21,6 @@ from src.dependencies import (
 
 
 class TestDependenciesReExports:
-
     def test_create_access_token(self):
         assert create_access_token is auth_create
 

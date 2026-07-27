@@ -13,7 +13,13 @@ if (window.tailwind) {
 }
 </script>
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-<script>htmx.config.allowScriptEval = true;</script>
+<script>
+htmx.config.allowScriptEval = true;
+htmx.on('htmx:configRequest', function(evt) {
+  evt.detail.headers['X-CSRF-Token'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+});
+</script>
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0/dist/iconify-icon.min.js"></script>
 
@@ -172,20 +178,27 @@ document.addEventListener('click', function(e) {
     if (sub) sub.classList.add('hidden');
   }
   var lBtn = e.target.closest('#logout-btn');
-  if (lBtn) {
-    e.preventDefault();
-    confirmDialog('Are you sure you want to logout?', 'Logout').then(function(ok) {
-      if (ok) {
-        fetch('/api/v1/auth/logout', {method: 'POST'}).then(function() {
-          window.location.href = '/auth/login';
-        });
-      }
-    });
-  }
+    if (lBtn) {
+      e.preventDefault();
+      confirmDialog('Are you sure you want to logout?', 'Logout').then(function(ok) {
+        if (ok) {
+          var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+          fetch('/api/v1/auth/logout', {
+            method: 'POST',
+            headers: {'X-CSRF-Token': csrfToken}
+          }).then(function() {
+            window.location.href = '/auth/login';
+          });
+        }
+      });
+    }
 });
 
 function updateAlertBadge() {
-  fetch('/api/v1/alerts?page=1&per_page=1&resolved=false').then(function(r) { return r.json(); }).then(function(d) {
+  var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  fetch('/api/v1/alerts?page=1&per_page=1&resolved=false', {
+    headers: {'X-CSRF-Token': csrfToken}
+  }).then(function(r) { return r.json(); }).then(function(d) {
     var badgeSide = document.getElementById('alert-badge-side');
     var badgeMobile = document.getElementById('alert-badge-mobile');
     if (badgeSide) {

@@ -21,9 +21,7 @@ class AlertService:
         self.db.commit()
         return alert
 
-    def get_paginated(
-        self, page=1, per_page=10, device_id=None, level=None, resolved=None
-    ):
+    def get_paginated(self, page=1, per_page=10, device_id=None, level=None, resolved=None):
         fb = FilterBuilder(Alert, self.db.query(Alert))
         fb.eq(device_id=device_id, level=level).order("created_at")
         if resolved is True:
@@ -41,9 +39,7 @@ class AlertService:
         return alert
 
     def resolve_all(self, device_id=None):
-        fb = FilterBuilder(
-            Alert, self.db.query(Alert).filter(Alert.resolved_at.is_(None))
-        )
+        fb = FilterBuilder(Alert, self.db.query(Alert).filter(Alert.resolved_at.is_(None)))
         fb.eq(device_id=device_id)
         now = datetime.now(UTC)
         for alert in fb.query.all():
@@ -51,9 +47,7 @@ class AlertService:
         self.db.commit()
 
     def get_unresolved_count(self, device_id=None):
-        fb = FilterBuilder(
-            Alert, self.db.query(Alert).filter(Alert.resolved_at.is_(None))
-        )
+        fb = FilterBuilder(Alert, self.db.query(Alert).filter(Alert.resolved_at.is_(None)))
         fb.eq(device_id=device_id)
         return fb.query.count()
 
@@ -93,44 +87,36 @@ class AlertService:
                         f">{settings.DEVICE_ONLINE_TIMEOUT}s",
                     )
                 if not self._has_unresolved(device.id, "Device back online"):
-                    self.create(
-                        device.id, "info", f"Device back online ({device.device_id})"
-                    )
+                    self.create(device.id, "info", f"Device back online ({device.device_id})")
 
         owner_s = self._owner_settings(self.db, device)
 
         threshold_w = device.high_power_threshold
         if threshold_w is None:
-            threshold_w = (
-                owner_s.get("high_power_threshold") or DEFAULT_HIGH_POWER_THRESHOLD
-            )
+            threshold_w = owner_s.get("high_power_threshold") or DEFAULT_HIGH_POWER_THRESHOLD
         if power > threshold_w and not self._has_unresolved(device.id, "High power"):
-                self.create(
-                    device.id,
-                    "critical",
-                    f"High power on {device.device_id}: {power:.3f}W (threshold: {threshold_w}W)",
-                )
+            self.create(
+                device.id,
+                "critical",
+                f"High power on {device.device_id}: {power:.3f}W (threshold: {threshold_w}W)",
+            )
 
         threshold_a = device.high_current_threshold
         if threshold_a is None:
-            threshold_a = (
-                owner_s.get("high_current_threshold") or DEFAULT_HIGH_CURRENT_THRESHOLD
-            )
+            threshold_a = owner_s.get("high_current_threshold") or DEFAULT_HIGH_CURRENT_THRESHOLD
         if current > threshold_a and not self._has_unresolved(device.id, "High current"):
-                self.create(
-                    device.id,
-                    "critical",
-                    f"High current on {device.device_id}: {current:.3f}A (threshold: {threshold_a}A)",
-                )
+            self.create(
+                device.id,
+                "critical",
+                f"High current on {device.device_id}: {current:.3f}A (threshold: {threshold_a}A)",
+            )
 
         threshold_v = device.low_voltage_threshold
         if threshold_v is None:
-            threshold_v = (
-                owner_s.get("low_voltage_threshold") or DEFAULT_LOW_VOLTAGE_THRESHOLD
-            )
+            threshold_v = owner_s.get("low_voltage_threshold") or DEFAULT_LOW_VOLTAGE_THRESHOLD
         if bus_voltage < threshold_v and not self._has_unresolved(device.id, "Low voltage"):
-                self.create(
-                    device.id,
-                    "warning",
-                    f"Low voltage on {device.device_id}: {bus_voltage:.3f}V (threshold: {threshold_v}V)",
-                )
+            self.create(
+                device.id,
+                "warning",
+                f"Low voltage on {device.device_id}: {bus_voltage:.3f}V (threshold: {threshold_v}V)",
+            )

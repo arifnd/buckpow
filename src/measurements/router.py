@@ -1,5 +1,6 @@
 import csv
 import io
+import logging
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
@@ -11,6 +12,7 @@ from openpyxl.utils import get_column_letter
 
 from src.audit.service import AuditService
 from src.auth.models import User
+from src.config import settings
 from src.dependencies import DbDep, RequiredUserDep, get_api_key_device
 from src.devices.service import DeviceService
 from src.measurements.schemas import MeasurementCreate
@@ -21,6 +23,7 @@ from src.utils.dates import to_utc_date_bounds
 from src.version import MIN_FIRMWARE_VERSION
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 def _parse_version(v):
@@ -39,6 +42,20 @@ def receive_measurement(
     if device is None:
         device = DeviceService(db).get_by_device_id(body.device_id)
         if not device:
+            # Check auto-registration limit
+            device_count = DeviceService(db).count()
+            if device_count >= settings.MAX_AUTO_REGISTERED_DEVICES:
+                logger.warning(
+                    "Device auto-registration limit reached (%d/%d). Device '%s' rejected.",
+                    device_count,
+                    settings.MAX_AUTO_REGISTERED_DEVICES,
+                    body.device_id,
+                )
+                raise HTTPException(
+                    status_code=503,
+                    detail="Device registration limit reached. Please register devices manually.",
+                )
+            logger.info("Auto-registering new device: %s", body.device_id)
             device = DeviceService(db).get_or_create(body.device_id)
         if not device.enabled:
             raise HTTPException(status_code=403, detail="Device is disabled")
@@ -182,11 +199,7 @@ def export_csv(
     if session_id:
         session = db.get(SessionModel, session_id)
         if session:
-            safe_name = (
-                "".join(c if c.isalnum() or c in " -_" else "" for c in session.name)
-                .strip()
-                .replace(" ", "_")
-            )
+            safe_name = "".join(c if c.isalnum() or c in " -_" else "" for c in session.name).strip().replace(" ", "_")
             filename = f"{safe_name}_report.csv"
     return Response(
         content=output.getvalue(),
@@ -248,9 +261,7 @@ def export_xlsx(
         ws.cell(row=i, column=7, value=m.current)
         ws.cell(row=i, column=8, value=m.power)
         ws.cell(row=i, column=9, value=m.energy)
-        ws.cell(
-            row=i, column=10, value=m.created_at.isoformat() if m.created_at else ""
-        )
+        ws.cell(row=i, column=10, value=m.created_at.isoformat() if m.created_at else "")
 
     for col in range(1, len(headers) + 1):
         max_len = 0

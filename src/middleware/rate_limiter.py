@@ -51,9 +51,7 @@ class RateLimiterMiddleware:
         self.requests[key] = [t for t in timestamps if t > cutoff]
 
         if len(self.requests[key]) >= max_reqs:
-            body = json.dumps(
-                {"error": "Rate limit exceeded", "code": "RATE_LIMITED"}
-            ).encode()
+            body = json.dumps({"error": "Rate limit exceeded", "code": "RATE_LIMITED"}).encode()
             headers = [
                 (b"content-type", b"application/json"),
                 (b"retry-after", str(int(window)).encode()),

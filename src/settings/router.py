@@ -1,4 +1,5 @@
 import gzip
+import logging
 import os
 import shutil
 import subprocess
@@ -13,6 +14,7 @@ from src.dependencies import DbDep, RequiredUserDep
 from src.settings.schemas import SettingsUpdate
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 def _detect_db_type() -> str:
@@ -196,9 +198,9 @@ def _backup_postgresql(ts: str):
     try:
         proc = subprocess.run(cmd, capture_output=True, timeout=120, env=env)
         if proc.returncode != 0:
-            raise HTTPException(
-                status_code=500, detail=f"pg_dump failed: {proc.stderr.decode()}"
-            )
+            stderr_output = proc.stderr.decode()
+            logger.error("pg_dump failed (returncode=%d): %s", proc.returncode, stderr_output)
+            raise HTTPException(status_code=500, detail="Database backup failed")
         compressed = gzip.compress(proc.stdout)
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=500, detail="pg_dump timed out") from None
@@ -220,6 +222,10 @@ def _backup_mysql(ts: str):
     creds = _parse_mysql_url()
     filename = f"buckpow-backup-{ts}.sql.gz"
 
+    env = os.environ.copy()
+    if creds["password"]:
+        env["MYSQL_PWD"] = creds["password"]
+
     cmd = [
         mysqldump,
         "-h",
@@ -228,17 +234,15 @@ def _backup_mysql(ts: str):
         str(creds["port"]),
         "-u",
         creds["user"],
+        creds["dbname"],
     ]
-    if creds["password"]:
-        cmd += ["-p" + creds["password"]]
-    cmd.append(creds["dbname"])
 
     try:
-        proc = subprocess.run(cmd, capture_output=True, timeout=120)
+        proc = subprocess.run(cmd, capture_output=True, timeout=120, env=env)
         if proc.returncode != 0:
-            raise HTTPException(
-                status_code=500, detail=f"mysqldump failed: {proc.stderr.decode()}"
-            )
+            stderr_output = proc.stderr.decode()
+            logger.error("mysqldump failed (returncode=%d): %s", proc.returncode, stderr_output)
+            raise HTTPException(status_code=500, detail="Database backup failed")
         compressed = gzip.compress(proc.stdout)
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=500, detail="mysqldump timed out") from None

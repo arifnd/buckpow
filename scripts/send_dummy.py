@@ -15,14 +15,16 @@ def send_reading(url, device_id, energy, api_key=None):
     power_mw = round(bus_v * current_ma, 1)
     energy += (power_mw / 1000.0) * (1 / 3600)
 
-    payload = json.dumps({
-        "device_id": device_id,
-        "firmware_version": FW_VERSION,
-        "bus_voltage": bus_v,
-        "shunt_voltage": shunt_v,
-        "current": current_ma,
-        "power": power_mw,
-    }).encode()
+    payload = json.dumps(
+        {
+            "device_id": device_id,
+            "firmware_version": FW_VERSION,
+            "bus_voltage": bus_v,
+            "shunt_voltage": shunt_v,
+            "current": current_ma,
+            "power": power_mw,
+        }
+    ).encode()
 
     headers = {"Content-Type": "application/json"}
     if api_key:

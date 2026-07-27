@@ -25,6 +25,18 @@ class _AnonymousUser:
 _ANONYMOUS = _AnonymousUser()
 
 
+def _get_csrf_token():
+    """Generate a CSRF token for the current request."""
+    from src.config import settings
+    from src.middleware.csrf import CSRFMiddleware
+
+    middleware = CSRFMiddleware(None, settings.JWT_SECRET)
+    return middleware.generate_token()
+
+
+templates.globals["csrf_token"] = _get_csrf_token
+
+
 def _render(name, current_user=None, **kwargs):
     user = current_user if current_user is not None else _ANONYMOUS
     return templates.get_template(name).render(current_user=user, **kwargs)
@@ -40,6 +52,4 @@ def _render_or_redirect(name, current_user, active_page, **kwargs):
     redir = _require_dashboard_user(current_user)
     if isinstance(redir, RedirectResponse):
         return redir
-    return HTMLResponse(
-        _render(name, current_user=current_user, active_page=active_page, **kwargs)
-    )
+    return HTMLResponse(_render(name, current_user=current_user, active_page=active_page, **kwargs))

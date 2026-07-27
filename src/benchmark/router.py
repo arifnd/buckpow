@@ -46,7 +46,5 @@ def compare(
         }
         results.append(stat)
     if len(results) < 2:
-        raise HTTPException(
-            status_code=404, detail="Could not find at least two valid sessions"
-        )
+        raise HTTPException(status_code=404, detail="Could not find at least two valid sessions")
     return {"sessions": results}

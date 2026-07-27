@@ -13,26 +13,18 @@ class DeviceService:
         self.db = db
 
     def get_all(self):
-        return (
-            self.db.query(Device)
-            .options(selectinload(Device.project))
-            .order_by(Device.created_at.desc())
-            .all()
-        )
+        return self.db.query(Device).options(selectinload(Device.project)).order_by(Device.created_at.desc()).all()
+
+    def count(self):
+        return self.db.query(Device).count()
 
     def get_paginated(self, page=1, per_page=10):
-        q = (
-            self.db.query(Device)
-            .options(selectinload(Device.project))
-            .order_by(Device.created_at.desc())
-        )
+        q = self.db.query(Device).options(selectinload(Device.project)).order_by(Device.created_at.desc())
         offset = (page - 1) * per_page
         total = q.count()
         items = q.offset(offset).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
-        return PaginatedResult(
-            items=items, page=page, pages=pages, total=total, per_page=per_page
-        )
+        return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
 
     def get_by_id(self, device_id):
         return self.db.get(Device, device_id)
@@ -134,15 +126,11 @@ class DeviceService:
         last_seen = device.last_seen
         if last_seen.tzinfo is None:
             last_seen = last_seen.replace(tzinfo=UTC)
-        if datetime.now(UTC) - last_seen < timedelta(
-            seconds=settings.DEVICE_ONLINE_TIMEOUT
-        ):
+        if datetime.now(UTC) - last_seen < timedelta(seconds=settings.DEVICE_ONLINE_TIMEOUT):
             return "online"
         return "offline"
 
-    def get_or_create(
-        self, device_id_str, alias="", description="", sampling_interval=None
-    ):
+    def get_or_create(self, device_id_str, alias="", description="", sampling_interval=None):
         device = self.get_by_device_id(device_id_str)
         if not device:
             device = self.create(device_id_str, alias, description, sampling_interval)

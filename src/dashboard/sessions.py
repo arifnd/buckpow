@@ -21,9 +21,7 @@ def sessions_new_page(
     db: DbDep,
 ):
     all_devices = DeviceService(db).get_all()
-    devices = [
-        d for d in all_devices if not SessionService(db).get_active_session(d.id)
-    ]
+    devices = [d for d in all_devices if not SessionService(db).get_active_session(d.id)]
     return _render_or_redirect(
         "sessions/form.html",
         current_user,
