@@ -21,9 +21,7 @@ class DashboardService:
         total_projects = self.db.query(Project).count()
         active_sessions = self.db.query(Session).filter_by(status="running").count()
 
-        today_start = datetime.now(UTC).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        )
+        today_start = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
         today_ms = (
             self.db.query(Measurement)
             .filter(Measurement.created_at >= today_start)
@@ -39,9 +37,7 @@ class DashboardService:
                     seen_sessions[m.session_id] = m.energy
             today_energy = sum(seen_sessions.values()) if seen_sessions else 0.0
 
-        latest = (
-            self.db.query(Measurement).order_by(Measurement.created_at.desc()).first()
-        )
+        latest = self.db.query(Measurement).order_by(Measurement.created_at.desc()).first()
         current_power = round(latest.power, 3) if latest else 0.0
 
         return {
@@ -53,21 +49,15 @@ class DashboardService:
             "current_power": current_power,
         }
 
-    def get_statistics(
-        self, device_id=None, session_id=None, start_date=None, end_date=None
-    ):
+    def get_statistics(self, device_id=None, session_id=None, start_date=None, end_date=None):
         fb = FilterBuilder(Measurement, self.db.query(Measurement))
-        fb.eq(device_id=device_id, session_id=session_id).date_range(
-            "created_at", start_date, end_date
-        ).order("created_at").limit(500)
+        fb.eq(device_id=device_id, session_id=session_id).date_range("created_at", start_date, end_date).order(
+            "created_at"
+        ).limit(500)
 
         session_started_at = None
         if session_id:
-            sess = (
-                self.db.query(Session)
-                .filter_by(id=session_id, status="running")
-                .first()
-            )
+            sess = self.db.query(Session).filter_by(id=session_id, status="running").first()
             if sess:
                 session_started_at = utc_iso(sess.started_at)
 
@@ -97,13 +87,11 @@ class DashboardService:
         }
         return stats
 
-    def _get_energy_breakdown(
-        self, device_id=None, session_id=None, start_date=None, end_date=None
-    ):
+    def _get_energy_breakdown(self, device_id=None, session_id=None, start_date=None, end_date=None):
         fb = FilterBuilder(Measurement, self.db.query(Measurement))
-        fb.eq(device_id=device_id, session_id=session_id).date_range(
-            "created_at", start_date, end_date
-        ).order("created_at", desc=False)
+        fb.eq(device_id=device_id, session_id=session_id).date_range("created_at", start_date, end_date).order(
+            "created_at", desc=False
+        )
         rows = fb.query.all()
         if not rows:
             return {"hourly": [], "daily": [], "weekly": [], "monthly": []}
@@ -137,9 +125,7 @@ class DashboardService:
             prev = m
 
         def to_sorted(adict):
-            return [
-                {"period": k, "energy": round(v, 6)} for k, v in sorted(adict.items())
-            ]
+            return [{"period": k, "energy": round(v, 6)} for k, v in sorted(adict.items())]
 
         return {
             "hourly": to_sorted(hourly),

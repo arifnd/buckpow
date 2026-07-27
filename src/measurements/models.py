@@ -35,9 +35,7 @@ class Measurement(Base):
             "session_id": self.session_id,
             "session_name": self.session_ref.name if self.session_ref else None,
             "device_id": self.device_id,
-            "device_name": self.device_ref.alias or self.device_ref.device_id
-            if self.device_ref
-            else None,
+            "device_name": self.device_ref.alias or self.device_ref.device_id if self.device_ref else None,
             "bus_voltage": self.bus_voltage,
             "shunt_voltage": self.shunt_voltage,
             "load_voltage": self.load_voltage,

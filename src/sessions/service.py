@@ -30,9 +30,7 @@ class SessionService:
         total = q.count()
         items = q.offset(offset).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
-        return PaginatedResult(
-            items=items, page=page, pages=pages, total=total, per_page=per_page
-        )
+        return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
 
     def get_by_id(self, session_id):
         return (
@@ -46,15 +44,9 @@ class SessionService:
         )
 
     def get_active_session(self, device_id):
-        return (
-            self.db.query(Session)
-            .filter_by(device_id=device_id, status="running")
-            .first()
-        )
+        return self.db.query(Session).filter_by(device_id=device_id, status="running").first()
 
-    def create(
-        self, device_id, name, target_device="", description="", project_id=None
-    ):
+    def create(self, device_id, name, target_device="", description="", project_id=None):
         session = Session(
             device_id=device_id,
             name=name,
@@ -116,12 +108,7 @@ class SessionService:
         return session, None
 
     def get_for_device(self, device_id):
-        return (
-            self.db.query(Session)
-            .filter_by(device_id=device_id)
-            .order_by(Session.created_at.desc())
-            .all()
-        )
+        return self.db.query(Session).filter_by(device_id=device_id).order_by(Session.created_at.desc()).all()
 
     @staticmethod
     def get_stats_for_sessions(db: Session, session_ids):

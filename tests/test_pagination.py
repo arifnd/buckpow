@@ -2,7 +2,6 @@ from src.utils.pagination import PaginatedResult
 
 
 class TestPaginatedResult:
-
     def test_basic(self):
         r = PaginatedResult(items=[1, 2, 3], page=1, pages=3, total=3, per_page=1)
         assert r.items == [1, 2, 3]
@@ -18,7 +17,7 @@ class TestPaginatedResult:
         assert r.pages == 1
 
     def test_single_page(self):
-        r = PaginatedResult(items=['a', 'b'], page=1, pages=1, total=2, per_page=10)
+        r = PaginatedResult(items=["a", "b"], page=1, pages=1, total=2, per_page=10)
         assert r.pages == 1
         assert len(r.items) == 2
 
@@ -30,4 +29,5 @@ class TestPaginatedResult:
 
     def test_is_dataclass(self):
         import dataclasses
+
         assert dataclasses.is_dataclass(PaginatedResult)

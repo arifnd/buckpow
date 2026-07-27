@@ -67,9 +67,7 @@ async def lifespan(app: FastAPI):
                 )
                 logger.info("Admin user created (%s).", config.ADMIN_EMAIL)
             else:
-                logger.info(
-                    "No users found and ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping auto-create."
-                )
+                logger.info("No users found and ADMIN_EMAIL/ADMIN_PASSWORD not set — skipping auto-create.")
         db.commit()
     finally:
         db.close()

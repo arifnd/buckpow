@@ -1,6 +1,3 @@
-
-
-
 from src.auth.models import User
 from src.database import SessionLocal
 from src.projects.models import Project
@@ -8,26 +5,21 @@ from src.projects.service import ProjectService
 
 
 class TestProjectService:
-
     def _db(self, app):
 
         return SessionLocal()
-
-
 
     def test_create_project(self, app):
 
         db = self._db(app)
 
-        p = ProjectService(db).create(name='Test Project', description='Desc')
+        p = ProjectService(db).create(name="Test Project", description="Desc")
 
         assert p.id is not None
 
-        assert p.name == 'Test Project'
+        assert p.name == "Test Project"
 
         db.close()
-
-
 
     def test_create_with_owner(self, app):
 
@@ -35,27 +27,23 @@ class TestProjectService:
 
         user = db.query(User).first()
 
-        p = ProjectService(db).create(name='Owned', owner_id=user.id)
+        p = ProjectService(db).create(name="Owned", owner_id=user.id)
 
         assert p.owner_id == user.id
 
         db.close()
 
-
-
     def test_get_by_id(self, app):
 
         db = self._db(app)
 
-        p = ProjectService(db).create(name='Find Me')
+        p = ProjectService(db).create(name="Find Me")
 
         found = ProjectService(db).get_by_id(p.id)
 
         assert found is not None
 
         db.close()
-
-
 
     def test_get_by_id_nonexistent(self, app):
 
@@ -67,30 +55,25 @@ class TestProjectService:
 
         db.close()
 
-
-
     def test_get_all(self, app):
 
         db = self._db(app)
 
-        ProjectService(db).create(name='A')
+        ProjectService(db).create(name="A")
 
-        ProjectService(db).create(name='B')
+        ProjectService(db).create(name="B")
 
         assert len(ProjectService(db).get_all()) >= 2
 
         db.close()
 
-
-
     def test_get_paginated(self, app):
 
         from sqlalchemy import insert
 
-
         db = self._db(app)
 
-        db.execute(insert(Project), [{'name': f'Project {i}'} for i in range(5)])
+        db.execute(insert(Project), [{"name": f"Project {i}"} for i in range(5)])
 
         db.commit()
 
@@ -102,41 +85,35 @@ class TestProjectService:
 
         db.close()
 
-
-
     def test_update(self, app):
 
         db = self._db(app)
 
-        p = ProjectService(db).create(name='Original')
+        p = ProjectService(db).create(name="Original")
 
-        ProjectService(db).update(p.id, name='Updated', description='New desc')
+        ProjectService(db).update(p.id, name="Updated", description="New desc")
 
-        assert p.name == 'Updated'
+        assert p.name == "Updated"
 
-        assert p.description == 'New desc'
+        assert p.description == "New desc"
 
         db.close()
-
-
 
     def test_update_nonexistent(self, app):
 
         db = self._db(app)
 
-        result = ProjectService(db).update(99999, name='Ghost')
+        result = ProjectService(db).update(99999, name="Ghost")
 
         assert result is None
 
         db.close()
 
-
-
     def test_delete(self, app):
 
         db = self._db(app)
 
-        p = ProjectService(db).create(name='To Delete')
+        p = ProjectService(db).create(name="To Delete")
 
         pid = p.id
 
@@ -146,8 +123,6 @@ class TestProjectService:
 
         db.close()
 
-
-
     def test_delete_nonexistent(self, app):
 
         db = self._db(app)
@@ -155,8 +130,3 @@ class TestProjectService:
         assert ProjectService(db).delete(99999) is False
 
         db.close()
-
-
-
-
-

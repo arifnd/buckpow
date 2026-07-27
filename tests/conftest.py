@@ -23,8 +23,8 @@ from src.sessions.models import Session
 
 # Override engine with in-memory SQLite + StaticPool for test isolation
 db_module.engine = create_engine(
-    'sqlite://',
-    connect_args={'check_same_thread': False},
+    "sqlite://",
+    connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
 db_module.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=db_module.engine)
@@ -59,7 +59,7 @@ def app():
     Base.metadata.create_all(bind=db_module.engine)
     db = db_module.SessionLocal()
     if not db.query(User).first():
-        UserService(db).create(name='Admin', email='admin@example.com', password='password')
+        UserService(db).create(name="Admin", email="admin@example.com", password="password")
     db.close()
     return fastapi_app
 
@@ -68,10 +68,10 @@ def app():
 def client(app):
     db = db_module.SessionLocal()
     user = db.query(User).first()
-    token = create_access_token(data={'sub': user.id})
+    token = create_access_token(data={"sub": user.id})
     db.close()
     client = TestClient(app)
-    client.headers.update({'Authorization': f'Bearer {token}'})
+    client.headers.update({"Authorization": f"Bearer {token}"})
     return client
 
 
@@ -92,11 +92,12 @@ def db(app):
 @pytest.fixture
 def sample_device(app):
     db = db_module.SessionLocal()
-    d = Device(device_id='esp32-test', alias='Test Device', sampling_interval=1,
-               api_key=DeviceService.generate_api_key())
+    d = Device(
+        device_id="esp32-test", alias="Test Device", sampling_interval=1, api_key=DeviceService.generate_api_key()
+    )
     db.add(d)
     db.commit()
-    result = {'id': d.id, 'device_id': d.device_id, 'api_key': d.api_key}
+    result = {"id": d.id, "device_id": d.device_id, "api_key": d.api_key}
     db.close()
     return result
 
@@ -104,8 +105,9 @@ def sample_device(app):
 @pytest.fixture
 def sample_device_id(app):
     db = db_module.SessionLocal()
-    d = Device(device_id='esp32-test', alias='Test Device', sampling_interval=1,
-               api_key=DeviceService.generate_api_key())
+    d = Device(
+        device_id="esp32-test", alias="Test Device", sampling_interval=1, api_key=DeviceService.generate_api_key()
+    )
     db.add(d)
     db.commit()
     result = d.id
@@ -116,21 +118,22 @@ def sample_device_id(app):
 @pytest.fixture
 def device_auth_header(app):
     db = db_module.SessionLocal()
-    d = Device(device_id='esp32-auth', alias='Auth Device', sampling_interval=1,
-               api_key=DeviceService.generate_api_key())
+    d = Device(
+        device_id="esp32-auth", alias="Auth Device", sampling_interval=1, api_key=DeviceService.generate_api_key()
+    )
     db.add(d)
     db.commit()
     key = d.api_key
     db.close()
-    return {'Authorization': f'Bearer {key}'}
+    return {"Authorization": f"Bearer {key}"}
 
 
 @pytest.fixture
 def sample_project(app):
     db = db_module.SessionLocal()
     user = db.query(User).first()
-    p = ProjectService(db).create(name='Test Project', description='A test project', owner_id=user.id)
-    result = {'id': p.id, 'name': p.name}
+    p = ProjectService(db).create(name="Test Project", description="A test project", owner_id=user.id)
+    result = {"id": p.id, "name": p.name}
     db.close()
     return result
 
@@ -138,21 +141,21 @@ def sample_project(app):
 @pytest.fixture
 def sample_alert(app, sample_device_id):
     db = db_module.SessionLocal()
-    alert = AlertService(db).create(device_id=sample_device_id, level='warning', message='Test alert')
-    result = {'id': alert.id, 'device_id': alert.device_id}
+    alert = AlertService(db).create(device_id=sample_device_id, level="warning", message="Test alert")
+    result = {"id": alert.id, "device_id": alert.device_id}
     db.close()
     return result
 
 
 @pytest.fixture()
 def file_db():
-    db_path = os.path.join(os.path.dirname(__file__), '..', 'instance', 'test_buckpow.db')
+    db_path = os.path.join(os.path.dirname(__file__), "..", "instance", "test_buckpow.db")
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    file_engine = create_engine(f'sqlite:///{db_path}')
+    file_engine = create_engine(f"sqlite:///{db_path}")
     Base.metadata.create_all(bind=file_engine)
     file_engine.dispose()
     old_url = db_module.engine.url
-    db_module.engine.url = create_engine(f'sqlite:///{db_path}').url
+    db_module.engine.url = create_engine(f"sqlite:///{db_path}").url
     try:
         yield db_path
     finally:

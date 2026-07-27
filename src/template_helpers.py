@@ -27,8 +27,8 @@ _ANONYMOUS = _AnonymousUser()
 
 def _get_csrf_token():
     """Generate a CSRF token for the current request."""
-    from src.middleware.csrf import CSRFMiddleware
     from src.config import settings
+    from src.middleware.csrf import CSRFMiddleware
 
     middleware = CSRFMiddleware(None, settings.JWT_SECRET)
     return middleware.generate_token()
@@ -52,6 +52,4 @@ def _render_or_redirect(name, current_user, active_page, **kwargs):
     redir = _require_dashboard_user(current_user)
     if isinstance(redir, RedirectResponse):
         return redir
-    return HTMLResponse(
-        _render(name, current_user=current_user, active_page=active_page, **kwargs)
-    )
+    return HTMLResponse(_render(name, current_user=current_user, active_page=active_page, **kwargs))

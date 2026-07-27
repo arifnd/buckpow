@@ -14,9 +14,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = Field(default="HS256", alias="ALGORITHM")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
 
-    DATABASE_URL: str = Field(
-        default=f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'buckpow.db')}"
-    )
+    DATABASE_URL: str = Field(default=f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'buckpow.db')}")
 
     HOST: str = Field(default="0.0.0.0", alias="APP_HOST")
     PORT: int = Field(default=8000, alias="APP_PORT")

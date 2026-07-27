@@ -9,9 +9,7 @@ def utc_iso(dt):
     return dt.isoformat().replace("+00:00", "Z")
 
 
-def to_utc_date_bounds(
-    date_str: str, tz_offset: float = 0
-) -> tuple[datetime, datetime]:
+def to_utc_date_bounds(date_str: str, tz_offset: float = 0) -> tuple[datetime, datetime]:
     """Convert a local date string to naive UTC start/end boundaries.
 
     Given a YYYY-MM-DD in the user's local timezone, returns the UTC

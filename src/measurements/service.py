@@ -14,9 +14,7 @@ class MeasurementService:
     def __init__(self, db: DBSession):
         self.db = db
 
-    def create(
-        self, device_id_str, bus_voltage, shunt_voltage=0.0, current=0.0, power=0.0
-    ):
+    def create(self, device_id_str, bus_voltage, shunt_voltage=0.0, current=0.0, power=0.0):
         from src.alerts.service import AlertService
         from src.devices.service import DeviceService
         from src.sessions.service import SessionService
@@ -31,12 +29,7 @@ class MeasurementService:
         session = SessionService(self.db).get_active_session(device.id)
         session_id = session.id if session else None
 
-        last = (
-            self.db.query(Measurement)
-            .filter_by(device_id=device.id)
-            .order_by(Measurement.created_at.desc())
-            .first()
-        )
+        last = self.db.query(Measurement).filter_by(device_id=device.id).order_by(Measurement.created_at.desc()).first()
 
         inc = calc_energy_increment(power_w, device.sampling_interval)
 
@@ -77,9 +70,7 @@ class MeasurementService:
         end_date=None,
     ):
         fb = FilterBuilder(Measurement, self.db.query(Measurement))
-        fb.eq(device_id=device_id, session_id=session_id).date_range(
-            "created_at", start_date, end_date
-        )
+        fb.eq(device_id=device_id, session_id=session_id).date_range("created_at", start_date, end_date)
 
         if granularity and granularity in ("s", "m", "h", "d"):
             rows = fb.query.order_by(Measurement.created_at.asc()).all()
@@ -89,17 +80,11 @@ class MeasurementService:
                 if granularity == "s":
                     key = ts.replace(second=ts.second, microsecond=0).isoformat()
                 elif granularity == "m":
-                    key = ts.replace(
-                        minute=ts.minute, second=0, microsecond=0
-                    ).isoformat()
+                    key = ts.replace(minute=ts.minute, second=0, microsecond=0).isoformat()
                 elif granularity == "h":
-                    key = ts.replace(
-                        hour=ts.hour, minute=0, second=0, microsecond=0
-                    ).isoformat()
+                    key = ts.replace(hour=ts.hour, minute=0, second=0, microsecond=0).isoformat()
                 else:
-                    key = ts.replace(
-                        hour=0, minute=0, second=0, microsecond=0
-                    ).isoformat()
+                    key = ts.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
                 if key not in buckets:
                     buckets[key] = {
                         "voltage": [],
@@ -119,18 +104,12 @@ class MeasurementService:
             current = []
             power = []
             energy = []
-            keys = (
-                sorted(buckets.keys())[-limit:]
-                if len(buckets) > limit
-                else sorted(buckets.keys())
-            )
+            keys = sorted(buckets.keys())[-limit:] if len(buckets) > limit else sorted(buckets.keys())
             for k in keys:
                 b = buckets[k]
                 labels.append(k + "Z")
                 voltage.append(round(sum(b["voltage"]) / len(b["voltage"]), 3))
-                load_voltage.append(
-                    round(sum(b["load_voltage"]) / len(b["load_voltage"]), 3)
-                )
+                load_voltage.append(round(sum(b["load_voltage"]) / len(b["load_voltage"]), 3))
                 current.append(round(sum(b["current"]) / len(b["current"]), 3))
                 power.append(round(sum(b["power"]) / len(b["power"]), 3))
                 energy.append(round(b["energy"][-1], 6))
@@ -211,19 +190,14 @@ class MeasurementService:
             return None
 
         measurements = (
-            db.query(Measurement)
-            .filter_by(session_id=session_id)
-            .order_by(Measurement.created_at.asc())
-            .all()
+            db.query(Measurement).filter_by(session_id=session_id).order_by(Measurement.created_at.asc()).all()
         )
 
         if not measurements:
             return {
                 "session_id": session.id,
                 "session_name": session.name,
-                "device_name": session.device_ref.alias or session.device_ref.device_id
-                if session.device_ref
-                else None,
+                "device_name": session.device_ref.alias or session.device_ref.device_id if session.device_ref else None,
                 "avg_power": 0,
                 "peak_power": 0,
                 "total_energy": 0,
@@ -231,9 +205,7 @@ class MeasurementService:
                 "voltage_stddev": 0,
                 "duration": 0,
                 "measurement_count": 0,
-                "started_at": utc_iso(session.started_at)
-                if session.started_at
-                else None,
+                "started_at": utc_iso(session.started_at) if session.started_at else None,
                 "ended_at": utc_iso(session.ended_at) if session.ended_at else None,
             }
 
@@ -266,9 +238,7 @@ class MeasurementService:
         return {
             "session_id": session.id,
             "session_name": session.name,
-            "device_name": session.device_ref.alias or session.device_ref.device_id
-            if session.device_ref
-            else None,
+            "device_name": session.device_ref.alias or session.device_ref.device_id if session.device_ref else None,
             "avg_power": round(avg_power, 3),
             "peak_power": round(peak_power, 3),
             "total_energy": round(total_energy, 6),
@@ -290,16 +260,14 @@ class MeasurementService:
         end_date=None,
     ):
         fb = FilterBuilder(Measurement, self.db.query(Measurement))
-        fb.eq(device_id=device_id, session_id=session_id).date_range(
-            "created_at", start_date, end_date
-        ).order("created_at")
+        fb.eq(device_id=device_id, session_id=session_id).date_range("created_at", start_date, end_date).order(
+            "created_at"
+        )
         return fb.paginate(page, per_page)
 
-    def get_all_filtered(
-        self, device_id=None, session_id=None, start_date=None, end_date=None
-    ):
+    def get_all_filtered(self, device_id=None, session_id=None, start_date=None, end_date=None):
         fb = FilterBuilder(Measurement, self.db.query(Measurement))
-        fb.eq(device_id=device_id, session_id=session_id).date_range(
-            "created_at", start_date, end_date
-        ).order("created_at", desc=False)
+        fb.eq(device_id=device_id, session_id=session_id).date_range("created_at", start_date, end_date).order(
+            "created_at", desc=False
+        )
         return fb.query.all()

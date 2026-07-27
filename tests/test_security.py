@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-
 from src import app as fastapi_app
 from src.config import Settings, settings
 
@@ -29,8 +28,10 @@ class TestC1CORSConfig:
             },
         )
         # Should not include Access-Control-Allow-Origin for unknown origin
-        assert "access-control-allow-origin" not in resp.headers or \
-               resp.headers.get("access-control-allow-origin") != "https://evil.com"
+        assert (
+            "access-control-allow-origin" not in resp.headers
+            or resp.headers.get("access-control-allow-origin") != "https://evil.com"
+        )
 
 
 class TestC2JWTSecretRequired:
@@ -45,9 +46,9 @@ class TestC2JWTSecretRequired:
     def test_missing_jwt_secret_raises_validation_error(self):
         """Verify missing JWT_SECRET raises ValidationError."""
         from pydantic import ValidationError
-        with patch.dict(os.environ, {}, clear=True):
-            with pytest.raises(ValidationError):
-                Settings(_env_file=None)
+
+        with patch.dict(os.environ, {}, clear=True), pytest.raises(ValidationError):
+            Settings(_env_file=None)
 
 
 class TestC3NoHardcodedSecrets:
@@ -55,7 +56,7 @@ class TestC3NoHardcodedSecrets:
 
     def test_env_file_has_no_real_secrets(self):
         """Verify .env file does not contain actual production credentials."""
-        env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+        env_path = os.path.join(os.path.dirname(__file__), "..", ".env")
         if os.path.exists(env_path):
             with open(env_path) as f:
                 content = f.read()
@@ -72,24 +73,30 @@ class TestC4TokenNotInResponse:
 
     def test_login_response_excludes_token(self, unauth_client):
         """Verify login response does not contain token field."""
-        resp = unauth_client.post('/api/v1/auth/login', json={
-            'email': 'admin@example.com',
-            'password': 'password',
-        })
+        resp = unauth_client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": "admin@example.com",
+                "password": "password",
+            },
+        )
         assert resp.status_code == 200
         data = resp.json()
-        assert 'token' not in data
-        assert 'user' in data
+        assert "token" not in data
+        assert "user" in data
 
     def test_login_sets_httponly_cookie(self, unauth_client):
         """Verify login sets httponly cookie."""
-        resp = unauth_client.post('/api/v1/auth/login', json={
-            'email': 'admin@example.com',
-            'password': 'password',
-        })
+        resp = unauth_client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": "admin@example.com",
+                "password": "password",
+            },
+        )
         assert resp.status_code == 200
         cookies = resp.cookies
-        assert 'access_token' in cookies
+        assert "access_token" in cookies
 
 
 class TestC5DeviceKeyOwnerCheck:
@@ -97,14 +104,14 @@ class TestC5DeviceKeyOwnerCheck:
 
     def test_device_key_requires_auth(self, unauth_client):
         """Verify device key endpoint requires authentication."""
-        resp = unauth_client.get('/api/v1/devices/1/key')
+        resp = unauth_client.get("/api/v1/devices/1/key")
         assert resp.status_code == 401
 
     def test_device_key_returns_403_for_unowned(self, client, sample_device):
         """Verify device key returns 403 for device not owned by user."""
         # The client is authenticated as admin, but device has no project owner
         # _check_device_owner returns True when device has no project_id
-        resp = client.get(f'/api/v1/devices/{sample_device["id"]}/key')
+        resp = client.get(f"/api/v1/devices/{sample_device['id']}/key")
         # With current logic, device without project returns 200
         # This is acceptable for single-user setup
         assert resp.status_code in (200, 403)
@@ -115,30 +122,33 @@ class TestH1CSRFProtection:
 
     def test_csrf_token_in_base_template(self, client):
         """Verify CSRF token meta tag is in base template."""
-        resp = client.get('/')
+        resp = client.get("/")
         assert resp.status_code == 200
         html = resp.text
-        assert 'csrf-token' in html
-        assert 'X-CSRF-Token' in html
+        assert "csrf-token" in html
+        assert "X-CSRF-Token" in html
 
     def test_htmx_post_without_csrf_token_blocked(self):
         """Verify HTMX POST without CSRF token is blocked."""
         client = TestClient(fastapi_app)
         resp = client.post(
-            '/auth/logout',
+            "/auth/logout",
             headers={
-                'HX-Request': 'true',
-                'HX-Target': 'test',
+                "HX-Request": "true",
+                "HX-Target": "test",
             },
         )
         assert resp.status_code == 403
 
     def test_api_endpoints_exempt_from_csrf(self, unauth_client):
         """Verify API endpoints are exempt from CSRF (use Bearer auth)."""
-        resp = unauth_client.post('/api/v1/auth/login', json={
-            'email': 'admin@example.com',
-            'password': 'password',
-        })
+        resp = unauth_client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": "admin@example.com",
+                "password": "password",
+            },
+        )
         # API endpoints are exempt from CSRF (may fail auth, but not CSRF)
         assert resp.status_code in (200, 401)  # 401 if wrong password, but not 403 CSRF
 
@@ -150,25 +160,34 @@ class TestH2MySQLPasswordNotInCLI:
         """Verify MySQL backup uses MYSQL_PWD env var, not CLI arg."""
         mock_result = MagicMock()
         mock_result.returncode = 0
-        mock_result.stdout = b'mock dump'
+        mock_result.stdout = b"mock dump"
 
-        with patch('src.settings.router.shutil.which', return_value='/usr/bin/mysqldump'), \
-             patch('src.settings.router.subprocess.run', return_value=mock_result) as mock_run, \
-             patch('src.settings.router._parse_mysql_url', return_value={
-                 'host': 'localhost', 'port': 3306, 'dbname': 'test',
-                 'user': 'root', 'password': 'secretpass'
-             }):
+        with (
+            patch("src.settings.router.shutil.which", return_value="/usr/bin/mysqldump"),
+            patch("src.settings.router.subprocess.run", return_value=mock_result) as mock_run,
+            patch(
+                "src.settings.router._parse_mysql_url",
+                return_value={
+                    "host": "localhost",
+                    "port": 3306,
+                    "dbname": "test",
+                    "user": "root",
+                    "password": "secretpass",
+                },
+            ),
+        ):
             from src.settings.router import _backup_mysql
-            _backup_mysql('2025-01-01-000000')
+
+            _backup_mysql("2025-01-01-000000")
 
             call_kwargs = mock_run.call_args
-            env = call_kwargs.kwargs.get('env') or (call_kwargs[1].get('env') if len(call_kwargs) > 1 else None)
+            env = call_kwargs.kwargs.get("env") or (call_kwargs[1].get("env") if len(call_kwargs) > 1 else None)
             if env:
-                assert env.get('MYSQL_PWD') == 'secretpass'
+                assert env.get("MYSQL_PWD") == "secretpass"
 
-            cmd = call_kwargs.args[0] if call_kwargs.args else call_kwargs.kwargs.get('cmd')
+            cmd = call_kwargs.args[0] if call_kwargs.args else call_kwargs.kwargs.get("cmd")
             for arg in cmd:
-                assert 'secretpass' not in arg
+                assert "secretpass" not in arg
 
 
 class TestH3SanitizedErrorMessages:
@@ -182,16 +201,19 @@ class TestH3SanitizedErrorMessages:
         mock_result.returncode = 1
         mock_result.stderr = b'password authentication failed for user "admin"'
 
-        with patch('src.settings.router.shutil.which', return_value='/usr/bin/pg_dump'), \
-             patch('src.settings.router.subprocess.run', return_value=mock_result):
+        with (
+            patch("src.settings.router.shutil.which", return_value="/usr/bin/pg_dump"),
+            patch("src.settings.router.subprocess.run", return_value=mock_result),
+        ):
             from src.settings.router import _backup_postgresql
+
             try:
-                _backup_postgresql('2025-01-01-000000')
+                _backup_postgresql("2025-01-01-000000")
                 raise AssertionError("Should have raised")
             except HTTPException as e:
-                assert 'password' not in e.detail.lower()
-                assert 'authentication' not in e.detail.lower()
-                assert 'backup failed' in e.detail.lower()
+                assert "password" not in e.detail.lower()
+                assert "authentication" not in e.detail.lower()
+                assert "backup failed" in e.detail.lower()
 
     def test_mysqldump_error_hides_details(self):
         """Verify mysqldump error response doesn't expose stderr."""
@@ -201,15 +223,18 @@ class TestH3SanitizedErrorMessages:
         mock_result.returncode = 1
         mock_result.stderr = b'Access denied for user "root"@"localhost"'
 
-        with patch('src.settings.router.shutil.which', return_value='/usr/bin/mysqldump'), \
-             patch('src.settings.router.subprocess.run', return_value=mock_result):
+        with (
+            patch("src.settings.router.shutil.which", return_value="/usr/bin/mysqldump"),
+            patch("src.settings.router.subprocess.run", return_value=mock_result),
+        ):
             from src.settings.router import _backup_mysql
+
             try:
-                _backup_mysql('2025-01-01-000000')
+                _backup_mysql("2025-01-01-000000")
                 raise AssertionError("Should have raised")
             except HTTPException as e:
-                assert 'access denied' not in e.detail.lower()
-                assert 'backup failed' in e.detail.lower()
+                assert "access denied" not in e.detail.lower()
+                assert "backup failed" in e.detail.lower()
 
 
 class TestH4DeviceAuthDefault:
@@ -218,7 +243,6 @@ class TestH4DeviceAuthDefault:
     def test_device_auth_enabled_by_default(self):
         """Verify DEVICE_AUTH_ENABLED defaults to True."""
         # Check the field definition in Settings
-        from pydantic import Field
         fields = Settings.model_fields
         device_auth_field = fields["DEVICE_AUTH_ENABLED"]
         # Get the default value
@@ -227,7 +251,7 @@ class TestH4DeviceAuthDefault:
 
     def test_config_has_device_auth_field(self):
         """Verify config has DEVICE_AUTH_ENABLED field."""
-        assert hasattr(settings, 'DEVICE_AUTH_ENABLED')
+        assert hasattr(settings, "DEVICE_AUTH_ENABLED")
         assert isinstance(settings.DEVICE_AUTH_ENABLED, bool)
 
 
@@ -236,7 +260,7 @@ class TestH5AutoRegistrationLimit:
 
     def test_max_auto_devices_config_exists(self):
         """Verify MAX_AUTO_REGISTERED_DEVICES config exists."""
-        assert hasattr(settings, 'MAX_AUTO_REGISTERED_DEVICES')
+        assert hasattr(settings, "MAX_AUTO_REGISTERED_DEVICES")
         assert settings.MAX_AUTO_REGISTERED_DEVICES > 0
 
     def test_max_auto_devices_reasonable(self):
@@ -246,4 +270,5 @@ class TestH5AutoRegistrationLimit:
     def test_device_service_has_count_method(self):
         """Verify DeviceService has count method for limit checking."""
         from src.devices.service import DeviceService
-        assert hasattr(DeviceService, 'count')
+
+        assert hasattr(DeviceService, "count")

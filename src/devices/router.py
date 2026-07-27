@@ -98,9 +98,7 @@ def update_device(
     _current_user: RequiredUserDep,
 ):
     if not _check_device_owner(db, device_id, _current_user.id):
-        raise HTTPException(
-            status_code=403, detail="Not authorized to update this device"
-        )
+        raise HTTPException(status_code=403, detail="Not authorized to update this device")
     kwargs = {}
     for key in (
         "alias",
@@ -138,9 +136,7 @@ def get_device_key(
     _current_user: RequiredUserDep,
 ):
     if not _check_device_owner(db, device_id, _current_user.id):
-        raise HTTPException(
-            status_code=403, detail="Not authorized to access this device's API key"
-        )
+        raise HTTPException(status_code=403, detail="Not authorized to access this device's API key")
     device = db.get(Device, device_id)
     if not device or not device.api_key:
         raise HTTPException(status_code=404, detail="Device not found or no API key")
@@ -155,9 +151,7 @@ def toggle_device(
     _current_user: RequiredUserDep,
 ):
     if not _check_device_owner(db, device_id, _current_user.id):
-        raise HTTPException(
-            status_code=403, detail="Not authorized to toggle this device"
-        )
+        raise HTTPException(status_code=403, detail="Not authorized to toggle this device")
     device = DeviceService(db).toggle_enabled(device_id)
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
@@ -180,9 +174,7 @@ def regenerate_key(
     _current_user: RequiredUserDep,
 ):
     if not _check_device_owner(db, device_id, _current_user.id):
-        raise HTTPException(
-            status_code=403, detail="Not authorized to regenerate key for this device"
-        )
+        raise HTTPException(status_code=403, detail="Not authorized to regenerate key for this device")
     device = DeviceService(db).regenerate_api_key(device_id)
     if not device:
         raise HTTPException(status_code=404, detail="Device not found")
@@ -205,9 +197,7 @@ def delete_device(
     _current_user: RequiredUserDep,
 ):
     if not _check_device_owner(db, device_id, _current_user.id):
-        raise HTTPException(
-            status_code=403, detail="Not authorized to delete this device"
-        )
+        raise HTTPException(status_code=403, detail="Not authorized to delete this device")
     if DeviceService(db).delete(device_id):
         ip = get_client_ip(request)
         AuditService(db).log(

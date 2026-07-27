@@ -46,8 +46,7 @@ def receive_measurement(
             device_count = DeviceService(db).count()
             if device_count >= settings.MAX_AUTO_REGISTERED_DEVICES:
                 logger.warning(
-                    "Device auto-registration limit reached (%d/%d). "
-                    "Device '%s' rejected.",
+                    "Device auto-registration limit reached (%d/%d). Device '%s' rejected.",
                     device_count,
                     settings.MAX_AUTO_REGISTERED_DEVICES,
                     body.device_id,
@@ -200,11 +199,7 @@ def export_csv(
     if session_id:
         session = db.get(SessionModel, session_id)
         if session:
-            safe_name = (
-                "".join(c if c.isalnum() or c in " -_" else "" for c in session.name)
-                .strip()
-                .replace(" ", "_")
-            )
+            safe_name = "".join(c if c.isalnum() or c in " -_" else "" for c in session.name).strip().replace(" ", "_")
             filename = f"{safe_name}_report.csv"
     return Response(
         content=output.getvalue(),
@@ -266,9 +261,7 @@ def export_xlsx(
         ws.cell(row=i, column=7, value=m.current)
         ws.cell(row=i, column=8, value=m.power)
         ws.cell(row=i, column=9, value=m.energy)
-        ws.cell(
-            row=i, column=10, value=m.created_at.isoformat() if m.created_at else ""
-        )
+        ws.cell(row=i, column=10, value=m.created_at.isoformat() if m.created_at else "")
 
     for col in range(1, len(headers) + 1):
         max_len = 0

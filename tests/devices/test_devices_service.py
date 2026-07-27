@@ -6,24 +6,21 @@ from src.devices.service import DeviceService
 
 
 class TestDeviceService:
-
     def _db(self, app):
 
         return SessionLocal()
-
-
 
     def test_create_device(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-svc-1', alias='Svc Device')
+        d = DeviceService(db).create("esp32-svc-1", alias="Svc Device")
 
         assert d.id is not None
 
-        assert d.device_id == 'esp32-svc-1'
+        assert d.device_id == "esp32-svc-1"
 
-        assert d.alias == 'Svc Device'
+        assert d.alias == "Svc Device"
 
         assert d.enabled is True
 
@@ -31,39 +28,33 @@ class TestDeviceService:
 
         db.close()
 
-
-
     def test_get_by_device_id(self, app):
 
         db = self._db(app)
 
-        DeviceService(db).create('esp32-find')
+        DeviceService(db).create("esp32-find")
 
-        d = DeviceService(db).get_by_device_id('esp32-find')
+        d = DeviceService(db).get_by_device_id("esp32-find")
 
         assert d is not None
 
         db.close()
 
-
-
     def test_get_by_device_id_not_found(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).get_by_device_id('nonexistent')
+        d = DeviceService(db).get_by_device_id("nonexistent")
 
         assert d is None
 
         db.close()
 
-
-
     def test_get_by_api_key(self, app):
 
         db = self._db(app)
 
-        device = DeviceService(db).create('esp32-key')
+        device = DeviceService(db).create("esp32-key")
 
         found = DeviceService(db).get_by_api_key(device.api_key)
 
@@ -73,79 +64,67 @@ class TestDeviceService:
 
         db.close()
 
-
-
     def test_get_by_api_key_invalid(self, app):
 
         db = self._db(app)
 
-        found = DeviceService(db).get_by_api_key('invalid-key')
+        found = DeviceService(db).get_by_api_key("invalid-key")
 
         assert found is None
 
         db.close()
 
-
-
     def test_get_or_create_existing(self, app):
 
         db = self._db(app)
 
-        DeviceService(db).create('esp32-goc')
+        DeviceService(db).create("esp32-goc")
 
-        d = DeviceService(db).get_or_create('esp32-goc')
+        d = DeviceService(db).get_or_create("esp32-goc")
 
-        assert d.device_id == 'esp32-goc'
+        assert d.device_id == "esp32-goc"
 
         db.close()
-
-
 
     def test_get_or_create_new(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).get_or_create('esp32-new')
+        d = DeviceService(db).get_or_create("esp32-new")
 
-        assert d.device_id == 'esp32-new'
+        assert d.device_id == "esp32-new"
 
         db.close()
-
-
 
     def test_touch(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-touch')
+        d = DeviceService(db).create("esp32-touch")
 
         assert d.last_seen is None
 
-        DeviceService(db).touch('esp32-touch')
+        DeviceService(db).touch("esp32-touch")
 
         assert d.last_seen is not None
 
         db.close()
 
-
-
     def test_touch_nonexistent(self, app):
 
         db = self._db(app)
 
-        result = DeviceService(db).touch('nonexistent')
+        result = DeviceService(db).touch("nonexistent")
 
         assert result is None
 
         db.close()
 
-
-
     def test_regenerate_api_key(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-reg')
+        d = DeviceService(db).create("esp32-reg")
 
         old_key = d.api_key
 
@@ -154,8 +133,6 @@ class TestDeviceService:
         assert d.api_key != old_key
 
         db.close()
-
-
 
     def test_regenerate_api_key_nonexistent(self, app):
 
@@ -167,13 +144,11 @@ class TestDeviceService:
 
         db.close()
 
-
-
     def test_toggle_enabled(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-toggle')
+        d = DeviceService(db).create("esp32-toggle")
 
         assert d.enabled is True
 
@@ -187,8 +162,6 @@ class TestDeviceService:
 
         db.close()
 
-
-
     def test_toggle_enabled_nonexistent(self, app):
 
         db = self._db(app)
@@ -199,13 +172,11 @@ class TestDeviceService:
 
         db.close()
 
-
-
     def test_delete(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-del')
+        d = DeviceService(db).create("esp32-del")
 
         did = d.id
 
@@ -215,8 +186,6 @@ class TestDeviceService:
 
         db.close()
 
-
-
     def test_delete_nonexistent(self, app):
 
         db = self._db(app)
@@ -225,53 +194,45 @@ class TestDeviceService:
 
         db.close()
 
-
-
     def test_get_online_status_offline_no_last_seen(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-stat')
+        d = DeviceService(db).create("esp32-stat")
 
-        assert DeviceService.get_online_status(d) == 'offline'
+        assert DeviceService.get_online_status(d) == "offline"
 
         db.close()
-
-
 
     def test_get_online_status_online(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-stat-on')
+        d = DeviceService(db).create("esp32-stat-on")
 
         d.last_seen = datetime.now(UTC)
 
-        assert DeviceService.get_online_status(d) == 'online'
+        assert DeviceService.get_online_status(d) == "online"
 
         db.close()
-
-
 
     def test_get_online_status_expired(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-stat-off')
+        d = DeviceService(db).create("esp32-stat-off")
 
         d.last_seen = datetime.now(UTC) - timedelta(seconds=180)
 
-        assert DeviceService.get_online_status(d) == 'offline'
+        assert DeviceService.get_online_status(d) == "offline"
 
         db.close()
-
-
 
     def test_get_online_status_naive_datetime(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-stat-naive')
+        d = DeviceService(db).create("esp32-stat-naive")
 
         d.last_seen = datetime.now()
 
@@ -281,77 +242,62 @@ class TestDeviceService:
 
         status = DeviceService.get_online_status(d)
 
-        assert status in ('online', 'offline')
+        assert status in ("online", "offline")
 
         db.close()
 
-
-
     def test_masked_api_key_short(self, app):
 
+        d = Device(device_id="esp32-short", api_key="abcd1234")
 
-        d = Device(device_id='esp32-short', api_key='abcd1234')
-
-        assert d._masked_api_key() == 'abcd****'
-
-
+        assert d._masked_api_key() == "abcd****"
 
     def test_update(self, app):
 
         db = self._db(app)
 
-        d = DeviceService(db).create('esp32-upd')
+        d = DeviceService(db).create("esp32-upd")
 
-        DeviceService(db).update(d.id, alias='Updated', description='Desc')
+        DeviceService(db).update(d.id, alias="Updated", description="Desc")
 
-        assert d.alias == 'Updated'
+        assert d.alias == "Updated"
 
-        assert d.description == 'Desc'
+        assert d.description == "Desc"
 
         db.close()
-
-
 
     def test_update_nonexistent(self, app):
 
         db = self._db(app)
 
-        result = DeviceService(db).update(99999, alias='Ghost')
+        result = DeviceService(db).update(99999, alias="Ghost")
 
         assert result is None
 
         db.close()
 
-
-
     def test_get_all(self, app):
 
         db = self._db(app)
 
-        DeviceService(db).create('esp32-all-a')
+        DeviceService(db).create("esp32-all-a")
 
-        DeviceService(db).create('esp32-all-b')
+        DeviceService(db).create("esp32-all-b")
 
         assert len(DeviceService(db).get_all()) >= 2
 
         db.close()
 
-
-
     def test_get_paginated(self, app):
 
         from sqlalchemy import insert
 
-
         db = self._db(app)
 
-        db.execute(insert(Device), [
-
-            {'device_id': f'esp32-page-{i}', 'api_key': DeviceService.generate_api_key()}
-
-            for i in range(5)
-
-        ])
+        db.execute(
+            insert(Device),
+            [{"device_id": f"esp32-page-{i}", "api_key": DeviceService.generate_api_key()} for i in range(5)],
+        )
 
         db.commit()
 
@@ -362,8 +308,3 @@ class TestDeviceService:
         assert p.total >= 5
 
         db.close()
-
-
-
-
-

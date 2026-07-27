@@ -27,17 +27,13 @@ class Session(Base):
     )
 
     device_ref = relationship("Device", back_populates="sessions")
-    measurements = relationship(
-        "Measurement", back_populates="session_ref", lazy="dynamic"
-    )
+    measurements = relationship("Measurement", back_populates="session_ref", lazy="dynamic")
 
     def to_dict(self):
         return {
             "id": self.id,
             "device_id": self.device_id,
-            "device_name": self.device_ref.alias or self.device_ref.device_id
-            if self.device_ref
-            else None,
+            "device_name": self.device_ref.alias or self.device_ref.device_id if self.device_ref else None,
             "name": self.name,
             "target_device": self.target_device,
             "description": self.description,

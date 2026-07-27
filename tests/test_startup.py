@@ -32,12 +32,14 @@ assert config_obj.DATABASE_URL is not None
 print('OK')
 """
         result = subprocess.run(
-            [sys.executable, '-c', code],
-            capture_output=True, text=True, timeout=10,
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         if result.returncode != 0:
-            raise AssertionError(f'App import failed:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}')
-        assert result.stdout.strip() == 'OK'
+            raise AssertionError(f"App import failed:\nSTDOUT: {result.stdout}\nSTDERR: {result.stderr}")
+        assert result.stdout.strip() == "OK"
 
     def test_api_docs_disabled_with_env_var(self):
         code = """
@@ -65,40 +67,46 @@ assert _app.openapi_url is None
 print('OK')
 """
         result = subprocess.run(
-            [sys.executable, '-c', code],
-            capture_output=True, text=True, timeout=30,
+            [sys.executable, "-c", code],
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
         if result.returncode != 0:
-            raise AssertionError(f'Subprocess failed:\n{result.stderr}')
-        assert result.stdout.strip() == 'OK'
+            raise AssertionError(f"Subprocess failed:\n{result.stderr}")
+        assert result.stdout.strip() == "OK"
 
     def test_fastapi_run_command_starts(self):
         proc = subprocess.Popen(
-            [sys.executable, '-m', 'fastapi', 'run', 'src/main.py', '--port', '8899'],
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            [sys.executable, "-m", "fastapi", "run", "src/main.py", "--port", "8899"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         try:
             deadline = time.monotonic() + 5.0
             while time.monotonic() < deadline:
                 time.sleep(0.2)
                 import socket
+
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 try:
-                    s.connect(('127.0.0.1', 8899))
+                    s.connect(("127.0.0.1", 8899))
                     s.close()
                     break
                 except (ConnectionRefusedError, OSError):
                     s.close()
             else:
                 proc.kill()
-                raise AssertionError('Server did not start within 5s')
+                raise AssertionError("Server did not start within 5s")
 
             import urllib.request
-            resp = urllib.request.urlopen('http://127.0.0.1:8899/api/v1/health', timeout=5)
+
+            resp = urllib.request.urlopen("http://127.0.0.1:8899/api/v1/health", timeout=5)
             import json
+
             data = json.loads(resp.read())
-            assert data['status'] == 'ok'
-            assert data['version'] == APP_VERSION
+            assert data["status"] == "ok"
+            assert data["version"] == APP_VERSION
         finally:
             proc.kill()
             proc.wait()

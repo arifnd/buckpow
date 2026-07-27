@@ -16,9 +16,7 @@ def login_page(current_user: CurrentUserDep, db: DbDep):
     user = db.query(User).first()
     if user and user.settings and user.settings.get("brand"):
         brand = user.settings["brand"]
-    return HTMLResponse(
-        _render("auth/login.html", current_user=current_user, brand_name=brand)
-    )
+    return HTMLResponse(_render("auth/login.html", current_user=current_user, brand_name=brand))
 
 
 @router.post("/auth/logout")

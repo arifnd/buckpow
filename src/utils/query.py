@@ -54,6 +54,4 @@ class FilterBuilder:
         total = self.query.count()
         items = self.query.offset(offset).limit(per_page).all()
         pages = (total + per_page - 1) // per_page if total > 0 else 1
-        return PaginatedResult(
-            items=items, page=page, pages=pages, total=total, per_page=per_page
-        )
+        return PaginatedResult(items=items, page=page, pages=pages, total=total, per_page=per_page)
