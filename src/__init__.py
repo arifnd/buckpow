@@ -12,7 +12,7 @@ from src import database as db_module
 from src.config import settings as config
 from src.dashboard import dashboard_router
 from src.database import Base
-from src.middleware import RateLimiterMiddleware, bearer_token_key
+from src.middleware import CSRFMiddleware, RateLimiterMiddleware, bearer_token_key
 from src.router import api_router
 from src.version import APP_VERSION as APP_VERSION
 from src.version import MIN_FIRMWARE_VERSION as MIN_FIRMWARE_VERSION
@@ -27,6 +27,13 @@ async def lifespan(app: FastAPI):
     )
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
+
+    if not config.DEVICE_AUTH_ENABLED:
+        logger.warning(
+            "SECURITY WARNING: DEVICE_AUTH_ENABLED is false. "
+            "Unauthenticated device measurements are allowed. "
+            "Enable device authentication in production."
+        )
 
     if "sqlite" in config.DATABASE_URL:
         db_path = db_module.engine.url.database
@@ -99,6 +106,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(CSRFMiddleware, secret_key=config.JWT_SECRET)
 
 app.mount("/static", StaticFiles(directory="src/static"), name="static")
 

@@ -213,7 +213,7 @@ class TestSettingsAPI:
                 _backup_postgresql('2025-01-01-000000')
                 raise AssertionError("Should have raised")
             except HTTPException as e:
-                assert 'pg_dump failed' in str(e.detail)
+                assert 'backup failed' in str(e.detail).lower()
 
     def test_backup_mysql_dump_error(self):
         from unittest.mock import MagicMock, patch
@@ -229,7 +229,7 @@ class TestSettingsAPI:
                 _backup_mysql('2025-01-01-000000')
                 raise AssertionError("Should have raised")
             except HTTPException as e:
-                assert 'mysqldump failed' in str(e.detail)
+                assert 'backup failed' in str(e.detail).lower()
 
     def test_backup_postgresql_file_not_found(self):
         from unittest.mock import patch

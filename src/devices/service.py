@@ -20,6 +20,9 @@ class DeviceService:
             .all()
         )
 
+    def count(self):
+        return self.db.query(Device).count()
+
     def get_paginated(self, page=1, per_page=10):
         q = (
             self.db.query(Device)

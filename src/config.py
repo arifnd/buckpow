@@ -34,6 +34,7 @@ class Settings(BaseSettings):
         default=["http://localhost:8000", "http://127.0.0.1:8000"],
         alias="ALLOWED_ORIGINS",
     )
+    MAX_AUTO_REGISTERED_DEVICES: int = Field(default=50, alias="MAX_AUTO_REGISTERED_DEVICES")
 
     DEBUG: bool = Field(default=True, exclude=True)
 
