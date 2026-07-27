@@ -137,6 +137,10 @@ def get_device_key(
     db: DbDep,
     _current_user: RequiredUserDep,
 ):
+    if not _check_device_owner(db, device_id, _current_user.id):
+        raise HTTPException(
+            status_code=403, detail="Not authorized to access this device's API key"
+        )
     device = db.get(Device, device_id)
     if not device or not device.api_key:
         raise HTTPException(status_code=404, detail="Device not found or no API key")

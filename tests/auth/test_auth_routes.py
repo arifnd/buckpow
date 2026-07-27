@@ -8,7 +8,7 @@ class TestAuthAPI:
         data = resp.json()
         assert data['status'] == 'ok'
         assert data['user']['email'] == 'admin@example.com'
-        assert 'token' in data
+        assert 'token' not in data  # token should not be in response body
 
     def test_login_wrong_password(self, unauth_client):
         resp = unauth_client.post('/api/v1/auth/login', json={

@@ -34,7 +34,7 @@ def login(
     )
     ip = get_client_ip(request)
     AuditService(db).log("login", user_id=user.id, ip_address=ip)
-    return {"status": "ok", "user": user.to_dict(), "token": token}
+    return {"status": "ok", "user": user.to_dict()}
 
 
 @router.post("/auth/logout")

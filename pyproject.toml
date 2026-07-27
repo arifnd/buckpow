@@ -49,6 +49,7 @@ pythonpath = ["."]
 [tool.pytest_env]
 DATABASE_URL = "sqlite://"
 BCRYPT_ROUNDS = "4"
+JWT_SECRET = "test-secret-key-for-testing-only-32chars"
 
 [tool.fastapi]
 entrypoint = "src:app"
