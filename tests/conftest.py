@@ -41,6 +41,28 @@ def override_get_db():
 fastapi_app.dependency_overrides[get_db] = override_get_db
 
 
+def _clear_rate_limiter():
+    """Clear rate limiter state between tests to avoid 429 errors."""
+    try:
+        mw = fastapi_app.middleware_stack
+        while hasattr(mw, "app"):
+            from src.middleware.rate_limiter import RateLimiterMiddleware
+
+            if isinstance(mw, RateLimiterMiddleware):
+                mw.requests.clear()
+                break
+            mw = mw.app
+    except Exception:
+        pass
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    _clear_rate_limiter()
+    yield
+    _clear_rate_limiter()
+
+
 @pytest.fixture(autouse=True)
 def reset_db():
     yield
