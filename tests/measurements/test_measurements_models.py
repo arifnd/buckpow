@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.database import SessionLocal
 from src.devices.models import Device
@@ -73,13 +73,13 @@ class TestMeasurementModel:
         d = Device(device_id='esp32-meas-ts')
         db.add(d)
         db.flush()
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         m = Measurement(device_id=d.id, bus_voltage=5.0, shunt_voltage=80.0,
                         load_voltage=5.08, current=0.24, power=1.2)
         db.add(m)
         db.commit()
-        after = datetime.now(timezone.utc)
-        assert before <= m.created_at.replace(tzinfo=timezone.utc) <= after
+        after = datetime.now(UTC)
+        assert before <= m.created_at.replace(tzinfo=UTC) <= after
         db.close()
 
 

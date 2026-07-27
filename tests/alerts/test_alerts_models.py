@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.alerts.models import Alert
 from src.database import SessionLocal
@@ -44,7 +44,7 @@ class TestAlertModel:
         db.add(d)
         db.flush()
         a = Alert(device_id=d.id, level='info', message='Resolved',
-                  resolved_at=datetime.now(timezone.utc))
+                  resolved_at=datetime.now(UTC))
         db.add(a)
         db.commit()
         data = a.to_dict()

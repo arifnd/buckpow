@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import (
     Boolean,
@@ -36,11 +36,11 @@ class Device(Base):
     high_current_threshold = Column(Float, nullable=True)
     high_power_threshold = Column(Float, nullable=True)
     low_voltage_threshold = Column(Float, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     updated_at = Column(
         DateTime,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
 
     sessions = relationship("Session", back_populates="device_ref", lazy="dynamic")
@@ -53,8 +53,8 @@ class Device(Base):
             return "offline"
         last = self.last_seen
         if last.tzinfo is None:
-            last = last.replace(tzinfo=timezone.utc)
-        if datetime.now(timezone.utc) - last < timedelta(seconds=ONLINE_TIMEOUT):
+            last = last.replace(tzinfo=UTC)
+        if datetime.now(UTC) - last < timedelta(seconds=ONLINE_TIMEOUT):
             return "online"
         return "offline"
 

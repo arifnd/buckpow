@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from src.database import SessionLocal
 from src.devices.models import Device
@@ -50,7 +50,7 @@ class TestSessionModel:
         d = Device(device_id='esp32-ts')
         db.add(d)
         db.flush()
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         s = Session(device_id=d.id, name='Running', status='running',
                     started_at=now, ended_at=now + timedelta(hours=1))
         db.add(s)
@@ -72,12 +72,12 @@ class TestSessionModel:
         d = Device(device_id='esp32-sess-ts')
         db.add(d)
         db.flush()
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         s = Session(device_id=d.id, name='TS Session')
         db.add(s)
         db.commit()
-        after = datetime.now(timezone.utc)
-        assert before <= s.created_at.replace(tzinfo=timezone.utc) <= after
+        after = datetime.now(UTC)
+        assert before <= s.created_at.replace(tzinfo=UTC) <= after
         db.close()
 
     def test_session_updated_at_updates_on_change(self, app):

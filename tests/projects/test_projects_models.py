@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.auth.models import User
 from src.database import SessionLocal
@@ -77,12 +77,12 @@ class TestProjectModel:
 
     def test_created_at_is_recent(self, app):
         db = SessionLocal()
-        before = datetime.now(timezone.utc)
+        before = datetime.now(UTC)
         p = Project(name='TS Project')
         db.add(p)
         db.commit()
-        after = datetime.now(timezone.utc)
-        assert before <= p.created_at.replace(tzinfo=timezone.utc) <= after
+        after = datetime.now(UTC)
+        assert before <= p.created_at.replace(tzinfo=UTC) <= after
         db.close()
 
     def test_updated_at_updates_on_change(self, app):

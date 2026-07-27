@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import relationship
@@ -17,7 +17,7 @@ class AuditLog(Base):
     target_id = Column(Integer, nullable=True)
     details = Column(JSON, nullable=True)
     ip_address = Column(String(45), nullable=True)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.now(UTC))
 
     user = relationship("User", backref="audit_logs", lazy="select")
 

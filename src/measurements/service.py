@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy.orm import selectinload
@@ -255,13 +255,13 @@ class MeasurementService:
         started_at = session.started_at
         ended_at = session.ended_at
         if started_at and started_at.tzinfo is None:
-            started_at = started_at.replace(tzinfo=timezone.utc)
+            started_at = started_at.replace(tzinfo=UTC)
         if ended_at and ended_at.tzinfo is None:
-            ended_at = ended_at.replace(tzinfo=timezone.utc)
+            ended_at = ended_at.replace(tzinfo=UTC)
         if started_at and ended_at:
             duration = (ended_at - started_at).total_seconds()
         elif started_at:
-            duration = (datetime.now(timezone.utc) - started_at).total_seconds()
+            duration = (datetime.now(UTC) - started_at).total_seconds()
 
         return {
             "session_id": session.id,

@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
@@ -36,7 +36,7 @@ class AlertService:
         alert = self.db.get(Alert, alert_id)
         if not alert:
             return None
-        alert.resolved_at = datetime.now(timezone.utc)
+        alert.resolved_at = datetime.now(UTC)
         self.db.commit()
         return alert
 
@@ -45,7 +45,7 @@ class AlertService:
             Alert, self.db.query(Alert).filter(Alert.resolved_at.is_(None))
         )
         fb.eq(device_id=device_id)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for alert in fb.query.all():
             alert.resolved_at = now
         self.db.commit()
@@ -78,12 +78,12 @@ class AlertService:
             return {}
 
     def generate_alerts(self, device, bus_voltage, current, power):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         if device.last_seen:
             last = device.last_seen
             if last.tzinfo is None:
-                last = last.replace(tzinfo=timezone.utc)
+                last = last.replace(tzinfo=UTC)
             if now - last > timedelta(seconds=settings.DEVICE_ONLINE_TIMEOUT):
                 if not self._has_unresolved(device.id, "Device offline"):
                     self.create(

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Index, Integer
 from sqlalchemy.orm import relationship
@@ -19,7 +19,7 @@ class Measurement(Base):
     current = Column(Float, nullable=False)
     power = Column(Float, nullable=False)
     energy = Column(Float, default=0.0)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
 
     __table_args__ = (
         Index("idx_measurement_device_time", "device_id", "created_at"),
