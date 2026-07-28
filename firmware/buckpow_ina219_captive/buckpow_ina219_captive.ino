@@ -321,7 +321,8 @@ void startStatusPage() {
 void sendLocalIp() {
   if (WiFi.status() != WL_CONNECTED || ipReported) return;
 
-  StaticJsonDocument<96> doc;
+  StaticJsonDocument<160> doc;
+  doc["device_id"] = config.nodeId;
   doc["local_ip"] = WiFi.localIP().toString();
 
   String url = String(config.serverUrl) + "/api/v1/devices/local-ip";
