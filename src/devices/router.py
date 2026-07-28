@@ -17,6 +17,7 @@ router = APIRouter()
 
 
 class LocalIpUpdate(AppBaseModel):
+    device_id: str = Field(min_length=1, max_length=64)
     local_ip: str = Field(min_length=1, max_length=45)
 
 
@@ -218,7 +219,9 @@ def update_local_ip(
     device: Annotated[Device | None, Depends(get_api_key_device)],
 ):
     if device is None:
-        raise HTTPException(status_code=401, detail="Device authentication required")
+        device = DeviceService(db).get_by_device_id(body.device_id)
+        if not device:
+            raise HTTPException(status_code=404, detail="Device not found")
     device.local_ip = body.local_ip
     db.commit()
     return {"status": "ok", "local_ip": device.local_ip}

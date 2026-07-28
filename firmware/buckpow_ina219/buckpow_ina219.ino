@@ -109,7 +109,8 @@ bool connectWiFi() {
 void sendLocalIp() {
   if (WiFi.status() != WL_CONNECTED || ipReported) return;
 
-  StaticJsonDocument<96> doc;
+  StaticJsonDocument<160> doc;
+  doc["device_id"] = NODE_ID;
   doc["local_ip"] = WiFi.localIP().toString();
 
   String url = String(API_BASE) + "/api/v1/devices/local-ip";
