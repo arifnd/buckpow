@@ -1,2 +1,2 @@
-APP_VERSION = "0.1.0-beta.4"
+APP_VERSION = "0.1.0-beta.5"
 MIN_FIRMWARE_VERSION = "1.0.0"
