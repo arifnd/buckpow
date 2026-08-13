@@ -78,12 +78,13 @@ All pages extend `base.html` which provides:
 ### Head Section
 
 ```html
+<!-- Compiled stylesheet -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+
 <!-- CDN dependencies -->
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/htmx.org@2.0.4"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/iconify-icon@2.1.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/flowbite-datepicker@1.3.1"></script>
+<script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
 
 <!-- User settings for JS -->
 <script>
@@ -122,15 +123,16 @@ All pages extend `base.html` which provides:
 
 ## HTMX Integration
 
-### SPA-Like Navigation
+### CSRF Handling
 
-The `<body>` tag uses `hx-boost="true"` for automatic page transitions:
+HTMX is wired up once in `base.html` to attach the CSRF token to every request:
 
 ```html
-<body hx-boost="true">
-  <!-- All links load pages without full refresh -->
-  <a href="/devices">Devices</a>
-</body>
+<script>
+  htmx.on('htmx:configRequest', function(evt) {
+    evt.detail.headers['X-CSRF-Token'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  });
+</script>
 ```
 
 ### API Polling
@@ -277,26 +279,32 @@ function formatRelativeTime(isoString) {
 }
 ```
 
-## Iconify Icons
+## Inline SVG Icons
 
-Icons use the `<iconify-icon>` web component:
+Icons use inline SVG with heroicons v2 outline paths (24×24, `stroke-width="1.5"`), sized with Tailwind `w-*`/`h-*` classes:
 
 ```html
-<iconify-icon icon="heroicons-outline:home" width="20" height="20"></iconify-icon>
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"></path>
+</svg>
 ```
+
+Brand icons that need a filled appearance (e.g. the GitHub footer icon) use `fill="currentColor"` with no `stroke`.
 
 ### Navigation Icons
 
-| Page | Icon |
-|------|------|
-| Dashboard | `heroicons-outline:home` |
-| Devices | `heroicons-outline:cpu-chip` |
-| Sessions | `heroicons-outline:clock` |
-| Projects | `heroicons-outline:folder-open` |
-| Measurements | `heroicons-outline:chart-pie` |
-| Benchmark | `heroicons-outline:scale` |
-| Alerts | `heroicons-outline:bell` |
-| Audit | `heroicons-outline:clipboard-list` |
+Sidebar navigation icons are defined in the `nav_icons` map in `base.html`, keyed by name:
+
+| Page | Icon key | Heroicon |
+|------|----------|----------|
+| Dashboard | `home` | home |
+| Devices | `cpu-chip` | cpu-chip |
+| Sessions | `clock` | clock |
+| Projects | `folder-open` | folder-open |
+| Measurements | `chart-pie` | chart-pie |
+| Benchmark | `scale` | scale |
+| Alerts | `bell` | bell |
+| Audit | `clipboard-list` | clipboard-list |
 
 ## Responsive Design
 
@@ -309,12 +317,21 @@ Icons use the `<iconify-icon>` web component:
 
 ### Mobile Sidebar
 
-```javascript
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  sidebar.classList.toggle('-translate-x-full');
-}
+The off-canvas sidebar is toggled with Alpine.js state on the `<body>`:
+
+```html
+<body x-data="{ sidebarOpen: false }">
+  <aside
+    x-cloak
+    x-bind:class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+    class="fixed ... w-72 md:!translate-x-0">
+    ...
+  </aside>
+  <button @click="sidebarOpen = !sidebarOpen">...</button>
+</body>
 ```
+
+The `md:!translate-x-0` important variant keeps the sidebar visible on desktop; `x-cloak` prevents a flash before Alpine initializes.
 
 ### Responsive Utilities
 
@@ -328,30 +345,24 @@ function toggleSidebar() {
 
 ## Custom CSS
 
-Add custom styles to the Tailwind source at `resources/css/app.css`, then rebuild with `npm run build:css`. The compiled output is served at `static/css/app.css`:
+Add custom styles to the Tailwind source at `resources/css/app.css`, then rebuild with `npm run build:css` (or `npm run watch:css` during development). The compiled output is served at `static/css/app.css`:
 
 ```css
 /* resources/css/app.css */
-html {
-  font-size: 17px;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@layer components {
-  .chart-container {
-    position: relative;
-    height: 220px;
-  }
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-thumb {
-  background: #30363d;
-  border-radius: 4px;
-}
+/* Custom components/overrides go here */
 ```
+
+Chart canvases are sized with utility classes directly on the wrapper — no custom CSS class needed:
+
+```html
+<div class="relative h-[220px]"><canvas id="voltageChart"></canvas></div>
+```
+
+> The compiled `static/css/app.css` must be committed — it is generated by Tailwind's JIT from the classes found in `templates/**/*.html` and `static/js/**/*.js`.
 
 ## Adding a New Page
 
@@ -409,9 +420,9 @@ All frontend libraries are loaded from CDN:
 
 ### HTMX Optimization
 
-- `hx-boost="true"` enables SPA-like transitions
-- Only the `<main>` content is swapped (not the full page)
-- JavaScript re-initializes via `htmx:afterSettle` event
+- The CSRF token is injected on every request via `htmx:configRequest`
+- Interactive UI (sidebar, dropdowns, theme submenu) is handled by Alpine.js
+- JavaScript re-initializes via `htmx:afterSwap`/`htmx:afterSettle` events
 
 ### Chart Updates
 

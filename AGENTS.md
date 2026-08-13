@@ -590,9 +590,10 @@ curl -X POST http://localhost:8000/api/v1/measurements \
 - **Pagination** — `PaginatedResult` dataclass in `src/utils/pagination.py` used by all services
 - **Middleware** — ASGI middleware in `src/middleware/` (rate limiter with sliding window)
 - **Config** — `pydantic-settings` BaseSettings with env var loading and type validation
-- **HTMX navigation** — `hx-boost="true"` on `<body>` for SPA-like page transitions with native `<script>` re-evaluation
-- **Tailwind CSS** — Utility-first styling with dark theme via CSS variables
-- **Flowbite Datepicker** — Used on measurements filter page for date range selection
+- **HTMX** — AJAX-driven updates with CSRF token injected via `htmx:configRequest`
+- **Alpine.js** — sidebar toggle, user dropdown, and theme submenu state
+- **Tailwind CSS** — compiled from `resources/css/app.css` via `npm run build:css`, served at `static/css/app.css`, dark mode via class
+- **Icons** — inline SVG (heroicons), no icon library
 - **Device auto-registration** — unknown device IDs create devices automatically
 - **Device local IP** — firmware reports IP once via `PATCH /api/v1/devices/local-ip` after connecting
 - **Session auto-assignment** — new measurements assigned to running session (if any)

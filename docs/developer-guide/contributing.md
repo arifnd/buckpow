@@ -179,9 +179,9 @@ def list_devices(
 ### Templates
 
 - Extend `base.html`
-- Use Tailwind CSS classes
-- Use HTMX for interactivity
-- Use `<iconify-icon>` for icons
+- Use Tailwind CSS utility classes (compiled from `resources/css/app.css`)
+- Use HTMX for interactivity and Alpine.js for dropdowns/sidebar state
+- Use inline SVG icons (heroicons) — see `docs/developer-guide/frontend.md`
 
 ## Testing
 

@@ -320,22 +320,25 @@ class DeviceService:
 ### Server-Rendered Pages
 
 - **Engine**: Jinja2 templates
-- **Navigation**: HTMX `hx-boost` for SPA-like transitions
-- **Styling**: Tailwind CSS with dark mode
+- **Navigation**: HTMX for AJAX-driven UI updates; full page loads for navigation
+- **Styling**: Compiled Tailwind CSS with dark mode
 - **Charts**: Chart.js with real-time updates
 
 ### HTMX Pattern
 
-```html
-<body hx-boost="true">
-  <!-- Navigation links load pages without full refresh -->
-  <a href="/devices">Devices</a>
+HTMX is configured once in `base.html` to attach the CSRF token to every request, and components update specific elements without full page loads:
 
-  <!-- API calls update specific elements -->
-  <div hx-get="/api/v1/dashboard" hx-trigger="every 5s">
-    <!-- Dashboard content -->
-  </div>
-</body>
+```html
+<script>
+  htmx.on('htmx:configRequest', function(evt) {
+    evt.detail.headers['X-CSRF-Token'] = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+  });
+</script>
+
+<!-- API calls update specific elements -->
+<div hx-get="/api/v1/dashboard" hx-trigger="every 5s">
+  <!-- Dashboard content -->
+</div>
 ```
 
 ### JavaScript Modules
