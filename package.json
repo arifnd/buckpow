@@ -1,7 +1,7 @@
 {
   "name": "buckpow",
   "private": true,
-  "version": "0.1.0-beta.5",
+  "version": "0.1.0-beta.6",
   "scripts": {
     "build:css": "tailwindcss -i ./resources/css/app.css -o ./static/css/app.css --minify",
     "watch:css": "tailwindcss -i ./resources/css/app.css -o ./static/css/app.css --watch"

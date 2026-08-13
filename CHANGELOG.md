@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.1.0-beta.6 (2026-08-14)
+
+### Features
+- Migrated to a compiled Tailwind CSS pipeline — replaces the Tailwind CDN with a generated `static/css/app.css` (build via `npm run build:css`)
+- Migrated dependency management to `uv` (lockfile, `uv sync`, two-stage Docker build)
+- Rebuilt all page templates with native Tailwind utility classes, mobile-first layouts, soft pill tags, and inline SVG (heroicons) icons
+- Sidebar toggle, user dropdown, and theme submenu now use Alpine.js
+- Static assets moved from `src/static/` to the root `static/` directory
+- Added GitHub issue templates (bug report, feature request, feature planning, documentation)
+
+### Bug Fixes
+- Password show/hide toggle on the login page — replaced corrupted eye/eye-off SVG paths with valid Material icons
+- Browser autofill no longer forces a white/yellow background on inputs in dark mode
+
+### UI Polish
+- Session detail page: back link moved to the action bar as an outlined button
+- Session detail buttons: Export CSV green, Edit blue
+
+### CI/CD
+- Matrix CI tests on Python 3.12-3.14
+- Prerelease and release workflows improved: `uv sync --frozen`, shared version-check action, container health smoke test, provenance + SBOM attestations, auto-generated GitHub release notes
+- Frontend tests updated for the compiled CSS and Alpine.js pipeline
+
+### Chores
+- Version sync script now keeps `package.json` and `package-lock.json` in sync with `src/version.py`
+- Docs and `AGENTS.md` updated to reflect the compiled Tailwind, Alpine.js, and inline SVG approach
+
+---
+
 ## v0.1.0-beta.5 (2026-07-28)
 
 ### Security (CRITICAL)
