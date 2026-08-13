@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="flex justify-between items-center mb-4">
+<div class="flex flex-wrap justify-between items-center gap-3 mb-4">
   <h2 class="text-xl font-semibold">Alerts</h2>
   <div class="flex items-center gap-3">
     <span class="text-sm text-gray-500 dark:text-gray-400" id="unresolved-count"></span>
@@ -10,29 +10,29 @@
 
 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
   <div class="flex flex-wrap gap-2 p-3 border-b border-gray-200 dark:border-gray-800">
-    <select id="filter-level" class="px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300" onchange="loadAlerts()">
+    <select id="filter-level" class="px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400" onchange="loadAlerts()">
       <option value="">All Levels</option>
       <option value="info">Info</option>
       <option value="warning">Warning</option>
       <option value="critical">Critical</option>
     </select>
-    <select id="filter-resolved" class="px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300" onchange="loadAlerts()">
+    <select id="filter-resolved" class="px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400" onchange="loadAlerts()">
       <option value="">All Status</option>
       <option value="false">Unresolved</option>
       <option value="true">Resolved</option>
     </select>
   </div>
-  <div class="">
+  <div class="overflow-x-auto">
     <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
-          <th class="text-left py-2 px-3 font-medium">Level</th>
-          <th class="text-left py-2 px-3 font-medium">Node</th>
-          <th class="text-left py-2 px-3 font-medium">Message</th>
-          <th class="text-left py-2 px-3 font-medium">Created</th>
-          <th class="text-left py-2 px-3 font-medium">Resolved</th>
-          <th class="text-right py-2 px-3 font-medium">Actions</th>
-        </tr>
+      <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-800/50 dark:text-gray-400">
+        <tr>
+          <th class="px-3 py-3">Level</th>
+          <th class="px-3 py-3">Node</th>
+          <th class="px-3 py-3">Message</th>
+          <th class="px-3 py-3">Created</th>
+          <th class="px-3 py-3">Resolved</th>
+          <th class="px-3 py-3 text-right">Actions</th>
+          </tr>
       </thead>
       <tbody id="alerts-tbody"></tbody>
     </table>
@@ -46,8 +46,12 @@
 let currentPage = 1;
 
 function levelBadge(level) {
-  var colors = { info: 'bg-blue-400', warning: 'bg-yellow-600', critical: 'bg-red-500' };
-  return '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white ' + (colors[level] || 'bg-gray-400') + '">' + level + '</span>';
+  var colors = {
+    info: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+    warning: 'border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300',
+    critical: 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/40 dark:text-red-300',
+  };
+  return '<span class="inline-flex items-center px-2 py-0.5 rounded-full border text-xs font-medium ' + (colors[level] || 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-300') + '">' + level + '</span>';
 }
 
 function loadAlerts(page) {

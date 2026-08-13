@@ -1,27 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-4">
-  <h2 class="text-xl font-semibold">Nodes</h2>
+<div class="flex justify-between items-center gap-3 mb-4">
+  <h2 class="min-w-0 text-xl font-semibold">Nodes</h2>
   <button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors" id="add-device-btn">Add Node</button>
 </div>
 
 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
-  <div class="">
+  <div class="overflow-x-auto">
     <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
-          <th class="text-left py-2 px-3 font-medium">Node ID</th>
-          <th class="text-left py-2 px-3 font-medium">Alias</th>
-          <th class="text-left py-2 px-3 font-medium">Project</th>
-          <th class="text-left py-2 px-3 font-medium">IP</th>
-          <th class="text-center py-2 px-3 font-medium">Firmware</th>
-          <th class="text-right py-2 px-3 font-medium">Interval</th>
-          <th class="text-center py-2 px-3 font-medium">Status</th>
-          <th class="text-center py-2 px-3 font-medium">Enabled</th>
-          <th class="text-left py-2 px-3 font-medium">Last Seen</th>
-          <th class="text-right py-2 px-3 font-medium">Actions</th>
-        </tr>
+      <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-800/50 dark:text-gray-400">
+        <tr>
+          <th class="px-3 py-3">Node ID</th>
+          <th class="px-3 py-3">Alias</th>
+          <th class="px-3 py-3">Project</th>
+          <th class="px-3 py-3">IP</th>
+          <th class="px-3 py-3 text-center">Firmware</th>
+          <th class="px-3 py-3 text-right">Interval</th>
+          <th class="px-3 py-3 text-center">Status</th>
+          <th class="px-3 py-3 text-center">Enabled</th>
+          <th class="px-3 py-3">Last Seen</th>
+          <th class="px-3 py-3 text-right">Actions</th>
+          </tr>
       </thead>
       <tbody id="devices-body"></tbody>
     </table>
@@ -71,18 +71,18 @@
       </div>
       <div class="mb-4 p-3 rounded border border-gray-300 dark:border-gray-700">
         <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Alert Thresholds (leave empty for global defaults)</p>
-        <div class="grid grid-cols-3 gap-2">
-          <div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="min-w-0">
             <label class="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">High Current (A)</label>
             <input type="number" name="high_current_threshold" id="field-high-current" step="0.01" min="0"
                    class="w-full px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
           </div>
-          <div>
+          <div class="min-w-0">
             <label class="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">High Power (W)</label>
             <input type="number" name="high_power_threshold" id="field-high-power" step="0.01" min="0"
                    class="w-full px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
           </div>
-          <div>
+          <div class="min-w-0">
             <label class="block text-xs text-gray-500 dark:text-gray-400 mb-0.5">Low Voltage (V)</label>
             <input type="number" name="low_voltage_threshold" id="field-low-voltage" step="0.01" min="0"
                    class="w-full px-2 py-1 rounded text-xs bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
@@ -99,7 +99,7 @@
       <div class="mb-4" id="api-key-section" style="display:none">
         <label class="block text-sm text-gray-500 dark:text-gray-400 mb-1">API Key</label>
         <div class="flex gap-2 items-center">
-          <code id="field-api-key" class="flex-1 px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 font-mono"></code>
+          <code id="field-api-key" class="flex-1 min-w-0 px-3 py-1.5 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 font-mono"></code>
           <button type="button" id="copy-key-btn" class="px-2 py-1.5 rounded text-xs font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors">Copy</button>
           <button type="button" id="regenerate-key-btn" class="px-2 py-1.5 rounded text-xs font-medium bg-yellow-500 text-white hover:bg-yellow-400 transition-colors">Regenerate</button>
         </div>
@@ -143,8 +143,8 @@ async function loadDevices(page) {
   const tbody = document.getElementById('devices-body');
   tbody.innerHTML = data.devices.map(d => {
     const status = d.status || 'offline';
-    const badge = status === 'online' ? 'bg-green-500' : 'bg-gray-400';
-    var enabledBadge = d.enabled ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-green-500">Yes</span>' : '<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white bg-gray-400">No</span>';
+    const badge = status === 'online' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-300';
+    var enabledBadge = d.enabled ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full border text-xs font-medium border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">Yes</span>' : '<span class="inline-flex items-center px-2 py-0.5 rounded-full border text-xs font-medium border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-300">No</span>';
     return `<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">
       <td class="py-2 px-3"><code class="text-blue-400">${d.device_id}</code></td>
       <td class="py-2 px-3">${d.alias || '—'}</td>
@@ -152,7 +152,7 @@ async function loadDevices(page) {
       <td class="py-2 px-3"><code class="text-xs">${d.local_ip || '—'}</code></td>
       <td class="py-2 px-3 text-center"><code class="text-xs">${d.firmware_version || '—'}</code></td>
       <td class="py-2 px-3 text-right">${d.sampling_interval}s</td>
-      <td class="py-2 px-3 text-center"><span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white ${badge}">${status}</span></td>
+      <td class="py-2 px-3 text-center"><span class="inline-flex items-center px-2 py-0.5 rounded-full border text-xs font-medium ${badge}">${status}</span></td>
       <td class="py-2 px-3 text-center">${enabledBadge}</td>
       <td class="py-2 px-3">${formatRelativeTime(d.last_seen)}</td>
       <td class="py-2 px-3 text-right">

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="w-full max-w-sm">
+<div class="w-full max-w-sm min-w-0">
     <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg shadow-xl p-6">
       <h2 class="text-xl font-semibold text-center mb-2">Sign in to {{ brand_name }}</h2>
       <div id="login-error" class="text-sm text-red-500 text-center mb-4 hidden"></div>
@@ -18,8 +18,10 @@
             <input type="password" name="password" id="password" autocomplete="current-password"
                    class="w-full px-3 py-1.5 pr-9 rounded text-sm bg-gray-50 dark:bg-gray-950 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-300 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400">
             <button type="button" id="password-toggle" tabindex="-1"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-300 transition-colors">
-              <iconify-icon icon="mdi:eye" class="text-lg"></iconify-icon>
+                    class="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:text-gray-300 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5 flex-shrink-0">
+  <path id="password-eye" d="M12 9a3 3 0 013 3 3 3 0 01-3 3 3 3 0 01-3-3 3 3 0 013-3m0-4a10 10 0 0110 10 10 10 0 01-20 0A10 10 0 0112 5m0 2a8 8 0 00-8 8 8 8 0 008 8 8 8 0 008-8 8 8 0 00-8-8m4.5 3.5l1.42 1.42-2.13 2.13c.13.31.21.62.21.95 0 2-1.57 3.5-3.5 3.5S8 16 8 14s1.57-3.5 3.5-3.5c.33 0 .64.08.95.21l2.13-2.13z"></path>
+</svg>
             </button>
           </div>
           <div id="password-error" class="text-xs text-red-500 mt-1 hidden"></div>
@@ -41,13 +43,15 @@
 
   document.getElementById('password-toggle').addEventListener('click', function() {
     var inp = document.getElementById('password');
-    var icon = this.querySelector('iconify-icon');
+    var path = document.getElementById('password-eye');
+    var EYE = 'M12 9a3 3 0 013 3 3 3 0 01-3 3 3 3 0 01-3-3 3 3 0 013-3m0-4a10 10 0 0110 10 10 10 0 01-20 0A10 10 0 0112 5m0 2a8 8 0 00-8 8 8 8 0 008 8 8 8 0 008-8 8 8 0 00-8-8m4.5 3.5l1.42 1.42-2.13 2.13c.13.31.21.62.21.95 0 2-1.57 3.5-3.5 3.5S8 16 8 14s1.57-3.5 3.5-3.5c.33 0 .64.08.95.21l2.13-2.13z';
+    var EYE_OFF = 'M2 5.27L3.28 4 20 20.72 18.73 22l-3.08-3.08c-1.15.38-2.37.58-3.65.58a10 10 0 01-10-10c0-1.28.2-2.5.58-3.65L2 5.27M12 5a10 10 0 0110 10c0 1.28-.2 2.5-.58 3.65L17.5 14.72c.32-.82.5-1.75.5-2.72a6 6 0 00-6-6c-.97 0-1.9.18-2.72.5L5.64 4.58A10 10 0 0112 5m0 2a6 6 0 016 6c0 .35-.04.7-.1 1.03L14.5 11.32c.32-.82.5-1.75.5-2.72 0-.97-.18-1.9-.5-2.72.33.03.66.1.97.2L12 6.9c-.35 0-.7.04-1.03.1l1.68-1.68c.03.1.1.2.2.32L15 7.76A6 6 0 0012 7m-3.32 6.5L7.03 15.14A10 10 0 0112 21a6 6 0 0010-10c0-1.2-.21-2.34-.59-3.4l-2.1 2.1c.45.6.69 1.3.69 1.3A6 6 0 0114 19.5c.3-.3.5-.7.5-1.2l-2.72-2.7a6 6 0 00-3.1-2.1z';
     if (inp.type === 'password') {
       inp.type = 'text';
-      icon.setAttribute('icon', 'mdi:eye-off');
+      path.setAttribute('d', EYE_OFF);
     } else {
       inp.type = 'password';
-      icon.setAttribute('icon', 'mdi:eye');
+      path.setAttribute('d', EYE);
     }
   });
 

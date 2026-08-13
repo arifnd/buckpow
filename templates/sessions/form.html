@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-xl font-semibold mb-4">{% if session %}Edit Session{% else %}Create Session{% endif %}</h2>
+<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+  <h2 class="text-xl font-semibold">{% if session %}Edit Session{% else %}Create Session{% endif %}</h2>
+  <a href="/sessions" class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors">Back to Sessions</a>
+</div>
 
 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg p-4">
   <form id="session-form" class="max-w-lg" hx-boost="false">
@@ -42,7 +45,7 @@
         {% endfor %}
       </select>
     </div>
-    <div class="flex gap-2">
+    <div class="flex flex-wrap gap-2">
       <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
       <a href="/sessions" class="inline-flex items-center px-4 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors">Cancel</a>
     </div>

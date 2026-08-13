@@ -1,26 +1,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-4">
+<div class="flex flex-wrap items-center justify-between gap-2 mb-4">
   <h2 class="text-xl font-semibold">Sessions</h2>
   <button class="inline-flex items-center px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors" id="create-session-btn">Create Session</button>
 </div>
 
 <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg">
-  <div class="">
+  <div class="overflow-x-auto">
     <table class="w-full text-sm">
-      <thead>
-        <tr class="border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400">
-          <th class="text-left py-2 px-3 font-medium">Name</th>
-          <th class="text-left py-2 px-3 font-medium">Node ID</th>
-          <th class="text-left py-2 px-3 font-medium">Target Device</th>
-          <th class="text-left py-2 px-3 font-medium">Project</th>
-          <th class="text-left py-2 px-3 font-medium">Status</th>
-          <th class="text-left py-2 px-3 font-medium">Duration</th>
-          <th class="text-right py-2 px-3 font-medium">AVG Power</th>
-          <th class="text-right py-2 px-3 font-medium">Energy</th>
-          <th class="text-right py-2 px-3 font-medium">Actions</th>
-        </tr>
+      <thead class="bg-gray-50 text-left text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-800/50 dark:text-gray-400">
+        <tr>
+          <th class="px-3 py-3 whitespace-nowrap">Name</th>
+          <th class="px-3 py-3 whitespace-nowrap">Node ID</th>
+          <th class="px-3 py-3 whitespace-nowrap">Target Device</th>
+          <th class="px-3 py-3 whitespace-nowrap">Project</th>
+          <th class="px-3 py-3 whitespace-nowrap">Status</th>
+          <th class="px-3 py-3 whitespace-nowrap">Duration</th>
+          <th class="px-3 py-3 whitespace-nowrap text-right">AVG Power</th>
+          <th class="px-3 py-3 whitespace-nowrap text-right">Energy</th>
+          <th class="px-3 py-3 whitespace-nowrap text-right">Actions</th>
+          </tr>
       </thead>
       <tbody id="sessions-body"></tbody>
     </table>
@@ -65,7 +65,7 @@
           <option value="">No project</option>
         </select>
       </div>
-      <div class="flex justify-end gap-2">
+      <div class="flex flex-wrap justify-end gap-2">
         <button type="button" class="px-4 py-1.5 rounded text-sm font-medium bg-gray-600 text-white hover:bg-gray-500 transition-colors" id="session-modal-cancel">Cancel</button>
         <button type="submit" class="px-4 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-500 transition-colors">Save</button>
       </div>
@@ -83,8 +83,12 @@ var allDeviceOpts = [];
 var _initialized = false;
 
 function statusBadge(status) {
-  const map = {draft: 'bg-gray-400', running: 'bg-green-500', finished: 'bg-blue-600'};
-  return `<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium text-white ${map[status] || 'bg-gray-400'}">${status}</span>`;
+  const map = {
+    draft: 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-300',
+    running: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
+    finished: 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/40 dark:text-blue-300',
+  };
+  return `<span class="inline-flex items-center px-2 py-0.5 rounded-full border text-xs font-medium ${map[status] || 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-700/50 dark:text-gray-300'}">${status}</span>`;
 }
 
 function formatDuration(startedAt, endedAt, status) {

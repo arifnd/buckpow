@@ -24,7 +24,7 @@ async function loadMeasurements(page) {
 
   const tbody = document.getElementById('measurements-body');
   tbody.innerHTML = data.measurements.map(m => `<tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800">
-    <td class="py-2 px-2">${m.device_name || m.device_id}</td>
+    <td class="whitespace-nowrap py-2 px-2">${m.device_name || m.device_id}</td>
     <td class="py-2 px-2">${m.session_name || '\u2014'}</td>
     <td class="py-2 px-2 text-right">${m.bus_voltage.toFixed(3)} V</td>
     <td class="py-2 px-2 text-right">${fmtCurrent(m.current)}</td>
