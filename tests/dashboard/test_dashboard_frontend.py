@@ -36,20 +36,22 @@ class TestFrontend:
     def test_dashboard_has_static_links(self, client):
         resp = client.get("/")
         html = resp.content.decode()
-        assert "/static/css/style.css" in html
+        assert "/static/css/app.css" in html
         assert "/static/js/charts.js" in html
         assert "/static/js/dashboard.js" in html
 
-    def test_dashboard_has_tailwind_cdn(self, client):
+    def test_dashboard_uses_compiled_css(self, client):
         resp = client.get("/")
-        assert "cdn.tailwindcss.com" in resp.content.decode()
+        html = resp.content.decode()
+        assert "/static/css/app.css" in html
+        assert "cdn.tailwindcss.com" not in html
 
     def test_dashboard_has_chartjs_cdn(self, client):
         resp = client.get("/")
         assert "cdn.jsdelivr.net/npm/chart.js" in resp.content.decode()
 
     def test_static_css_served(self, client):
-        resp = client.get("/static/css/style.css")
+        resp = client.get("/static/css/app.css")
         assert resp.status_code == 200
 
     def test_static_js_served(self, client):
@@ -311,7 +313,7 @@ class TestNavigationCompleteness:
 
 class TestStaticAssets:
     def test_static_css_returns_200(self, client):
-        assert client.get("/static/css/style.css").status_code == 200
+        assert client.get("/static/css/app.css").status_code == 200
 
     def test_static_dashboard_js_returns_200(self, client):
         assert client.get("/static/js/dashboard.js").status_code == 200
@@ -325,8 +327,10 @@ class TestStaticAssets:
     def test_static_benchmark_js_returns_200(self, client):
         assert client.get("/static/js/benchmark.js").status_code == 200
 
-    def test_dashboard_references_tailwind_cdn(self, client):
-        assert "cdn.tailwindcss.com" in client.get("/").content.decode()
+    def test_dashboard_references_compiled_css(self, client):
+        html = client.get("/").content.decode()
+        assert "cdn.tailwindcss.com" not in html
+        assert "/static/css/app.css" in html
 
     def test_dashboard_references_chartjs_cdn(self, client):
         assert "cdn.jsdelivr.net/npm/chart.js" in client.get("/").content.decode()
@@ -334,8 +338,9 @@ class TestStaticAssets:
     def test_dashboard_references_htmx_cdn(self, client):
         assert "htmx.org" in client.get("/").content.decode()
 
-    def test_dashboard_references_iconify_cdn(self, client):
-        assert "iconify" in client.get("/").content.decode().lower()
+    def test_dashboard_references_alpine_cdn(self, client):
+        assert "alpinejs" in client.get("/").content.decode().lower()
+        assert "iconify" not in client.get("/").content.decode().lower()
 
     def test_benchmark_references_benchmark_js(self, client):
         assert "benchmark.js" in client.get("/benchmark").content.decode()
