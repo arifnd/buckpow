@@ -13,6 +13,9 @@ data/*.db-journal
 data/*.db-wal
 data/*.db-shm
 
+# Node
+node_modules/
+
 # Environment
 .env
 

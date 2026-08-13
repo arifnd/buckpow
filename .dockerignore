@@ -1,45 +1,15 @@
-# Version control
-.git/
-.gitignore
-
-# Python
-venv/
-.venv/
-env/
-__pycache__/
+.venv
+venv
+node_modules
+__pycache__
 *.pyc
-.pytest_cache/
+.pytest_cache
 .coverage
-
-# Environment & secrets
+instance
 .env
-
-# IDE & OS
-.DS_Store
-.vscode/
-.idea/
-
-# Tests
-tests/
-
-# Documentation
-*.md
-docs/
-gallery/
-mkdocs.yml
-
-# Dev & CI files
-.github/
-tasks/
-firmware/
-pyproject.toml
-run.py
-requirements.txt
-
-# Docker (not needed inside container)
-Dockerfile
-docker-compose.yml
-docker-compose.cloud.yml
-
-# Database (auto-created at runtime)
-instance/
+.git
+.github
+docs
+tests
+scripts
+tasks

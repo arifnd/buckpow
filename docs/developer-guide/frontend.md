@@ -61,7 +61,7 @@ templates/
 
 static/
 ├── css/
-│   └── style.css                # Custom styles
+│   └── app.css                   # Compiled Tailwind + custom styles
 └── js/
     ├── format.js               # Unit formatting (fmtCurrent, fmtPower, fmtEnergy)
     ├── dashboard.js             # Dashboard logic
@@ -328,16 +328,19 @@ function toggleSidebar() {
 
 ## Custom CSS
 
-Minimal custom styles in `static/css/style.css`:
+Add custom styles to the Tailwind source at `resources/css/app.css`, then rebuild with `npm run build:css`. The compiled output is served at `static/css/app.css`:
 
 ```css
+/* resources/css/app.css */
 html {
   font-size: 17px;
 }
 
-.chart-container {
-  position: relative;
-  height: 220px;
+@layer components {
+  .chart-container {
+    position: relative;
+    height: 220px;
+  }
 }
 
 /* Custom scrollbar */
