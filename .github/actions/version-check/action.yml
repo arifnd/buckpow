@@ -1,0 +1,20 @@
+name: "Verify tag version"
+description: "Fail the build if the git tag does not match APP_VERSION in src/version.py"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Check tag matches src/version.py
+      shell: bash
+      run: |
+        TAG="${GITHUB_REF_NAME#v}"
+        VERSION=$(sed -n 's/^APP_VERSION = "\(.*\)"/\1/p' src/version.py)
+        if [ -z "$VERSION" ]; then
+          echo "::error::APP_VERSION not found in src/version.py"
+          exit 1
+        fi
+        if [ "$TAG" != "$VERSION" ]; then
+          echo "::error::Git tag '${GITHUB_REF_NAME}' does not match src/version.py APP_VERSION '${VERSION}'"
+          exit 1
+        fi
+        echo "Version verified: ${VERSION}"

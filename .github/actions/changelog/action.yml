@@ -1,0 +1,28 @@
+name: "Generate changelog"
+description: "Build a markdown changelog from commits since the previous tag"
+
+outputs:
+  changelog:
+    description: "Markdown changelog between the previous tag and HEAD"
+    value: ${{ steps.gen.outputs.changelog }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate changelog
+      id: gen
+      shell: bash
+      run: |
+        PREV_TAG=$(git tag --sort=-creatordate | sed -n '2p' || true)
+        if [ -n "$PREV_TAG" ]; then
+          RANGE="${PREV_TAG}..HEAD"
+          LOG=$(git log --oneline --no-merges --format='- %s' ${RANGE} | head -100)
+        else
+          LOG=$(git log --oneline --no-merges --format='- %s' | head -100)
+        fi
+        if [ -z "$LOG" ]; then
+          LOG="- No notable changes"
+        fi
+        echo "changelog<<EOF" >> "$GITHUB_OUTPUT"
+        echo "$LOG" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"

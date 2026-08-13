@@ -1,15 +1,30 @@
-name: CD
+name: Release
 
 on:
   push:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   IMAGE_NAME: arifnd/buckpow
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify tag version
+        uses: ./.github/actions/version-check
+
   test:
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -18,47 +33,30 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
-          cache-dependency-glob: "requirements/*.txt"
+          cache-dependency-glob: "uv.lock"
 
       - name: Set up Python
         run: uv python install 3.12
 
-      - name: Create Virtual Environment
-        run: uv venv
-
       - name: Install dependencies
-        run: uv pip install -r requirements/dev.txt pytest-xdist
+        run: uv sync --frozen
 
       - name: Run Tests
         run: uv run pytest tests/ -v --tb=short -n auto --durations=5 --cov=src --cov-report=term-missing
         env:
           JWT_SECRET: test-secret-key-that-is-long-enough-for-hmac-sha256
 
-  docker-build-test:
+  docker:
     needs: test
     runs-on: ubuntu-latest
-    if: "!contains(github.ref_name, '-')"
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
-      - name: Build Docker image
-        run: docker build -t ${{ env.IMAGE_NAME }}:test .
-
-      - name: Smoke test
-        run: |
-          docker run -d --name test-container -p 8000:8000 \
-            -e JWT_SECRET=test-secret-key-that-is-long-enough-for-hmac-sha256 \
-            ${{ env.IMAGE_NAME }}:test
-          sleep 5
-          curl -sf http://localhost:8000/api/v1/health || exit 1
-          docker stop test-container
-
-  build-and-push:
-    needs: docker-build-test
-    runs-on: ubuntu-latest
-    if: "!contains(github.ref_name, '-')"
-    steps:
-      - uses: actions/checkout@v7
+      - name: Generate changelog
+        id: changelog
+        uses: ./.github/actions/changelog
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -66,8 +64,8 @@ jobs:
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Extract metadata
         id: meta
@@ -80,10 +78,43 @@ jobs:
             type=semver,pattern={{major}}
             type=raw,value=latest
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Build and load for smoke test
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:smoke
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        run: |
+          docker run -d --name test-container -p 8000:8000 \
+            -e JWT_SECRET=test-secret-key-that-is-long-enough-for-hmac-sha256 \
+            ${{ env.IMAGE_NAME }}:smoke
+          sleep 5
+          curl -sf http://localhost:8000/api/v1/health || exit 1
+          docker stop test-container
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: mode=max
+          sbom: true
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref }}
+          body: |
+            ## Changes
+
+            ${{ steps.changelog.outputs.changelog }}
+          prerelease: false
