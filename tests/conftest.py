@@ -170,9 +170,8 @@ def sample_alert(app, sample_device_id):
 
 
 @pytest.fixture()
-def file_db():
-    db_path = os.path.join(os.path.dirname(__file__), "..", "instance", "test_buckpow.db")
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+def file_db(tmp_path):
+    db_path = str(tmp_path / "test_buckpow.db")
     file_engine = create_engine(f"sqlite:///{db_path}")
     Base.metadata.create_all(bind=file_engine)
     file_engine.dispose()

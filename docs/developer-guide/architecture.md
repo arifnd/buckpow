@@ -73,8 +73,8 @@ buckpow/
 │   ├── dashboard/           # Dashboard pages, API, service
 │   ├── middleware/           # ASGI middleware (rate limiter)
 │   ├── utils/               # Utility functions
-│   └── static/              # CSS, JS
 ├── templates/               # Jinja2 templates
+├── static/                  # CSS, JS
 ├── firmware/                # Arduino sketches
 ├── migrations/              # Alembic migrations
 ├── tests/                   # Pytest suite (by domain)
@@ -82,8 +82,9 @@ buckpow/
 ├── tasks/                   # Task management
 ├── nginx/                   # Nginx config for Docker
 ├── docs/                    # Documentation source (MkDocs)
-├── requirements/            # Split dependencies (base/dev/prod)
-├── pyproject.toml           # Project config, ruff, pytest
+├── requirements/            # pip-compatible requirements (mirror pyproject.toml)
+├── pyproject.toml           # Single source of truth for deps, ruff, pytest
+├── uv.lock                  # uv lockfile (reproducible installs)
 ├── mkdocs.yml               # MkDocs config
 ├── alembic.ini              # Alembic config
 ├── Dockerfile               # Container build

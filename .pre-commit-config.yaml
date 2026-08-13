@@ -5,3 +5,10 @@ repos:
       - id: ruff-check
         args: [--fix]
       - id: ruff-format
+  - repo: local
+    hooks:
+      - id: sync-version
+        name: Sync pyproject version from src/version.py
+        entry: python scripts/sync_version.py
+        language: python
+        pass_filenames: false

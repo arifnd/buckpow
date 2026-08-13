@@ -497,12 +497,18 @@ Energy observability platform built with FastAPI + SQLAlchemy + SQLite. Receives
 ## Quick start
 
 ```bash
-source venv/bin/activate
-pip install -r requirements/dev.txt
+# uv is the default package manager (pip-compatible; see "Package management")
+uv sync           # creates .venv and installs all deps (incl. dev)
 fastapi run src/main.py
 ```
 
 Tables auto-create on first run. Default admin: `admin@example.com` / `password`.
+
+## Package management
+
+- **Default: uv** — `uv sync` installs from `pyproject.toml` + `uv.lock` into `.venv`.
+- **pip compatible** — `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements/dev.txt` also works.
+- The environment lives at `.venv/` (not `venv/`). Run tools via `uv run <cmd>` or activate first.
 
 ## API endpoints
 
@@ -597,7 +603,7 @@ curl -X POST http://localhost:8000/api/v1/measurements \
 - **Export** — CSV and XLSX with date range filtering
 - **Docker** — PostgreSQL + Nginx production stack via docker-compose
 - **Migration ready** — Flask-Migrate / Alembic configured for future PostgreSQL
-- **Virtual env** at `venv/` — activate before Python commands
+- **Virtual env** at `.venv/` — created by `uv sync`; activate before Python commands
 - **Passwords** — bcrypt via passlib; existing scrypt hashes migrated automatically
 
 ## Send dummy data

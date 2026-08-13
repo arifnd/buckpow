@@ -145,13 +145,14 @@ Measurement nodes collect readings from edge devices and send them to the BuckPo
     ```bash
     git clone https://github.com/arifnd/buckpow.git
     cd buckpow
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install -r requirements/dev.txt
+    uv sync
     fastapi dev src/main.py --port 8000
     ```
 
     Tables auto-create on first run with SQLite.
+
+    !!! note "pip compatibility"
+        `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements/dev.txt` also works.
 
 ## Environment Variables
 

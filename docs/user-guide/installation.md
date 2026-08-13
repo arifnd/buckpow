@@ -72,9 +72,7 @@ Full installation guide for BuckPow with all configuration options.
     ```bash
     git clone https://github.com/arifnd/buckpow.git
     cd buckpow
-    python3 -m venv venv
-    source venv/bin/activate
-pip install -r requirements/dev.txt
+    uv sync
 ```
 
 **2. Create environment file (optional)**
@@ -99,6 +97,9 @@ fastapi dev src/main.py --port 8000
     !!! info "Auto-reload"
         The development server auto-reloads when code changes.
 
+    !!! note "pip compatibility"
+        `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements/dev.txt` also works.
+
 === "Local Production"
 
     ### Production Server
@@ -110,9 +111,7 @@ fastapi dev src/main.py --port 8000
     ```bash
     git clone https://github.com/arifnd/buckpow.git
     cd buckpow
-    python3 -m venv venv
-    source venv/bin/activate
-pip install -r requirements/prod.txt
+    uv sync
 ```
 
 **2. Configure environment**
@@ -179,7 +178,7 @@ DATABASE_URL=mysql+pymysql://user:password@host:3306/dbname
     SQLite requires no configuration. The database file is created automatically at `instance/buckpow.db`.
 
 !!! info "PostgreSQL / MySQL"
-    Requires the corresponding driver. Both are included in `requirements/base.txt`.
+    Requires the corresponding driver. Both are included in `requirements/prod.txt`.
 
 ### Admin Account
 
@@ -393,8 +392,7 @@ curl -X POST http://localhost:8000/api/v1/measurements \
     ```bash
     cd buckpow
     git pull
-    source venv/bin/activate
-    pip install -r requirements/prod.txt
+    uv sync
     alembic upgrade head
     ```
 

@@ -7,7 +7,7 @@ Get BuckPow running locally with Python in 5 minutes.
 ## Prerequisites
 
 - Python 3.12+
-- pip
+- [uv](https://docs.astral.sh/uv/) (default package manager; `pip` works too)
 
 <!-- TODO: Replace with local development diagram -->
 
@@ -16,9 +16,7 @@ Get BuckPow running locally with Python in 5 minutes.
 ```bash
 git clone https://github.com/arifnd/buckpow.git
 cd buckpow
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements/dev.txt
+uv sync
 ```
 
 ## Step 2 — Configure Environment (Optional)
@@ -142,11 +140,10 @@ fastapi dev src/main.py --port 8001
 
 ### Module not found
 
-Ensure your virtual environment is activated:
+Ensure your virtual environment is installed:
 
 ```bash
-source venv/bin/activate
-pip install -r requirements/dev.txt
+uv sync
 ```
 
 ### Database errors

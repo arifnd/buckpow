@@ -27,12 +27,8 @@ Please open an issue before submitting large changes to discuss the proposed imp
 git clone https://github.com/arifnd/buckpow.git
 cd buckpow
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements/dev.txt
+# Install dependencies (creates .venv with uv)
+uv sync
 
 # Start development server
 fastapi dev src/main.py --port 8000
@@ -41,13 +37,13 @@ fastapi dev src/main.py --port 8000
 ### Running Tests
 
 ```bash
-python -m pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 ### Sending Dummy Data
 
 ```bash
-python scripts/send_dummy.py --interval 1
+uv run python scripts/send_dummy.py --interval 1
 ```
 
 ## Project Structure
@@ -76,16 +72,16 @@ buckpow/
 │   ├── dashboard/     # Dashboard pages
 │   ├── middleware/     # ASGI middleware
 │   ├── utils/         # Utility functions
-│   └── static/        # CSS, JS
 ├── templates/         # Jinja2 templates (project root)
+├── static/            # CSS, JS
 ├── firmware/          # Arduino sketches
 ├── migrations/        # Alembic migrations
 ├── tests/             # Test suite (by domain)
 ├── scripts/           # Helper scripts
 ├── tasks/             # Task management
 ├── nginx/             # Nginx config for Docker
-├── requirements/      # Split dependencies (base/dev/prod)
-├── pyproject.toml     # Project config, ruff, pytest
+├── requirements/      # pip-compatible requirements (mirror pyproject.toml)
+├── pyproject.toml     # Single source of truth for deps, ruff, pytest
 ├── mkdocs.yml         # MkDocs config
 ├── alembic.ini        # Alembic config
 ├── Dockerfile         # Container build
@@ -243,14 +239,11 @@ def test_create_device(client, auth_headers):
 Documentation is built with MkDocs Material:
 
 ```bash
-# Install MkDocs
-pip install mkdocs mkdocs-material
-
-# Serve locally
-mkdocs serve
+# Serve locally (MkDocs is installed via `uv sync`)
+uv run mkdocs serve
 
 # Build static site
-mkdocs build
+uv run mkdocs build
 ```
 
 ### Adding Pages

@@ -208,15 +208,17 @@ docker compose up -d
 ### Development
 
 ```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements/dev.txt
+uv sync
 fastapi dev src/main.py --port 8000
 ```
 
 Tables are automatically created on first startup when using SQLite.
 
 The administrator account is automatically created if `ADMIN_EMAIL` and `ADMIN_PASSWORD` are configured.
+
+> `uv sync` creates the virtual environment at `.venv/` and installs all dependencies (including dev).
+> Prefer `uv` (the default package manager), but `pip` works too:
+> `python3 -m venv .venv && source .venv/bin/activate && pip install -r requirements/dev.txt`
 
 ### Production
 
@@ -276,7 +278,7 @@ API key is optional when authentication is disabled (dev mode). Get the key from
 Run the test suite.
 
 ```bash
-python -m pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 ### Send dummy data
@@ -284,7 +286,7 @@ python -m pytest tests/ -v
 Generate dummy measurements.
 
 ```bash
-python scripts/send_dummy.py --interval 1 --api-key <key>
+uv run python scripts/send_dummy.py --interval 1 --api-key <key>
 ```
 
 ## Contributing
