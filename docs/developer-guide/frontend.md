@@ -59,7 +59,7 @@ templates/
 └── audit/
     └── index.html               # Audit log viewer
 
-src/static/
+static/
 ├── css/
 │   └── style.css                # Custom styles
 └── js/
@@ -328,7 +328,7 @@ function toggleSidebar() {
 
 ## Custom CSS
 
-Minimal custom styles in `src/static/css/style.css`:
+Minimal custom styles in `static/css/style.css`:
 
 ```css
 html {

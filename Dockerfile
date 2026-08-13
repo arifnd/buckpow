@@ -11,6 +11,7 @@ COPY .env.example /app/.env
 COPY alembic.ini /app/alembic.ini
 COPY ./migrations /app/migrations
 COPY ./src /app/src
+COPY ./static /app/static
 COPY ./templates /app/templates
 
 RUN mkdir -p /app/instance && chown -R appuser:appuser /app

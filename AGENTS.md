@@ -481,7 +481,7 @@ Energy observability platform built with FastAPI + SQLAlchemy + SQLite. Receives
 | `src/utils/` | Utility functions (calculations, errors, validators, hash, pagination, query) |
 | `templates/` | Jinja2 templates (Tailwind CSS, HTMX) |
 | `templates/_partials/` | Reusable template fragments (confirm modal, etc.) |
-| `src/static/` | CSS, JS (format, Chart.js, dashboard, theme) |
+| `static/` | CSS, JS (format, Chart.js, dashboard, theme) |
 | `instance/buckpow.db` | SQLite database (auto-created) |
 | `migrations/` | Alembic migration files (Flask-Migrate) |
 | `scripts/send_dummy.py` | Dummy data generator |

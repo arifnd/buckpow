@@ -98,7 +98,7 @@ app.add_middleware(
 )
 
 # 3. Static files
-app.mount('/static', StaticFiles(directory='src/static'), name='static')
+app.mount('/static', StaticFiles(directory='static'), name='static')
 ```
 
 ### Router Mounting

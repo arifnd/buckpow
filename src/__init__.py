@@ -107,7 +107,7 @@ app.add_middleware(
 
 app.add_middleware(CSRFMiddleware, secret_key=config.JWT_SECRET)
 
-app.mount("/static", StaticFiles(directory="src/static"), name="static")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(api_router, prefix="/api/v1")
 app.include_router(dashboard_router)
