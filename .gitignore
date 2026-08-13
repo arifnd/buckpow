@@ -16,6 +16,9 @@ data/*.db-shm
 # Node
 node_modules/
 
+# Docs build
+site/
+
 # Environment
 .env
 
